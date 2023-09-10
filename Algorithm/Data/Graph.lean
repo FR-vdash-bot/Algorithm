@@ -9,15 +9,14 @@ structure Graph where
   fst' : EType → V
   snd' : EType → V
   StarList : Type _
-  [assocArrayStarList : AssocArray V (List EType) StarList]
+  [assocArrayStarList : AssocArray StarList V (List EType)]
   star' : StarList
   costar' : StarList
-  fst_star' : ∀ v, ∀ e ∈ AssocArray.get star' v, fst' e = v
-  snd_costar' : ∀ v, ∀ e ∈ AssocArray.get costar' v, snd' e = v
-  nodup_star' : ∀ v, (AssocArray.get star' v).Nodup
-  nodup_costar' : ∀ v, (AssocArray.get costar' v).Nodup
-  mem_star'_iff_mem_costar' : ∀ e,
-    e ∈ AssocArray.get star' (fst' e) ↔ e ∈ AssocArray.get costar' (snd' e)
+  fst_star' : ∀ v, ∀ e ∈ star'[v], fst' e = v
+  snd_costar' : ∀ v, ∀ e ∈ costar'[v], snd' e = v
+  nodup_star' : ∀ v : V, star'[v].Nodup
+  nodup_costar' : ∀ v : V, costar'[v].Nodup
+  mem_star'_iff_mem_costar' : ∀ e, e ∈ star'[fst' e] ↔ e ∈ costar'[snd' e]
 
 namespace Graph
 
@@ -30,8 +29,8 @@ variable {g : Graph}
 def EType.fst (e : g.EType) : g.V := g.fst' e
 def EType.snd (e : g.EType) : g.V := g.snd' e
 
-def V.star (v : g.V) : List g.EType := AssocArray.get g.star' v
-def V.costar (v : g.V) : List g.EType := AssocArray.get g.costar' v
+def V.star (v : g.V) : List g.EType := g.star'[v]
+def V.costar (v : g.V) : List g.EType := g.costar'[v]
 
 lemma fst_star (v : g.V) : ∀ e ∈ v.star, e.fst = v := g.fst_star' v
 lemma snd_costar (v : g.V) : ∀ e ∈ v.costar, e.snd = v := g.snd_costar' v
