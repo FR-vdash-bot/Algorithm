@@ -3,7 +3,7 @@ Copyright (c) 2023 Yuyang Zhao. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuyang Zhao
 -/
-import Mathlib.Data.List.Basic
+import Algorithm.Data.Classes.Collection
 
 namespace Option
 
@@ -116,14 +116,17 @@ lemma StackLike.Aux.toList_ofList {S : Type*} {α : outParam Type*}
 macro "stackLike_toList_ofList_tac" : tactic =>
   `(tactic| exact StackLike.Aux.toList_ofList _ _ _)
 
-class StackLike (S : Type*) (α : outParam Type*) where
+class StackLike (S : Type*) (α : outParam Type*) extends Collection S α where
   toList : S → List α
   toArray : S → Array α
   toListRev_toArray a : (toArray a).toListRev = toList a
-  isEmpty : S → Bool
-  isEmpty_toList s : (toList s).isEmpty = isEmpty s
-  empty : S
-  isEmpty_empty : isEmpty empty
+  length_toList s : (toList s).length = size s
+  size_toArray s : (toArray s).size = size s :=
+    Eq.trans (by simp [← toListRev_toArray]) (length_toList s)
+  isEmpty_toList s : (toList s).isEmpty = isEmpty s :=
+    ((List.isEmpty_eq_decide_length _).trans
+      (by rw [decide_eq_decide, length_toList])).trans
+      (Collection.isEmpty_eq_decide_size s).symm
   push : S → α → S
   cons_toList s a : (toList s).cons a = toList (push s a)
   peek? : S → Option α
@@ -148,10 +151,7 @@ instance : StackLike (List α) α where
   toList := id
   toArray l := l.toArray.reverse
   toListRev_toArray := by simp
-  isEmpty := List.isEmpty
-  isEmpty_toList _ := rfl
-  empty := []
-  isEmpty_empty := rfl
+  length_toList _ := rfl
   push l a := List.cons a l
   cons_toList _ _ := rfl
   peek? := List.head?
@@ -169,10 +169,7 @@ instance : StackLike (Array α) α where
   toList := Array.toListRev
   toArray := id
   toListRev_toArray _ := rfl
-  isEmpty := Array.isEmpty
-  isEmpty_toList := Array.isEmpty_toListRev
-  empty := #[]
-  isEmpty_empty := rfl
+  length_toList _ := by simp; rfl
   push := Array.push
   cons_toList _ _ := by simp
   peek? := Array.back?
