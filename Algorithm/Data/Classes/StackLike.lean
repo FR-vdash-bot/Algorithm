@@ -88,29 +88,23 @@ end Array
 
 set_option linter.unusedVariables false in
 @[nolint unusedArguments]
-def StackLike.Aux.ofList {S : Type*} {α : outParam Type*}
+def StackLike.Aux.ofList {S : Type*} {α : outParam Type*} [Collection S α]
     {toList : S → List α}
-    {isEmpty : S → Bool}
-    (isEmpty_toList : ∀ s, (toList s).isEmpty = isEmpty s)
-    {empty : S}
-    (isEmpty_empty : isEmpty empty)
+    (isEmpty_toList : ∀ s, (toList s).isEmpty = Collection.isEmpty s)
     {push : S → α → S}
     (cons_toList : ∀ s a, (toList s).cons a = toList (push s a)) :
     List α → S :=
-  fun l ↦ l.foldr (fun x l ↦ push l x) empty
+  fun l ↦ l.foldr (fun x l ↦ push l x) Collection.empty
 
 @[simp]
-lemma StackLike.Aux.toList_ofList {S : Type*} {α : outParam Type*}
+lemma StackLike.Aux.toList_ofList {S : Type*} {α : outParam Type*} [Collection S α]
     {toList : S → List α}
-    {isEmpty : S → Bool}
-    (isEmpty_toList : ∀ s, (toList s).isEmpty = isEmpty s)
-    {empty : S}
-    (isEmpty_empty : isEmpty empty)
+    (isEmpty_toList : ∀ s, (toList s).isEmpty = Collection.isEmpty s)
     {push : S → α → S}
     (cons_toList : ∀ s a, (toList s).cons a = toList (push s a))
     (l) :
-    toList (ofList isEmpty_toList isEmpty_empty cons_toList l) = l :=
-  l.recOn (List.isEmpty_iff_eq_nil.mp ((isEmpty_toList _).trans isEmpty_empty))
+    toList (ofList isEmpty_toList cons_toList l) = l :=
+  l.recOn (List.isEmpty_iff_eq_nil.mp ((isEmpty_toList _).trans Collection.isEmpty_empty))
     (fun _ _ ih ↦ (cons_toList _ _).symm.trans (congr_arg₂ _ rfl ih))
 
 macro "stackLike_toList_ofList_tac" : tactic =>
@@ -118,9 +112,12 @@ macro "stackLike_toList_ofList_tac" : tactic =>
 
 class StackLike (S : Type*) (α : outParam Type*) extends Collection S α where
   toList : S → List α
+  coe_toList_eq_toMultiset s : ↑(toList s) = toMultiset s := by intro; rfl
   toArray : S → Array α
   toListRev_toArray a : (toArray a).toListRev = toList a
-  length_toList s : (toList s).length = size s
+  length_toList s : (toList s).length = size s :=
+    ((congr_arg Multiset.card (coe_toList_eq_toMultiset s))).trans
+      (Collection.card_toMultiset_eq_size s)
   size_toArray s : (toArray s).size = size s :=
     Eq.trans (by simp [← toListRev_toArray]) (length_toList s)
   isEmpty_toList s : (toList s).isEmpty = isEmpty s :=
@@ -139,10 +136,12 @@ class StackLike (S : Type*) (α : outParam Type*) extends Collection S α where
     fun h ↦ (peek? s).get (by rw [← head?_toList, List.head?_isSome, isEmpty_toList, h]; rfl)
   peekD_def s d : peekD s d = (peek? s).getD d := by intros; rfl
   peek_mem s h : peek s h ∈ peek? s := by simp
-  ofList : List α → S := StackLike.Aux.ofList isEmpty_toList isEmpty_empty cons_toList
+  ofList : List α → S := StackLike.Aux.ofList isEmpty_toList cons_toList
   toList_ofList l : toList (ofList l) = l := by stackLike_toList_ofList_tac
 -- TODO: `ofStream`, not `ofList`? or not this name?
 -- TODO: `toStream`?
+
+attribute [simp] StackLike.coe_toList_eq_toMultiset
 
 section
 variable {α : Type*}
@@ -151,7 +150,6 @@ instance : StackLike (List α) α where
   toList := id
   toArray l := l.toArray.reverse
   toListRev_toArray := by simp
-  length_toList _ := rfl
   push l a := List.cons a l
   cons_toList _ _ := rfl
   peek? := List.head?
@@ -169,7 +167,6 @@ instance : StackLike (Array α) α where
   toList := Array.toListRev
   toArray := id
   toListRev_toArray _ := rfl
-  length_toList _ := by simp; rfl
   push := Array.push
   cons_toList _ _ := by simp
   peek? := Array.back?
