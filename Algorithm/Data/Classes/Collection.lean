@@ -10,6 +10,9 @@ class Collection (C : Type*) (α : outParam Type*) where
   toMultiset : C → Multiset α
   isEmpty : C → Bool
   size : C → Nat
+  count : [DecidableEq α] → α → C → Nat := fun v c ↦ (toMultiset c).count v
+  count_toMultiset : [DecidableEq α] → ∀ v c,
+    (toMultiset c).count v = count v c := by intros; rfl
   card_toMultiset_eq_size c : Multiset.card (toMultiset c) = size c
   toMultiset_empty : toMultiset empty = 0
   isEmpty_iff_size_eq_zero c : isEmpty c ↔ size c = 0
@@ -53,5 +56,19 @@ lemma isEmpty_eq_decide_size : isEmpty c = decide (size c = 0) := by
 lemma isEmpty_eq_size_beq_zero : isEmpty c = (size c == 0) := by
   rw [isEmpty_eq_decide_size]
   cases size c <;> rfl
+
+variable [DecidableEq α]
+
+@[simp]
+theorem count_eq_zero {a : α} {c : C} : count a c = 0 ↔ a ∉ c := by
+  rw [← count_toMultiset]
+  exact Multiset.count_eq_zero
+
+theorem count_ne_zero {a : α} {c : C} : count a c ≠ 0 ↔ a ∈ c := by
+  simp [Ne.def, count_eq_zero]
+
+lemma mem_iff : isEmpty (empty : C) := by
+  rw [isEmpty_iff_size_eq_zero, ← card_toMultiset_eq_size, toMultiset_empty]
+  rfl
 
 end Collection
