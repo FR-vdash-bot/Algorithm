@@ -141,7 +141,7 @@ class StackLike (S : Type*) (α : outParam Type*) extends Collection S α where
   peek_mem s h : peek s h ∈ peek? s := by simp
   ofList : List α → S := StackLike.Aux.ofList isEmpty_toList isEmpty_empty cons_toList
   toList_ofList l : toList (ofList l) = l := by stackLike_toList_ofList_tac
--- TODO: `ofStream`, not `ofList`
+-- TODO: `ofStream`, not `ofList`? or not this name?
 -- TODO: `toStream`?
 
 section

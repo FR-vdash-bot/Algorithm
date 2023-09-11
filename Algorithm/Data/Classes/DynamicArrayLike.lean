@@ -8,6 +8,7 @@ import Algorithm.Data.Classes.StackLike
 class DynamicArrayLike (A : Type*) (α : outParam Type*) extends StackLike A α where
   get a : Fin (size a) → α
   get_toArray a i : (toArray a).get i = get a (i.cast (size_toArray a))
+--TODO: `get` for fixed size Array?
 
 section
 variable {α : Type*}

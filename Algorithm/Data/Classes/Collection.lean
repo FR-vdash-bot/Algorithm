@@ -11,6 +11,8 @@ class Collection (C : Type*) (α : outParam Type*) where
   isEmpty : C → Bool
   isEmpty_empty : isEmpty empty
   size_eq_zero_iff c : size c = 0 ↔ isEmpty c
+--TODO: toMultiset
+--TODO: `size` for fixed size DS?
 
 section
 variable {α : Type*}
