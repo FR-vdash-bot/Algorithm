@@ -7,6 +7,39 @@ import Mathlib.Data.Fintype.Basic
 import Mathlib.Data.Setoid.Basic
 import Std.Data.Array.Lemmas
 
+namespace Array
+variable {α : Type*} {n : ℕ}
+
+lemma get_fin_set (a : Array α) (i : Fin a.size) (v : α) (j : Fin (set a i v).size) :
+    (a.set i v).get j = if i.1 = j.1 then v else a[j.1] := by
+  rw [get_eq_getElem, get_set]
+
+end Array
+
+def ArrayVector (α : Type*) (n : ℕ) := {a : Array α // a.size = n}
+
+namespace ArrayVector
+variable {α : Type*} {n : ℕ}
+
+def ofFn (f : Fin n → α) : ArrayVector α n :=
+  ⟨.ofFn f, Array.size_ofFn f⟩
+
+def get (a : ArrayVector α n) (i : Fin n) : α :=
+  a.1.get (i.cast a.2.symm)
+
+def set (a : ArrayVector α n) (i : Fin n) (v : α) : ArrayVector α n :=
+  ⟨a.1.set (i.cast a.2.symm) v, (Array.size_set _ _ _).trans a.2⟩
+
+lemma get_set (a : ArrayVector α n) (i : Fin n) (v : α) :
+    (a.set i v).get = Function.update a.get i v := by
+  simp_rw [get, set, Array.get_fin_set]
+  simp [Function.update, Fin.val_eq_val, eq_comm (a := i)]
+
+lemma get_ofFn (f : Fin n → α) : (ofFn f).get = f := by
+  simp [ofFn, get]
+
+end ArrayVector
+
 /-- `AssocArray A ι α` is a data structure that acts like a finitely supported function `ι → α`
   with single point update operation. -/
 class AssocArray (A : Type*) (ι : outParam Type*) [DecidableEq ι]
@@ -14,7 +47,7 @@ class AssocArray (A : Type*) (ι : outParam Type*) [DecidableEq ι]
   empty : A
   update : A → ι → α → A
   get : A → ι → α
-  get_update {a i v} : get (update a i v) = Function.update (get a) i v
+  get_update a i v : get (update a i v) = Function.update (get a) i v
   get_empty : get empty = Function.const _ default
 
 attribute [simp] AssocArray.get_update AssocArray.get_empty
@@ -23,25 +56,17 @@ instance {A ι : Type*} [DecidableEq ι] {α : Type*} [Inhabited α] [AssocArray
     GetElem A ι α fun _ _ ↦ True where
   getElem a i _ := AssocArray.get a i
 
-namespace Array
+namespace ArrayVector
 variable {α : Type*} {n : ℕ}
 
-lemma get_fin_set (a : Array α) (i : Fin a.size) (v : α) (j : Fin (set a i v).size) :
-    (a.set i v).get j = if i.1 = j.1 then v else a[j.1] := by
-  rw [get_eq_getElem, get_set]
+instance [Inhabited α] : AssocArray (ArrayVector α n) (Fin n) α where
+  empty := .ofFn fun _ ↦ default
+  update := set
+  get := get
+  get_update := get_set
+  get_empty := by simp [get_ofFn]; rfl
 
-instance [Inhabited α] : AssocArray {a : Array α // a.size = n} (Fin n) α where
-  empty := ⟨.mk <| List.replicate n default, List.length_replicate _ _⟩
-  update a i v := ⟨a.1.set (Fin.cast a.2.symm i) v, (Array.size_set _ _ _).trans a.2⟩
-  get a i := a.1.get (Fin.cast a.2.symm i)
-  get_update {a i v} := by
-    simp_rw [get_fin_set]
-    simp [Function.update, Fin.val_eq_val, eq_comm (a := i)]
-  get_empty := by
-    ext
-    simp [get]
-
-end Array
+end ArrayVector
 
 namespace AssocArray
 
@@ -57,9 +82,9 @@ def Quotient := @_root_.Quotient A (Setoid.ker get)
 
 instance : AssocArray (Quotient A) ι α where
   empty := ⟦empty⟧
-  update q i v := q.map' (update · i v) (fun _ _ hm ↦ (Eq.congr get_update get_update).mpr (by rw [hm]))
+  update q i v := q.map' (update · i v) (fun _ _ hm ↦ (Eq.congr (get_update _ _ _) (get_update _ _ _)).mpr (by rw [hm]))
   get := Quotient.lift get (fun _ _ ↦ id)
-  get_update {q i v} := q.inductionOn (fun _ ↦ get_update)
+  get_update q i v := q.inductionOn (fun _ ↦ get_update _ _ _)
   get_empty := get_empty
 
 instance : Ext (Quotient A) ι α where
@@ -111,12 +136,12 @@ lemma get_indicator (s : Finset ι) (f : ∀ i ∈ s, α) :
 
 variable (A)
 
-def ofFun [Fintype ι] (f : ι → α) : A := indicator A Finset.univ (fun i _ ↦ f i)
+def ofFn [Fintype ι] (f : ι → α) : A := indicator A Finset.univ (fun i _ ↦ f i)
 
 variable {A}
 
-lemma get_ofFun [Fintype ι] (f : ι → α) :
-    get (ofFun A f) = f :=
+lemma get_ofFn [Fintype ι] (f : ι → α) :
+    get (ofFn A f) = f :=
   (get_indicator _ _).trans <| funext fun _ ↦ dif_pos <| Finset.mem_univ _
 
 end AssocArray
