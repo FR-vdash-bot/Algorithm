@@ -5,13 +5,13 @@ import Mathlib.Data.Fintype.Basic
 
 namespace Graph
 
-def dfs (g : Graph) [Fintype g.V] {BoolArray : Type _} [AssocArray g.V Bool BoolArray]
+def dfs (g : Graph) [Fintype g.V] {BoolArray : Type _} [AssocArray BoolArray g.V Bool]
   (vs : List g.V) (visited : BoolArray) : BoolArray :=
   match vs with
   | [] => visited
   | (v :: vs) => if AssocArray.get visited v
     then g.dfs vs visited
-    else g.dfs (v.star.map E.snd ++ vs) (AssocArray.set visited v true)
+    else g.dfs (v.star.map EType.snd ++ vs) (AssocArray.update visited v true)
 termination_by _ => ((Finset.univ.filter (fun v => !(AssocArray.get visited v))).card, vs.length)
 decreasing_by
   simp_wf
