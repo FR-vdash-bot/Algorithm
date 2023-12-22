@@ -14,8 +14,8 @@ structure Graph
   costar : StarList
   fst_star v : ∀ e ∈ star[v], fst e = v
   snd_costar v : ∀ e ∈ costar[v], snd e = v
-  count_star_fst_eq_count_costar_snd e :
-    Collection.count e star[fst e] = Collection.count e costar[snd e]
+  countSlow_star_fst_eq_countSlow_costar_snd e :
+    countSlow e star[fst e] = countSlow e costar[snd e]
   -- nodup_star' (v : V) : star'[v].Nodup
   -- nodup_costar' (v : V) : costar'[v].Nodup
   -- mem_star'_iff_mem_costar' e : e ∈ star'[fst' e] ↔ e ∈ costar'[snd' e]
@@ -34,8 +34,8 @@ variable
 -- lemma nodup_costar (v : g.V) : v.costar.Nodup := g.nodup_costar' v
 
 lemma mem_star_iff_mem_costar (e : EType) : e ∈ g.star[g.fst e] ↔ e ∈ g.costar[g.snd e] := by
-  rw [← Collection.count_ne_zero, ← Collection.count_ne_zero,
-    count_star_fst_eq_count_costar_snd]
+  rw [← countSlow_ne_zero, ← countSlow_ne_zero,
+    countSlow_star_fst_eq_countSlow_costar_snd]
 
 def E (g : Graph V EType EColl StarList) := {e : EType // e ∈ g.star[g.fst e]}
 
