@@ -24,19 +24,22 @@ variable {α : Type*} {n : ℕ}
 def ofFn (f : Fin n → α) : ArrayVector α n :=
   ⟨.ofFn f, Array.size_ofFn f⟩
 
+@[pp_dot]
 def get (a : ArrayVector α n) (i : Fin n) : α :=
   a.1.get (i.cast a.2.symm)
 
+@[pp_dot]
 def set (a : ArrayVector α n) (i : Fin n) (v : α) : ArrayVector α n :=
   ⟨a.1.set (i.cast a.2.symm) v, (Array.size_set _ _ _).trans a.2⟩
 
 lemma get_set (a : ArrayVector α n) (i : Fin n) (v : α) :
     (a.set i v).get = Function.update a.get i v := by
-  simp_rw [get, set, Array.get_fin_set]
-  simp [Function.update, Fin.val_eq_val, eq_comm (a := i)]
+  unfold get set
+  simp_rw [Array.get_fin_set]
+  ext; simp [Function.update, Fin.val_eq_val, eq_comm (a := i)]
 
 lemma get_ofFn (f : Fin n → α) : (ofFn f).get = f := by
-  simp [ofFn, get]
+  ext; simp [ofFn, get]
 
 end ArrayVector
 
@@ -102,7 +105,7 @@ variable {A}
 lemma get_listIndicator (l : List ι) (f : ∀ i ∈ l, α) :
     get (listIndicator A l f) = (fun i ↦ if hi : i ∈ l then f i hi else default) :=
   match l with
-  | [] => by simp [listIndicator, get_empty, Function.const]
+  | [] => by ext; simp [listIndicator, get_empty, Function.const]
   | (i :: l) => by
     ext j
     rw [listIndicator, get_update, Function.update_apply]

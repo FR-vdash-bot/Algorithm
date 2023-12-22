@@ -1,17 +1,23 @@
 
+import Algorithm.Data.Classes.StackLike
 import Algorithm.Data.Graph
 import Mathlib.Data.Finset.Card
 import Mathlib.Data.Fintype.Basic
 
 namespace Graph
+variable {V : Type*} [DecidableEq V]
+  {EType : Type*} [DecidableEq EType]
+  {EColl : Type*} [StackLike EColl EType] [Inhabited EColl]
+  {StarList : Type*} [AssocArray StarList V EColl]
 
-def dfs (g : Graph) [Fintype g.V] {BoolArray : Type _} [AssocArray BoolArray g.V Bool]
-  (vs : List g.V) (visited : BoolArray) : BoolArray :=
+def dfs (g : Graph V EType EColl StarList) [Fintype V]
+  {BoolArray : Type*} [AssocArray BoolArray V Bool]
+  (vs : List V) (visited : BoolArray) : BoolArray :=
   match vs with
   | [] => visited
   | (v :: vs) => if AssocArray.get visited v
     then g.dfs vs visited
-    else g.dfs (v.star.map EType.snd ++ vs) (AssocArray.update visited v true)
+    else g.dfs ((StackLike.toList g.star[v]).map g.snd ++ vs) (AssocArray.update visited v true)
 termination_by _ => ((Finset.univ.filter (fun v => !(AssocArray.get visited v))).card, vs.length)
 decreasing_by
   simp_wf

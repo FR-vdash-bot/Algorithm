@@ -29,7 +29,7 @@ instance : Collection (List α) α where
   card_toMultiset_eq_size c := rfl
   isEmpty := List.isEmpty
   toMultiset_empty := rfl
-  isEmpty_iff_size_eq_zero l := by cases l <;> (simp; rfl)
+  isEmpty_iff_size_eq_zero l := by cases l <;> simp
 
 instance : Collection (Array α) α where
   empty := #[]

@@ -35,7 +35,7 @@ lemma isEmpty_eq_decide_length : l.isEmpty = decide (l.length = 0) := by
 
 lemma isEmpty_reverse : l.reverse.isEmpty = l.isEmpty := by
   rw [isEmpty_eq_decide_eq_nil, isEmpty_eq_decide_eq_nil]
-  simp only [reverse_eq_nil]
+  simp only [reverse_eq_nil_iff]
 
 lemma reverse_dropLast (l : List α) : l.dropLast.reverse = l.reverse.tail :=
   match l with
