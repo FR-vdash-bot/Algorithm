@@ -2,7 +2,7 @@
 import Algorithm.Data.Classes.AssocArray
 import Algorithm.Data.Classes.Collection
 -- import Mathlib.Data.List.Nodup
--- import Mathlib.Combinatorics.Quiver.Path
+import Mathlib.Combinatorics.Quiver.Path
 
 structure AdjList
     (V : Type*) [DecidableEq V]
@@ -23,6 +23,8 @@ structure AdjList
 
 namespace AdjList
 
+attribute [pp_dot] fst snd star costar
+
 variable
   {V : Type*} [DecidableEq V]
   {EType : Type*} [DecidableEq EType]
@@ -38,14 +40,70 @@ lemma mem_star_iff_mem_costar (e : EType) : e ∈ g.star[g.fst e] ↔ e ∈ g.co
   rw [← countSlow_ne_zero, ← countSlow_ne_zero,
     countSlow_star_fst_eq_countSlow_costar_snd]
 
+@[pp_dot]
 def E (g : AdjList V EType EColl StarList) := {e : EType // e ∈ g.star[g.fst e]}
 
+@[pp_dot]
+def val (e : g.E) : EType := e.val
+
+@[pp_dot]
 def E.fst (e : g.E) : V := g.fst e.val
+
+@[pp_dot]
 def E.snd (e : g.E) : V := g.snd e.val
+
+@[simp]
+lemma E.fst_val (e : g.E) : g.fst e.val = e.fst := rfl
+
+@[simp]
+lemma E.snd_val (e : g.E) : g.snd e.val = e.snd := rfl
 
 lemma E.mem_star (e : g.E) : e.val ∈ g.star[e.fst] := e.2
 lemma E.mem_costar (e : g.E) : e.val ∈ g.costar[e.snd] := (mem_star_iff_mem_costar _).mp e.2
 
-protected def Quiver : Type _ := V
+set_option linter.unusedVariables false in
+@[pp_dot]
+protected def Quiver (g : AdjList V EType EColl StarList) : Type _ := V
+
+@[pp_dot]
+def toQuiver (g : AdjList V EType EColl StarList) : V ≃ g.Quiver := Equiv.refl _
+
+@[pp_dot]
+def ofQuiver (g : AdjList V EType EColl StarList) : g.Quiver ≃ V := Equiv.refl _
+
+@[simp]
+lemma toQuiver_ofQuiver (g : AdjList V EType EColl StarList) (v : g.Quiver) :
+    g.toQuiver (g.ofQuiver v) = v :=
+  rfl
+
+@[simp]
+lemma ofQuiver_toQuiver (g : AdjList V EType EColl StarList) (v : V) :
+    g.ofQuiver (g.toQuiver v) = v :=
+  rfl
+
+instance : Quiver g.Quiver where
+  Hom v w := {e : g.E // g.toQuiver e.fst = v ∧ g.toQuiver e.snd = w}
+
+@[pp_dot]
+def toHom (g : AdjList V EType EColl StarList) (e : g.E) :
+    g.toQuiver e.fst ⟶ g.toQuiver e.snd :=
+  ⟨e, ⟨rfl, rfl⟩⟩
+
+@[pp_dot]
+def ofHom (g : AdjList V EType EColl StarList) {v w : g.Quiver} (e : v ⟶ w) :
+    g.E :=
+  e.1
+
+@[simp]
+lemma ofHom_fst (g : AdjList V EType EColl StarList) {v w : g.Quiver}
+    (e : v ⟶ w) :
+    (g.ofHom e).fst = g.ofQuiver v :=
+  e.2.1
+
+@[simp]
+lemma ofHom_snd (g : AdjList V EType EColl StarList) {v w : g.Quiver}
+    (e : v ⟶ w) :
+    (g.ofHom e).snd = g.ofQuiver w :=
+  e.2.2
 
 end AdjList

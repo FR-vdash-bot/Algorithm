@@ -42,6 +42,9 @@ variable {C α : Type*} [Collection C α] (c : C)
 instance (priority := 100) : Membership α C where
   mem a c := a ∈ toMultiset c
 
+@[simp]
+lemma mem_toMultiset (v : α) : v ∈ toMultiset c ↔ v ∈ c := .rfl
+
 lemma isEmpty_eq_decide_size : isEmpty c = decide (size c = 0) := by
   simp only [← isEmpty_iff_size_eq_zero, Bool.decide_coe]
 

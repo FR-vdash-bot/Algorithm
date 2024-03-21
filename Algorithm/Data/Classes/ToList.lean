@@ -125,6 +125,9 @@ lemma coe_toList_eq_toMultiset : ↑(toList c) = toMultiset c := rfl
 lemma isEmpty_toList : (toList c).isEmpty = isEmpty c := by
   rw [isEmpty_eq_decide_size, List.isEmpty_eq_decide_length, length_toList]
 
+@[simp]
+lemma mem_toList (v : α) : v ∈ toList c ↔ v ∈ c := .rfl
+
 end ToList
 
 class Front (C : Type*) (α : outParam Type*) [ToList C α] where

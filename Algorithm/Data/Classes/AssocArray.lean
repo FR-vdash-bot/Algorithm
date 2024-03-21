@@ -55,9 +55,26 @@ class AssocArray (A : Type*) (ι : outParam Type*) [DecidableEq ι]
 
 attribute [simp] AssocArray.get_update AssocArray.get_empty
 
-instance {A ι : Type*} [DecidableEq ι] {α : Type*} [Inhabited α] [AssocArray A ι α] :
-    GetElem A ι α fun _ _ ↦ True where
+namespace AssocArray
+variable {A ι : Type*} [DecidableEq ι] {α : Type*} [Inhabited α] [AssocArray A ι α]
+
+instance : GetElem A ι α fun _ _ ↦ True where
   getElem a i _ := AssocArray.get a i
+
+@[simp]
+lemma get_eq_getElem (a : A) (i : ι) : get a i = a[i] := rfl
+
+@[simp]
+lemma getElem_update (a : A) (i : ι) (v : α) (j : ι) :
+    (update a i v)[j] = Function.update (get a) i v j :=
+  congr_fun (get_update a i v) j
+
+@[simp]
+lemma getElem_empty (i : ι) :
+    (empty : A)[i] = Function.const _ default i :=
+  congr_fun get_empty i
+
+end AssocArray
 
 namespace ArrayVector
 variable {α : Type*} {n : ℕ}
