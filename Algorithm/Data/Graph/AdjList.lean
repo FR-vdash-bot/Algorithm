@@ -1,13 +1,13 @@
 
 import Algorithm.Data.Classes.AssocArray
-import Algorithm.Data.Classes.Collection
+import Algorithm.Data.Classes.ToMultiset
 -- import Mathlib.Data.List.Nodup
 import Mathlib.Combinatorics.Quiver.Path
 
 structure AdjList
     (V : Type*) [DecidableEq V]
     (EType : Type*) [DecidableEq EType]
-    (EColl : Type*) [Collection EColl EType] [Inhabited EColl]
+    (EColl : Type*) [ToMultiset EColl EType] [Inhabited EColl]
     (StarList : Type*) [AssocArray StarList V EColl] where
   fst : EType → V
   snd : EType → V
@@ -28,7 +28,7 @@ attribute [pp_dot] fst snd star costar
 variable
   {V : Type*} [DecidableEq V]
   {EType : Type*} [DecidableEq EType]
-  {EColl : Type*} [Collection EColl EType] [Inhabited EColl]
+  {EColl : Type*} [ToMultiset EColl EType] [Inhabited EColl]
   {StarList : Type*} [AssocArray StarList V EColl] {g : AdjList V EType EColl StarList}
 -- instance : GetElem g.StarList g.V (List g.E) (fun _ _ ↦ True) := AssocArray.instGetElem
 -- by infer_instance

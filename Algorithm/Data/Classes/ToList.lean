@@ -3,7 +3,7 @@ Copyright (c) 2023 Yuyang Zhao. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuyang Zhao
 -/
-import Algorithm.Data.Classes.Collection
+import Algorithm.Data.Classes.ToMultiset
 
 namespace List
 variable {α : Type*} (l : List α)
@@ -106,7 +106,7 @@ lemma dropLast_toList (a : Array α) : a.toList.dropLast = a.pop.toList := by
 
 end Array
 
-class ToList (C : Type*) (α : outParam Type*) extends CollectionCore C α where
+class ToList (C : Type*) (α : outParam Type*) extends Size C α where
   toList : C → List α
   toArray : C → Array α
   toArray_toList a : (toArray a).toList = toList a
@@ -116,7 +116,7 @@ export ToList (toList toArray toArray_toList length_toList)
 section ToList
 variable {C α : Type*} [ToList C α] (c : C)
 
-instance (priority := 100) : Collection C α where
+instance (priority := 100) : ToMultiset C α where
   toMultiset c := ↑(toList c)
   card_toMultiset_eq_size c := length_toList c
 
