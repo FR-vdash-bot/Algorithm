@@ -1,5 +1,8 @@
-
-import Algorithm.Data.Classes.ToList
+/-
+Copyright (c) 2023 Yuyang Zhao. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yuyang Zhao
+-/
 import Algorithm.Data.Graph.AdjList
 import Mathlib.Data.Finset.Card
 import Mathlib.Data.Fintype.Basic
@@ -23,7 +26,7 @@ def dfs [Fintype V] {BoolArray : Type*} [AssocArray BoolArray V Bool]
     if visited[v] then
       g.dfs vs visited
     else
-      g.dfs ((toList g.star[v]).map g.snd ++ vs) (AssocArray.update visited v true)
+      g.dfs (g.succList v ++ vs) (AssocArray.update visited v true)
 termination_by _ => ((Finset.univ.filter (fun v : V => !visited[v])).card, vs.length)
 decreasing_by
   simp_wf
@@ -36,21 +39,3 @@ decreasing_by
           simp [*, Function.update]
           intro v
           split_ifs <;> simp
-
-lemma dfs_lemma₁ {BoolArray : Type*} [AssocArray BoolArray V Bool]
-    {g : AdjList V EType EColl StarList} {vs : List V} {visited : BoolArray}
-    (h : ∀ v : V, visited[v] → ∀ e ∈ g.star[v], visited[g.snd e] ∨ g.snd e ∈ vs)
-    {u v : g.Quiver} (hu : visited[g.ofQuiver u]) (p : Quiver.Path u v) :
-    visited[g.ofQuiver v] = true ∨ ∃ u ∈ vs, Nonempty (Quiver.Path (g.toQuiver u) v) := by
-  induction p with
-  | nil => exact .inl hu
-  | cons _ e ih =>
-    obtain h := e
-    obtain (ih | ⟨u, hu, ⟨p⟩⟩) := ih
-    · obtain (h | h) := h _ ih (g.ofHom e).val (by convert (g.ofHom e).mem_star; simp)
-      · simp only [E.snd_val, ofHom_snd] at h
-        exact .inl h
-      · refine .inr ⟨_, h, ⟨?_⟩⟩
-        simp only [E.snd_val, ofHom_snd, toQuiver_ofQuiver]
-        exact .nil
-    · exact .inr ⟨u, hu, ⟨p.cons e⟩⟩

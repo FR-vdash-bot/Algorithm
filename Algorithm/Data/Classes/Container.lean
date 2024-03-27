@@ -3,9 +3,9 @@ Copyright (c) 2023 Yuyang Zhao. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuyang Zhao
 -/
-import Algorithm.Data.Classes.Collection
+import Algorithm.Data.Classes.ToMultiset
 
-class Container (C : Type*) (α : outParam Type*) extends Collection C α where
+class Container (C : Type*) (α : outParam Type*) extends ToMultiset C α where
   empty : C
   toMultiset_empty : toMultiset empty = 0
 export Container (toMultiset_empty)
