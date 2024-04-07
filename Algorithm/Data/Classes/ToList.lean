@@ -28,7 +28,7 @@ lemma tail?_isSome' : (tail? l).isSome = !l.isEmpty :=
 instance : Decidable (l = []) :=
   match l with
   | [] => isTrue rfl
-  | _::_ => isFalse (nomatch ·)
+  | _::_ => isFalse nofun
 
 lemma isEmpty_eq_decide_eq_nil : l.isEmpty = decide (l = []) := by
   cases l <;> simp [isEmpty]

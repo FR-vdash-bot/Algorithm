@@ -27,15 +27,13 @@ def dfs [Fintype V] {BoolArray : Type*} [AssocArray BoolArray V Bool]
       g.dfs vs visited
     else
       g.dfs (g.succList v ++ vs) (AssocArray.update visited v true)
-termination_by _ => ((Finset.univ.filter (fun v : V => !visited[v])).card, vs.length)
+termination_by ((Finset.univ.filter (fun v : V => !visited[v])).card, vs.length)
 decreasing_by
-  simp_wf
-  first | simp [Prod.lex_iff]; done
-        | apply Prod.Lex.left
-          apply Finset.card_lt_card
-          rw [Finset.ssubset_iff]
-          refine ⟨v, by simp, ?_⟩
-          rw [Finset.subset_iff]
-          simp [*, Function.update]
-          intro v
-          split_ifs <;> simp
+  all_goals simp_wf
+  · simp [Prod.lex_iff]
+  · apply Prod.Lex.left
+    apply Finset.card_lt_card
+    rw [Finset.ssubset_iff]
+    refine ⟨v, by simp [*], ?_⟩
+    rw [Finset.subset_iff]
+    simp [*, Function.update]

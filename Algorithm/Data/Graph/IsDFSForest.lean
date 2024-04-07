@@ -66,7 +66,7 @@ lemma inter (hf : g.IsDFSForest i o f) : i ∩ f.support = ∅ := by
 lemma sound (hf : g.IsDFSForest i o f) :
     ∀ v ∈ f.support, ∃ r ∈ f.roots, g.Reachable r v := by
   induction hf with
-  | nil _ => exact fun.
+  | nil _ => nofun
   | node _ hv hc roots_subset_succ _ _ ihc ihs =>
     dsimp
     rintro w (rfl | hw | hw)
@@ -79,7 +79,7 @@ lemma sound (hf : g.IsDFSForest i o f) :
 lemma succSet_support_subset (hf : g.IsDFSForest i o f) :
     g.succSet f.support ⊆ o := by
   induction hf with
-  | nil _ => exact fun.
+  | nil _ => nofun
   | node _ hv hc _ succ_marked hs ihc ihs =>
     dsimp
     intro w hw
