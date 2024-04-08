@@ -33,6 +33,7 @@ instance : ToMultiset (Array α) α where
 section ToMultiset
 variable {C α : Type*} [ToMultiset C α] (c : C)
 
+--TODO: do not introduce this slow instance
 instance (priority := 100) : Membership α C where
   mem a c := a ∈ toMultiset c
 
