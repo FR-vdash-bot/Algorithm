@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuyang Zhao
 -/
 import Algorithm.Data.Graph.AdjList
+import Algorithm.Data.Graph.IsDFSForest
 import Mathlib.Data.Finset.Card
 import Mathlib.Data.Fintype.Basic
 
@@ -13,10 +14,58 @@ variable {V : Type*} [DecidableEq V]
   {EColl : Type*} [ToList EColl EType] [Inhabited EColl]
   {StarList : Type*} [AssocArray StarList V EColl]
 
--- 这个实现中的 vs 大小可能和边的数量级别一样
--- 有什么办法让它既简单，也适合计算？
--- 也许在以后可以改成存迭代器，如果我们有了迭代器类型。不过看起来会更复杂些
+-- 也许在以后可以改成存迭代器
 -- 如何形式化各种使用 dfs 的算法？如 Tarjan's SCC
+
+def dfsForest [Fintype V] {BoolArray : Type*} [AssocArray BoolArray V Bool]
+    (g : AdjList V EType EColl StarList) (vs : List (Forest V × List V)) (visited : BoolArray) :
+    Forest V × BoolArray :=
+  match vs with
+  | [] => (.nil, AssocArray.empty)
+  | [(f, [])] => (f, visited)
+  | (_, []) :: (_, []) :: _ => (.nil, AssocArray.empty)
+  | (f, []) :: (fs, v :: vs) :: vss => g.dfsForest ((Forest.node v f fs, vs) :: vss) visited
+  | (f, v :: vs) :: vss =>
+    if visited[v] then
+      g.dfsForest ((f, vs) :: vss) visited
+    else
+      g.dfsForest ((.nil, g.succList v) :: (f, vs) :: vss) (AssocArray.update visited v true)
+termination_by ((Finset.univ.filter (fun v : V => !visited[v])).card, (vs.map (·.snd.length + 1)).sum)
+decreasing_by
+  all_goals simp_wf
+  · simp [Prod.lex_iff]
+    omega
+  · simp [Prod.lex_iff]
+  · apply Prod.Lex.left
+    apply Finset.card_lt_card
+    rw [Finset.ssubset_iff]
+    refine ⟨v, by simp [*], ?_⟩
+    rw [Finset.subset_iff]
+    simp [*, Function.update]
+
+def dfs' [Fintype V] {BoolArray : Type*} [AssocArray BoolArray V Bool]
+    (g : AdjList V EType EColl StarList) (vs : List (List V)) (visited : BoolArray) :
+    BoolArray :=
+  match vs with
+  | [] => visited
+  | [] :: vss => g.dfs' vss visited
+  | (v :: vs) :: vss =>
+    if visited[v] then
+      g.dfs' (vs :: vss) visited
+    else
+      g.dfs' (g.succList v :: (vs :: vss)) (AssocArray.update visited v true)
+termination_by ((Finset.univ.filter (fun v : V => !visited[v])).card, (vs.map (·.length + 1)).sum)
+decreasing_by
+  all_goals simp_wf
+  · simp [Prod.lex_iff]
+  · simp [Prod.lex_iff]
+  · apply Prod.Lex.left
+    apply Finset.card_lt_card
+    rw [Finset.ssubset_iff]
+    refine ⟨v, by simp [*], ?_⟩
+    rw [Finset.subset_iff]
+    simp [*, Function.update]
+
 def dfs [Fintype V] {BoolArray : Type*} [AssocArray BoolArray V Bool]
     (g : AdjList V EType EColl StarList) (vs : List V) (visited : BoolArray) :
     BoolArray :=
