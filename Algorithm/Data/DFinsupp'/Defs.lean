@@ -1,14 +1,10 @@
 
 /-
-Copyright (c) 2023 Yuyang Zhao. All rights reserved.
+Copyright (c) 2024 Yuyang Zhao. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuyang Zhao
 -/
-import Mathlib.Algebra.BigOperators.Basic
-import Mathlib.GroupTheory.GroupAction.BigOperators
-import Mathlib.GroupTheory.Submonoid.Membership
 import Mathlib.Data.Set.Finite
-import Mathlib.Data.Finset.Preimage
 
 /-!
 Modified from `Mathlib.Data.DFinsupp.Basic`
@@ -16,8 +12,6 @@ Modified from `Mathlib.Data.DFinsupp.Basic`
 
 
 universe u u₁ u₂ v v₁ v₂ v₃ w x y l
-
-open BigOperators
 
 variable {ι : Type u} {γ : Type w} {β : ι → Type v} {β₁ : ι → Type v₁} {β₂ : ι → Type v₂}
 variable {d : ∀ i, β i} {d₁ : ∀ i, β₁ i} {d₂ : ∀ i, β₂ i}
@@ -53,7 +47,7 @@ instance instDFunLike : DFunLike (Π₀' i, [β i, d i]) ι β :=
 
 /-- Helper instance for when there are too many metavariables to apply `DFunLike.coeFunForall`
 directly. -/
-instance : CoeFun (Π₀' i, [β i, d i]) fun _ => ∀ i, β i :=
+instance instCoeFun : CoeFun (Π₀' i, [β i, d i]) fun _ => ∀ i, β i :=
   inferInstance
 
 @[simp]
@@ -74,7 +68,7 @@ lemma ne_iff {f g : Π₀' i, [β i, d i]} : f ≠ g ↔ ∃ i, f i ≠ g i := D
 theorem coeFn_injective : @Function.Injective (Π₀' i, [β i, d i]) (∀ i, β i) (⇑) :=
   DFunLike.coe_injective
 
-instance : Inhabited (Π₀' i, [β i, d i]) :=
+instance instInhabited : Inhabited (Π₀' i, [β i, d i]) :=
   ⟨⟨d, Trunc.mk <| ⟨∅, fun _ => Or.inr rfl⟩⟩⟩
 
 @[simp, norm_cast] lemma coe_mk' (f : ∀ i, β i) (s) : ⇑(⟨f, s⟩ : Π₀' i, [β i, d i]) = f := rfl
@@ -83,6 +77,11 @@ instance : Inhabited (Π₀' i, [β i, d i]) :=
 
 theorem default_apply (i : ι) : (default : Π₀' i, [β i, d i]) i = d i :=
   rfl
+
+/-! ### Declarations about `mapRange` -/
+
+
+section mapRange
 
 /-- The composition of `f : ∀ i, β₁ i → β₂ i` and `g : Π₀' i, [β₁ i, d₁ i]` is
   `mapRange f hf g : Π₀ i, [β₂ i, d₂ i]`, well defined when `f i (d₁ i) = d₂ i`.
@@ -116,6 +115,13 @@ theorem mapRange_default (f : ∀ i, β₁ i → β₂ i) (hf : ∀ i, f i (d₁
     mapRange f hf (default : Π₀' i, [β₁ i, d₁ i]) = d₂ := by
   ext
   simp only [mapRange_apply, coe_default, hf]
+
+end mapRange
+
+/-! ### Declarations about `zipWith` -/
+
+
+section zipWith
 
 /-- Let `f i` be a binary operation `β₁ i → β₂ i → β i` such that `f i (d₁ i) (d₂ i) = d i`.
 Then `zipWith f hf` is a binary operation
@@ -165,74 +171,9 @@ theorem zipWith_swap (f : ∀ i, β₁ i → β₂ i → β i) (hf : ∀ i, f i 
     zipWith (fun i x y ↦ f i y x) hf x y = zipWith f hf y x := by
   ext; rfl
 
-section Piecewise
-
-variable (x y : Π₀' i, [β i, d i]) (s : Set ι) [∀ i, Decidable (i ∈ s)]
-
-/-- `x.piecewise y s` is the finitely supported function equal to `x` on the set `s`,
-  and to `y` on its complement. -/
-def piecewise : Π₀' i, [β i, d i] :=
-  zipWith (fun i x y => if i ∈ s then x else y) (fun i => ite_self (d i)) x y
-
-theorem piecewise_apply (i : ι) : x.piecewise y s i = if i ∈ s then x i else y i :=
-  zipWith_apply _ _ x y i
-
-@[simp, norm_cast]
-theorem coe_piecewise : ⇑(x.piecewise y s) = s.piecewise x y := by
-  ext
-  apply piecewise_apply
-
-end Piecewise
+end zipWith
 
 end Basic
-
-section FilterAndSubtypeDomain
-
-/-- `filter p f` is the function which is `f i` if `p i` is true and `d i` otherwise. -/
-def filter (p : ι → Prop) [DecidablePred p] (x : Π₀' i, [β i, d i]) : Π₀' i, [β i, d i] :=
-  ⟨fun i => if p i then x i else d i,
-    x.support'.map fun xs =>
-      ⟨xs.1, fun i => (xs.prop i).imp_right fun H : x i = d i => by simp only [H, ite_self]⟩⟩
-
-@[simp]
-theorem filter_apply (p : ι → Prop) [DecidablePred p] (i : ι) (f : Π₀' i, [β i, d i]) :
-    f.filter p i = if p i then f i else d i :=
-  rfl
-
-theorem filter_apply_pos {p : ι → Prop} [DecidablePred p] (f : Π₀' i, [β i, d i]) {i : ι}
-    (h : p i) : f.filter p i = f i := by simp only [filter_apply, if_pos h]
-
-theorem filter_apply_neg {p : ι → Prop} [DecidablePred p] (f : Π₀' i, [β i, d i]) {i : ι}
-    (h : ¬p i) : f.filter p i = d i := by simp only [filter_apply, if_neg h]
-
-@[simp]
-theorem filter_default (p : ι → Prop) [DecidablePred p] :
-    (default : Π₀' i, [β i, d i]).filter p = d := by
-  ext
-  simp
-
-/-- `subtypeDomain p f` is the restriction of the finitely supported function
-  `f` to the subtype `p`. -/
-def subtypeDomain (p : ι → Prop) [DecidablePred p] (x : Π₀' i, [β i, d i]) :
-    Π₀' i : Subtype p, [β i, d i] :=
-  ⟨fun i => x (i : ι),
-    x.support'.map fun xs =>
-      ⟨(Multiset.filter p xs.1).attach.map fun j => ⟨j.1, (Multiset.mem_filter.1 j.2).2⟩, fun i =>
-        (xs.prop i).imp_left fun H =>
-          Multiset.mem_map.2
-            ⟨⟨i, Multiset.mem_filter.2 ⟨H, i.2⟩⟩, Multiset.mem_attach _ _, Subtype.eta _ _⟩⟩⟩
-
-@[simp]
-theorem subtypeDomain_default {p : ι → Prop} [DecidablePred p] :
-    subtypeDomain p (default : Π₀' i, [β i, d i]) = Subtype.restrict p d :=
-  rfl
-
-@[simp]
-theorem subtypeDomain_apply {p : ι → Prop} [DecidablePred p] {i : Subtype p}
-    {v : Π₀' i, [β i, d i]} : (subtypeDomain p v) i = v i :=
-  rfl
-
-end FilterAndSubtypeDomain
 
 variable [DecidableEq ι]
 
@@ -241,6 +182,8 @@ section Basic
 theorem finite_support (f : Π₀' i, [β i, d i]) : Set.Finite { i | f i ≠ d i } :=
   Trunc.induction_on f.support' fun xs ↦
     xs.1.finite_toSet.subset fun i H ↦ ((xs.prop i).resolve_right H)
+
+section mk
 
 variable (d) in
 /-- Create an element of `Π₀' i, [β i, d i]` from a finset `s` and a function `x`
@@ -270,6 +213,8 @@ theorem mk_injective (s : Finset ι) : Function.Injective (@mk ι β d _ s) := b
   dsimp only [mk_apply, Subtype.coe_mk] at h1
   simpa only [dif_pos hi] using h1
 
+end mk
+
 instance unique [∀ i, Subsingleton (β i)] : Unique (Π₀' i, [β i, d i]) :=
   DFunLike.coe_injective.unique
 
@@ -290,6 +235,11 @@ def equivFunOnFintype [Fintype ι] : (Π₀' i, [β i, d i]) ≃ ∀ i, β i
 theorem equivFunOnFintype_symm_coe [Fintype ι] (f : Π₀' i, [β i, d i]) :
     equivFunOnFintype.symm f = f :=
   Equiv.symm_apply_apply _ _
+
+/-! ### Declarations about `single` -/
+
+
+section single
 
 variable (d) in
 /-- The function `single i b : Π₀' i, [β i, d i]` sends `i` to `b`
@@ -351,24 +301,6 @@ theorem single_eq_default {i : ι} {xi : β i} : single d i xi = default ↔ xi 
   rw [← single_eq_self i, single_eq_single_iff]
   simp
 
-theorem filter_single (p : ι → Prop) [DecidablePred p] (i : ι) (x : β i) :
-    (single d i x).filter p = if p i then single d i x else default := by
-  ext j
-  have := apply_ite (fun x : Π₀' i, [β i, d i] => x j) (p i) (single d i x) default
-  dsimp at this
-  rw [filter_apply, this]
-  obtain rfl | hij := Decidable.eq_or_ne i j
-  · rfl
-  · rw [single_eq_of_ne hij, ite_self, ite_self]
-
-@[simp]
-theorem filter_single_pos {p : ι → Prop} [DecidablePred p] (i : ι) (x : β i) (h : p i) :
-    (single d i x).filter p = single d i x := by rw [filter_single, if_pos h]
-
-@[simp]
-theorem filter_single_neg {p : ι → Prop} [DecidablePred p] (i : ι) (x : β i) (h : ¬p i) :
-    (single d i x).filter p = default := by rw [filter_single, if_neg h]
-
 /-- Equality of sigma types is sufficient (but not necessary) to show equality of `DFinsupp'`s. -/
 theorem single_eq_of_sigma_eq {i j} {xi : β i} {xj : β j} (h : (⟨i, xi⟩ : Sigma β) = ⟨j, xj⟩) :
     DFinsupp'.single d i xi = DFinsupp'.single d j xj := by
@@ -402,56 +334,10 @@ theorem zipWith_single_single (f : ∀ i, β₁ i → β₂ i → β i) (hf : �
 
 end SingleAndZipWith
 
-/-- Redefine `f i` to be `d i`. -/
-def erase (i : ι) (x : Π₀' i, [β i, d i]) : Π₀' i, [β i, d i] :=
-  ⟨fun j ↦ if j = i then d j else x.1 j,
-    x.support'.map fun xs ↦ ⟨xs.1, fun j ↦ (xs.prop j).imp_right (by simp only [·, ite_self])⟩⟩
+end single
 
-@[simp]
-theorem erase_apply {i j : ι} {f : Π₀' i, [β i, d i]} :
-    (f.erase i) j = if j = i then d j else f j :=
-  rfl
+/-! ### Declarations about `update` -/
 
--- @[simp] -- Porting note (#10618): simp can prove this
-theorem erase_same {i : ι} {f : Π₀' i, [β i, d i]} : (f.erase i) i = d i := by simp
-
-theorem erase_ne {i i' : ι} {f : Π₀' i, [β i, d i]} (h : i' ≠ i) : (f.erase i) i' = f i' := by
-  simp [h]
-
-theorem piecewise_single_erase (x : Π₀' i, [β i, d i]) (i : ι)
-    [∀ i' : ι, Decidable <| (i' ∈ ({i} : Set ι))] : -- Porting note: added Decidable hypothesis
-    (single d i (x i)).piecewise (x.erase i) {i} = x := by
-  ext j; rw [piecewise_apply]; split_ifs with h
-  · rw [(id h : j = i), single_eq_same]
-  · exact erase_ne h
-
-@[simp]
-theorem erase_default (i : ι) : erase i (default : Π₀' i, [β i, d i]) = default :=
-  ext fun _ => ite_self _
-
-@[simp]
-theorem filter_ne_eq_erase (f : Π₀' i, [β i, d i]) (i : ι) : f.filter (· ≠ i) = f.erase i := by
-  ext1 j
-  simp only [DFinsupp'.filter_apply, DFinsupp'.erase_apply, ite_not]
-
-@[simp]
-theorem filter_ne_eq_erase' (f : Π₀' i, [β i, d i]) (i : ι) : f.filter (i ≠ ·) = f.erase i := by
-  rw [← filter_ne_eq_erase f i]
-  congr with j
-  exact ne_comm
-
-theorem erase_single (j : ι) (i : ι) (x : β i) :
-    (single d i x).erase j = if i = j then default else single d i x := by
-  rw [← filter_ne_eq_erase, filter_single, ite_not]
-
-@[simp]
-theorem erase_single_same (i : ι) (x : β i) : (single d i x).erase i = default := by
-  rw [erase_single, if_pos rfl]
-
-@[simp]
-theorem erase_single_ne {i j : ι} (x : β i) (h : i ≠ j) :
-    (single d i x).erase j = single d i x := by
-  rw [erase_single, if_neg h]
 
 section update
 
@@ -472,8 +358,6 @@ def update : Π₀' i, [β i, d i] :=
           · exact Or.inl (Multiset.mem_cons_of_mem hj)
           · exact Or.inr ((Function.update_noteq hi.symm b _).trans hj)⟩⟩
 
-variable (j : ι)
-
 @[simp, norm_cast] lemma coe_update : (f.update i b : ∀ i : ι, β i) = Function.update f i b := rfl
 
 @[simp]
@@ -481,14 +365,58 @@ theorem update_self : f.update i (f i) = f := by
   ext
   simp
 
+end update
+
+/-! ### Declarations about `erase` -/
+
+
+section erase
+
+/-- Redefine `f i` to be `d i`. -/
+def erase (i : ι) (x : Π₀' i, [β i, d i]) : Π₀' i, [β i, d i] :=
+  ⟨fun j ↦ if j = i then d j else x.1 j,
+    x.support'.map fun xs ↦ ⟨xs.1, fun j ↦ (xs.prop j).imp_right (by simp only [·, ite_self])⟩⟩
+
 @[simp]
-theorem update_eq_erase : f.update i (d i) = f.erase i := by
+theorem erase_apply {i j : ι} {f : Π₀' i, [β i, d i]} :
+    (f.erase i) j = if j = i then d j else f j :=
+  rfl
+
+-- @[simp] -- Porting note (#10618): simp can prove this
+theorem erase_same {i : ι} {f : Π₀' i, [β i, d i]} : (f.erase i) i = d i := by simp
+
+theorem erase_ne {i i' : ι} {f : Π₀' i, [β i, d i]} (h : i' ≠ i) : (f.erase i) i' = f i' := by
+  simp [h]
+
+@[simp]
+theorem erase_default (i : ι) : erase i (default : Π₀' i, [β i, d i]) = default :=
+  ext fun _ => ite_self _
+
+theorem erase_single (j : ι) (i : ι) (x : β i) :
+    (single d i x).erase j = if i = j then default else single d i x := by
+  ext k
+  rw [erase_apply]
+  split_ifs <;> simp [*]
+  tauto
+
+@[simp]
+theorem erase_single_same (i : ι) (x : β i) : (single d i x).erase i = default := by
+  rw [erase_single, if_pos rfl]
+
+@[simp]
+theorem erase_single_ne {i j : ι} (x : β i) (h : i ≠ j) :
+    (single d i x).erase j = single d i x := by
+  rw [erase_single, if_neg h]
+
+@[simp]
+theorem update_eq_erase (f : Π₀' i, [β i, d i]) (i : ι) :
+    f.update i (d i) = f.erase i := by
   ext j
   rcases eq_or_ne i j with (rfl | hi)
   · simp
   · simp [hi.symm]
 
-end update
+end erase
 
 end Basic
 
@@ -585,32 +513,6 @@ theorem mem_support_toFun (f : Π₀' i, [β i, d i]) (i) : i ∈ f.support ↔ 
   exact and_iff_right_of_imp (s.prop i).resolve_right
 
 theorem eq_mk_support (f : Π₀' i, [β i, d i]) : f = mk d f.support fun i => f i := by aesop
-
-/-- Equivalence between dependent functions with finite support `s : Finset ι` and functions
-`∀ i, {x : β i // x ≠ d i}`. -/
-@[simps]
-def subtypeSupportEqEquiv (s : Finset ι) :
-    {f : Π₀' i, [β i, d i] // f.support = s} ≃ ∀ i : s, {x : β i // x ≠ d i} where
-  toFun | ⟨f, hf⟩ => fun ⟨i, hi⟩ ↦ ⟨f i, (f.mem_support_toFun i).1 <| hf.symm ▸ hi⟩
-  invFun f := ⟨mk d s fun i ↦ (f i).1, Finset.ext fun i ↦ by
-    -- TODO: `simp` fails to use `(f _).2` inside `∃ _, _`
-    calc
-      i ∈ support (mk d s fun i ↦ (f i).1) ↔ ∃ h : i ∈ s, (f ⟨i, h⟩).1 ≠ d i := by simp
-      _ ↔ ∃ _ : i ∈ s, True := exists_congr fun h ↦ (iff_true _).mpr (f _).2
-      _ ↔ i ∈ s := by simp⟩
-  left_inv := by
-    rintro ⟨f, rfl⟩
-    ext i
-    simpa using Eq.symm
-  right_inv f := by
-    ext1
-    simp [Subtype.eta]; rfl
-
-/-- Equivalence between all dependent finitely supported functions `f : Π₀' i, [β i, d i]` and type
-of pairs `⟨s : Finset ι, f : ∀ i : s, {x : β i // x ≠ d i}⟩`. -/
-@[simps! apply_fst apply_snd_coe]
-def sigmaFinsetFunEquiv : (Π₀' i, [β i, d i]) ≃ Σ s : Finset ι, ∀ i : s, {x : β i // x ≠ d i} :=
-  (Equiv.sigmaFiberEquiv DFinsupp'.support).symm.trans (.sigmaCongrRight subtypeSupportEqEquiv)
 
 @[simp]
 theorem support_default : (default : Π₀' i, [β i, d i]).support = ∅ :=
@@ -711,33 +613,9 @@ theorem support_update (f : Π₀' i, [β i, d i]) (i : ι) (b : β i) [Decidabl
     simp [update_eq_erase, support_erase]
   · rw [support_update_ne f _ hb]
 
-section FilterAndSubtypeDomain
-
-variable {p : ι → Prop} [DecidablePred p]
-
-theorem filter_def (f : Π₀' i, [β i, d i]) :
-    f.filter p = mk d (f.support.filter p) fun i => f i.1 := by
-  ext i; by_cases h1 : p i <;> by_cases h2 : f i ≠ d i <;> simp at h2 <;> simp [h1, h2]
-
-@[simp]
-theorem support_filter (f : Π₀' i, [β i, d i]) : (f.filter p).support = f.support.filter p := by
-  ext i; by_cases h : p i <;> simp [h]
-
-theorem subtypeDomain_def (f : Π₀' i, [β i, d i]) :
-    f.subtypeDomain p = mk _ (f.support.subtype p) fun i => f i := by
-  ext i; by_cases h2 : f i ≠ d i <;> try simp at h2; dsimp; simp [h2]
-
-@[simp, nolint simpNF] -- Porting note: simpNF claims that LHS does not simplify, but it does
-theorem support_subtypeDomain {f : Π₀' i, [β i, d i]} :
-    (subtypeDomain p f).support = f.support.subtype p := by
-  ext i
-  simp
-
-end FilterAndSubtypeDomain
-
 end SupportBasic
 
-instance [∀ i, DecidableEq (β i)] : DecidableEq (Π₀' i, [β i, d i]) := fun f g =>
+instance instDecidableEq [∀ i, DecidableEq (β i)] : DecidableEq (Π₀' i, [β i, d i]) := fun f g =>
   decidable_of_iff (f.support = g.support ∧ ∀ i ∈ f.support, f i = g i)
     ⟨fun ⟨h₁, h₂⟩ => ext fun i => if h : i ∈ f.support then h₂ i h else by
       have hf : f i = d i := by rwa [mem_support_iff, not_not] at h
@@ -745,307 +623,4 @@ instance [∀ i, DecidableEq (β i)] : DecidableEq (Π₀' i, [β i, d i]) := fu
       rw [hf, hg],
      by rintro rfl; simp⟩
 
-section Equiv
-
-open Finset
-
-variable {κ : Type*}
-
-/-- Reindexing (and possibly removing) terms of a `DFinsupp'`. -/
-noncomputable def comapDomain (h : κ → ι) (hh : Function.Injective h)
-    (f : Π₀' i, [β i, d i]) : Π₀' k, [β (h k), d (h k)] where
-  toFun x := f (h x)
-  support' :=
-    f.support'.map fun s =>
-      ⟨((Multiset.toFinset s.1).preimage h (hh.injOn _)).val, fun x =>
-        (s.prop (h x)).imp_left fun hx => mem_preimage.mpr <| Multiset.mem_toFinset.mpr hx⟩
-
-@[simp]
-theorem comapDomain_apply (h : κ → ι) (hh : Function.Injective h) (f : Π₀' i, [β i, d i])
-    (k : κ) : comapDomain h hh f k = f (h k) :=
-  rfl
-
-@[simp]
-theorem comapDomain_default (h : κ → ι) (hh : Function.Injective h) :
-    comapDomain h hh (default : Π₀' i, [β i, d i]) = default := by
-  ext
-  rw [default_apply, comapDomain_apply, default_apply]
-
-@[simp]
-theorem comapDomain_single [DecidableEq κ] (h : κ → ι) (hh : Function.Injective h)
-    (k : κ) (x : β (h k)) : comapDomain h hh (single d (h k) x) = single _ k x := by
-  ext i
-  rw [comapDomain_apply]
-  obtain rfl | hik := Decidable.eq_or_ne i k
-  · rw [single_eq_same, single_eq_same]
-  · rw [single_eq_of_ne hik.symm, single_eq_of_ne (hh.ne hik.symm)]
-
-/-- A computable version of comapDomain when an explicit left inverse is provided. -/
-def comapDomain' (h : κ → ι) {h' : ι → κ} (hh' : Function.LeftInverse h' h)
-    (f : Π₀' i, [β i, d i]) : Π₀' k, [β (h k), d (h k)] where
-  toFun x := f (h x)
-  support' :=
-    f.support'.map fun s =>
-      ⟨Multiset.map h' s.1, fun x =>
-        (s.prop (h x)).imp_left fun hx => Multiset.mem_map.mpr ⟨_, hx, hh' _⟩⟩
-
-@[simp]
-theorem comapDomain'_apply (h : κ → ι) {h' : ι → κ}
-    (hh' : Function.LeftInverse h' h) (f : Π₀' i, [β i, d i]) (k : κ) : comapDomain' h hh' f k = f (h k) :=
-  rfl
-
-@[simp]
-theorem comapDomain'_default (h : κ → ι) {h' : ι → κ}
-    (hh' : Function.LeftInverse h' h) : comapDomain' h hh' (default : Π₀' i, [β i, d i]) = default := by
-  ext
-  rw [default_apply, comapDomain'_apply, default_apply]
-
-/-- Reindexing terms of a `DFinsupp'`.
-
-This is the `DFinsupp'` version of `Equiv.piCongrLeft'`. -/
-@[simps apply]
-def equivCongrLeft (h : ι ≃ κ) : (Π₀' i, [β i, d i]) ≃ Π₀' k, [β (h.symm k), d (h.symm k)]
-    where
-  toFun := comapDomain' h.symm h.right_inv
-  invFun f :=
-    mapRange (fun i => Equiv.cast <| congr_arg β <| h.symm_apply_apply i)
-      (fun i => (Equiv.cast_eq_iff_heq _).mpr <| by rw [Equiv.symm_apply_apply])
-      (@comapDomain' _ _ _ _ h _ h.left_inv f)
-  left_inv f := by
-    ext i
-    rw [mapRange_apply, comapDomain'_apply, comapDomain'_apply, Equiv.cast_eq_iff_heq,
-      h.symm_apply_apply]
-  right_inv f := by
-    ext k
-    rw [comapDomain'_apply, mapRange_apply, comapDomain'_apply, Equiv.cast_eq_iff_heq,
-      h.apply_symm_apply]
-
-variable {α : Option ι → Type v} {dα : ∀ i, α i}
-
-/-- Adds a term to a `DFinsupp'`, making a `DFinsupp'` indexed by an `Option`.
-
-This is the `DFinsupp'` version of `Option.rec`. -/
-def extendWith (a : α none) (f : Π₀' i, [α (some i), dα (some i)]) : Π₀' i, [α i, dα i] where
-  toFun := fun i ↦ match i with | none => a | some _ => f _
-  support' :=
-    f.support'.map fun s =>
-      ⟨none ::ₘ Multiset.map some s.1, fun i =>
-        Option.rec (Or.inl <| Multiset.mem_cons_self _ _)
-          (fun i =>
-            (s.prop i).imp_left fun h => Multiset.mem_cons_of_mem <| Multiset.mem_map_of_mem _ h)
-          i⟩
-
-@[simp]
-theorem extendWith_none (f : Π₀' i, [α (some i), dα (some i)]) (a : α none) :
-    f.extendWith a none = a :=
-  rfl
-
-@[simp]
-theorem extendWith_some (f : Π₀' i, [α (some i), dα (some i)]) (a : α none) (i : ι) :
-    f.extendWith a (some i) = f i :=
-  rfl
-
-@[simp]
-theorem extendWith_single [DecidableEq ι] (i : ι) (x : α (some i)) :
-    (single _ i x).extendWith (dα none) = single dα (some i) x := by
-  ext (_ | j)
-  · rw [extendWith_none, single_eq_of_ne (Option.some_ne_none _)]
-  · rw [extendWith_some]
-    obtain rfl | hij := Decidable.eq_or_ne i j
-    · rw [single_eq_same, single_eq_same]
-    · rw [single_eq_of_ne hij, single_eq_of_ne ((Option.some_injective _).ne hij)]
-
-@[simp]
-theorem extendWith_default [DecidableEq ι] (x : α none) :
-    (default : Π₀' i, [α (some i), dα (some i)]).extendWith x = single dα none x := by
-  ext (_ | j)
-  · rw [extendWith_none, single_eq_same]
-  · rw [extendWith_some, single_eq_of_ne (Option.some_ne_none _).symm, default_apply]
-
-/-- Bijection obtained by separating the term of index `none` of a `DFinsupp'` over `Option ι`.
-
-This is the `DFinsupp'` version of `Equiv.piOptionEquivProd`. -/
-@[simps]
-noncomputable def equivProdDFinsupp' :
-    (Π₀' i, [α i, dα i]) ≃ α none × Π₀' i, [α (some i), dα (some i)] where
-  toFun f := (f none, comapDomain some (Option.some_injective _) f)
-  invFun f := f.2.extendWith f.1
-  left_inv f := by
-    ext i; cases' i with i
-    · rw [extendWith_none]
-    · rw [extendWith_some, comapDomain_apply]
-  right_inv x := by
-    dsimp only
-    ext
-    · exact extendWith_none x.snd _
-    · rw [comapDomain_apply, extendWith_some]
-
-end Equiv
-
-section ProdAndSum
-
-/-- `DFinsupp'.prod f g` is the product of `g i (f i)` over the support of `f`. -/
-@[to_additive "`DFinsupp'.sum f g` is the sum of `g i (f i)` over the support of `f`."]
-def prod [∀ (i) (x : β i), Decidable (x ≠ d i)] [CommMonoid γ] (f : Π₀' i, [β i, d i])
-    (g : ∀ i, β i → γ) : γ :=
-  ∏ i in f.support, g i (f i)
-
-@[to_additive (attr := simp)]
-theorem _root_.map_dfinsupp'_prod
-    {R S H : Type*} [∀ (i) (x : β i), Decidable (x ≠ d i)] [CommMonoid R] [CommMonoid S]
-    [FunLike H R S] [MonoidHomClass H R S] (h : H) (f : Π₀' i, [β i, d i])
-    (g : ∀ i, β i → R) : h (f.prod g) = f.prod fun a b => h (g a b) :=
-  map_prod _ _ _
-
-@[to_additive]
-theorem prod_mapRange_index
-    [∀ (i) (x : β₁ i), Decidable (x ≠ d₁ i)] [∀ (i) (x : β₂ i), Decidable (x ≠ d₂ i)]
-    [CommMonoid γ] {f : ∀ i, β₁ i → β₂ i} {hf : ∀ i, f i (d₁ i) = d₂ i}
-    {g : Π₀' i, [β₁ i, d₁ i]} {h : ∀ i, β₂ i → γ}
-    (h0 : ∀ i, h i (d₂ i) = 1) : (mapRange f hf g).prod h = g.prod fun i b => h i (f i b) := by
-  rw [mapRange_def]
-  refine' (Finset.prod_subset support_mk_subset _).trans _
-  · intro i h1 h2
-    simp only [mem_support_toFun, ne_eq] at h1
-    simp only [Finset.coe_sort_coe, mem_support_toFun, mk_apply, ne_eq, h1, not_false_iff,
-      dite_eq_ite, ite_true, not_not] at h2
-    simp [h2, h0]
-  · refine' Finset.prod_congr rfl _
-    intro i h1
-    simp only [mem_support_toFun, ne_eq] at h1
-    simp [h1]
-
-@[to_additive]
-theorem prod_default_index [∀ i, AddCommMonoid (β i)] [∀ (i) (x : β i), Decidable (x ≠ d i)]
-    [CommMonoid γ] {h : ∀ i, β i → γ} : (default : Π₀' i, [β i, d i]).prod h = 1 :=
-  rfl
-
-@[to_additive]
-theorem prod_single_index [∀ (i) (x : β i), Decidable (x ≠ d i)] [CommMonoid γ]
-    {i : ι} {b : β i} {h : ∀ i, β i → γ} (hd : h i (d i) = 1) :
-    (single d i b).prod h = h i b := by
-  by_cases h : b ≠ d i
-  · simp [DFinsupp'.prod, support_single_ne h]
-  · rw [not_not] at h
-    simp [h, prod_default_index, hd]
-
-@[to_additive]
-theorem prod_comm {ι₁ ι₂ : Sort _} {β₁ : ι₁ → Type*} {β₂ : ι₂ → Type*} [DecidableEq ι₁]
-    [DecidableEq ι₂] {d₁ : ∀ i, β₁ i} {d₂ : ∀ i, β₂ i} [∀ (i) (x : β₁ i), Decidable (x ≠ d₁ i)]
-    [∀ (i) (x : β₂ i), Decidable (x ≠ d₂ i)] [CommMonoid γ] (f₁ : Π₀' i, [β₁ i, d₁ i])
-    (f₂ : Π₀' i, [β₂ i, d₂ i]) (h : ∀ i, β₁ i → ∀ i, β₂ i → γ) :
-    (f₁.prod fun i₁ x₁ => f₂.prod fun i₂ x₂ => h i₁ x₁ i₂ x₂) =
-      f₂.prod fun i₂ x₂ => f₁.prod fun i₁ x₁ => h i₁ x₁ i₂ x₂ :=
-  Finset.prod_comm
-
-@[to_additive (attr := simp)]
-theorem prod_one [∀ i, AddCommMonoid (β i)] [∀ (i) (x : β i), Decidable (x ≠ d i)] [CommMonoid γ]
-    {f : Π₀' i, [β i, d i]} : (f.prod fun _ _ => (1 : γ)) = 1 :=
-  Finset.prod_const_one
-
-@[to_additive (attr := simp)]
-theorem prod_mul [∀ i, AddCommMonoid (β i)] [∀ (i) (x : β i), Decidable (x ≠ d i)] [CommMonoid γ]
-    {f : Π₀' i, [β i, d i]} {h₁ h₂ : ∀ i, β i → γ} :
-    (f.prod fun i b => h₁ i b * h₂ i b) = f.prod h₁ * f.prod h₂ :=
-  Finset.prod_mul_distrib
-
-@[to_additive (attr := simp)]
-theorem prod_inv [∀ i, AddCommMonoid (β i)] [∀ (i) (x : β i), Decidable (x ≠ d i)] [CommGroup γ]
-    {f : Π₀' i, [β i, d i]} {h : ∀ i, β i → γ} : (f.prod fun i b => (h i b)⁻¹) = (f.prod h)⁻¹ :=
-  (map_prod (invMonoidHom : γ →* γ) _ f.support).symm
-
-@[to_additive]
-theorem prod_eq_one [∀ (i) (x : β i), Decidable (x ≠ d i)] [CommMonoid γ]
-    {f : Π₀' i, [β i, d i]} {h : ∀ i, β i → γ} (hyp : ∀ i, h i (f i) = 1) : f.prod h = 1 :=
-  Finset.prod_eq_one fun i _ => hyp i
-
-theorem smul_sum {α : Type*} [Monoid α] [∀ (i) (x : β i), Decidable (x ≠ d i)]
-    [AddCommMonoid γ] [DistribMulAction α γ] {f : Π₀' i, [β i, d i]} {h : ∀ i, β i → γ} {c : α} :
-    c • f.sum h = f.sum fun a b => c • h a b :=
-  Finset.smul_sum
-
-@[to_additive]
-theorem _root_.dfinsupp_prod_mem [∀ (i) (x : β i), Decidable (x ≠ d i)]
-    [CommMonoid γ] {S : Type*} [SetLike S γ] [SubmonoidClass S γ]
-    (s : S) (f : Π₀' i, [β i, d i]) (g : ∀ i, β i → γ)
-    (h : ∀ c, f c ≠ d c → g c (f c) ∈ s) : f.prod g ∈ s :=
-  prod_mem fun _ hi => h _ <| mem_support_iff.1 hi
-
-@[to_additive (attr := simp)]
-theorem prod_eq_prod_fintype [Fintype ι] [∀ (i : ι) (x : β i), Decidable (x ≠ d i)]
-    -- Porting note: `f` was a typeclass argument
-    [CommMonoid γ] (v : Π₀' i, [β i, d i]) {f : ∀ i, β i → γ} (hf : ∀ i, f i (d i) = 1) :
-    v.prod f = ∏ i, f i (DFinsupp'.equivFunOnFintype v i) := by
-  suffices (∏ i in v.support, f i (v i)) = ∏ i, f i (v i) by simp [DFinsupp'.prod, this]
-  apply Finset.prod_subset v.support.subset_univ
-  intro i _ hi
-  rw [mem_support_iff, not_not] at hi
-  rw [hi, hf]
-
-section CommMonoidWithZero
-variable [CommMonoidWithZero γ] [Nontrivial γ] [NoZeroDivisors γ]
-  [Π i, DecidableEq (β i)] {f : Π₀' i, [β i, d i]} {g : Π i, β i → γ}
-
-@[simp]
-lemma prod_eq_zero_iff : f.prod g = 0 ↔ ∃ i ∈ f.support, g i (f i) = 0 := Finset.prod_eq_zero_iff
-lemma prod_ne_zero_iff : f.prod g ≠ 0 ↔ ∀ i ∈ f.support, g i (f i) ≠ 0 := Finset.prod_ne_zero_iff
-
-end CommMonoidWithZero
-
-@[to_additive]
-theorem prod_subtypeDomain_index [∀ (i) (x : β i), Decidable (x ≠ d i)]
-    [CommMonoid γ] {v : Π₀' i, [β i, d i]} {p : ι → Prop} [DecidablePred p] {h : ∀ i, β i → γ}
-    (hp : ∀ x ∈ v.support, p x) : (v.subtypeDomain p).prod (fun i b => h i b) = v.prod h := by
-  refine Finset.prod_bij (fun p _ ↦ p) ?_ ?_ ?_ ?_ <;> aesop
-
-end ProdAndSum
-
 end DFinsupp'
-
-section
-
-variable [DecidableEq ι]
-
-namespace MonoidHom
-
-variable {R S : Type*}
-variable [∀ (i) (x : β i), Decidable (x ≠ d i)]
-
-@[to_additive (attr := simp, norm_cast)]
-theorem coe_dfinsupp'_prod [Monoid R] [CommMonoid S] (f : Π₀' i, [β i, d i]) (g : ∀ i, β i → R →* S) :
-    ⇑(f.prod g) = f.prod fun a b => ⇑(g a b) :=
-  coe_finset_prod _ _
-
-@[to_additive]
-theorem dfinsupp'_prod_apply [Monoid R] [CommMonoid S] (f : Π₀' i, [β i, d i]) (g : ∀ i, β i → R →* S)
-    (r : R) : (f.prod g) r = f.prod fun a b => (g a b) r :=
-  finset_prod_apply _ _ _
-
-end MonoidHom
-
-end
-
-section FiniteInfinite
-
-instance DFinsupp'.fintype {ι : Type*} {π : ι → Type*} [DecidableEq ι] {dπ : ∀ i, π i}
-    [Fintype ι] [∀ i, Fintype (π i)] : Fintype (Π₀' i, [π i, dπ i]) :=
-  Fintype.ofEquiv (∀ i, π i) DFinsupp'.equivFunOnFintype.symm
-
-instance DFinsupp'.infinite_of_left {ι : Type*} {π : ι → Type*} [∀ i, Nontrivial (π i)]
-    {dπ : ∀ i, π i} [Infinite ι] : Infinite (Π₀' i, [π i, dπ i]) := by
-  letI := Classical.decEq ι; choose m hm using fun i => exists_ne (dπ i : π i);
-    exact Infinite.of_injective _ (DFinsupp'.single_left_injective hm)
-
-/-- See `DFinsupp'.infinite_of_right` for this in instance form, with the drawback that
-it needs all `π i` to be infinite. -/
-theorem DFinsupp'.infinite_of_exists_right {ι : Type*} {π : ι → Type*} (i : ι) [Infinite (π i)]
-    {dπ : ∀ i, π i} : Infinite (Π₀' i, [π i, dπ i]) :=
-  letI := Classical.decEq ι
-  Infinite.of_injective (fun j => DFinsupp'.single dπ i j) DFinsupp'.single_injective
-
-/-- See `DFinsupp'.infinite_of_exists_right` for the case that only one `π ι` is infinite. -/
-instance DFinsupp'.infinite_of_right {ι : Type*} {π : ι → Type*} [∀ i, Infinite (π i)]
-    {dπ : ∀ i, π i} [Nonempty ι] : Infinite (Π₀' i, [π i, dπ i]) :=
-  DFinsupp'.infinite_of_exists_right (Classical.arbitrary ι)
-
-end FiniteInfinite
