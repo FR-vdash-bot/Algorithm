@@ -35,6 +35,12 @@ variable {β}
 -/
 notation3 "Π₀' "(...)", ""[" β:(scoped β => β) ", " d:(scoped d => d) "]" => DFinsupp' β d
 
+/--
+`ι →₀' [β, d]` denotes the type of functions with finite support
+`DFinsupp' (fun _ : ι ↦ β) (fun _ : ι ↦ d)`.
+-/
+notation3 ι " →₀' ""[" β ", " d "]" => DFinsupp' (fun _ : ι ↦ β) (fun _ : ι ↦ d)
+
 namespace DFinsupp'
 
 section Basic
