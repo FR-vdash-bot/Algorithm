@@ -30,7 +30,7 @@ def dfsForest [Fintype V] {BoolArray : Type*} [Inhabited BoolArray] [AssocArray 
       g.dfsForest ((f, vs) :: vss) visited
     else
       g.dfsForest ((.nil, g.succList v) :: (f, vs) :: vss) (AssocArray.update visited v true)
-termination_by ((Finset.univ.filter (fun v : V => !visited[v])).card, (vs.map (·.snd.length + 1)).sum)
+termination_by ((toDFinsupp' visited).supportᶜ.card, (vs.map (·.snd.length + 1)).sum)
 decreasing_by
   all_goals simp_wf
   · simp [Prod.lex_iff]
@@ -54,7 +54,7 @@ def dfs' [Fintype V] {BoolArray : Type*} [Inhabited BoolArray] [AssocArray BoolA
       g.dfs' (vs :: vss) visited
     else
       g.dfs' (g.succList v :: (vs :: vss)) (AssocArray.update visited v true)
-termination_by ((Finset.univ.filter (fun v : V => !visited[v])).card, (vs.map (·.length + 1)).sum)
+termination_by ((toDFinsupp' visited).supportᶜ.card, (vs.map (·.length + 1)).sum)
 decreasing_by
   all_goals simp_wf
   · simp [Prod.lex_iff]
@@ -76,7 +76,7 @@ def dfs [Fintype V] {BoolArray : Type*} [Inhabited BoolArray] [AssocArray BoolAr
       g.dfs vs visited
     else
       g.dfs (g.succList v ++ vs) (AssocArray.update visited v true)
-termination_by ((Finset.univ.filter (fun v : V => !visited[v])).card, vs.length)
+termination_by ((toDFinsupp' visited).supportᶜ.card, vs.length)
 decreasing_by
   all_goals simp_wf
   · simp [Prod.lex_iff]
