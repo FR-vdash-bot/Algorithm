@@ -12,18 +12,18 @@ namespace AdjList
 variable {V : Type*} [DecidableEq V]
   {EType : Type*} [DecidableEq EType]
   {EColl : Type*} [ToList EColl EType] [Inhabited EColl]
-  {StarList : Type*} [AssocArray StarList V EColl]
+  {StarList : Type*} [Inhabited StarList] [AssocArray StarList V EColl]
 
 -- 也许在以后可以改成存迭代器
 -- 如何形式化各种使用 dfs 的算法？如 Tarjan's SCC
 
-def dfsForest [Fintype V] {BoolArray : Type*} [AssocArray BoolArray V Bool]
+def dfsForest [Fintype V] {BoolArray : Type*} [Inhabited BoolArray] [AssocArray BoolArray V Bool]
     (g : AdjList V EType EColl StarList) (vs : List (Forest V × List V)) (visited : BoolArray) :
     Forest V × BoolArray :=
   match vs with
-  | [] => (.nil, AssocArray.empty)
+  | [] => (.nil, default)
   | [(f, [])] => (f, visited)
-  | (_, []) :: (_, []) :: _ => (.nil, AssocArray.empty)
+  | (_, []) :: (_, []) :: _ => (.nil, default)
   | (f, []) :: (fs, v :: vs) :: vss => g.dfsForest ((Forest.node v f fs, vs) :: vss) visited
   | (f, v :: vs) :: vss =>
     if visited[v] then
@@ -43,7 +43,7 @@ decreasing_by
     rw [Finset.subset_iff]
     simp [*, Function.update]
 
-def dfs' [Fintype V] {BoolArray : Type*} [AssocArray BoolArray V Bool]
+def dfs' [Fintype V] {BoolArray : Type*} [Inhabited BoolArray] [AssocArray BoolArray V Bool]
     (g : AdjList V EType EColl StarList) (vs : List (List V)) (visited : BoolArray) :
     BoolArray :=
   match vs with
@@ -66,7 +66,7 @@ decreasing_by
     rw [Finset.subset_iff]
     simp [*, Function.update]
 
-def dfs [Fintype V] {BoolArray : Type*} [AssocArray BoolArray V Bool]
+def dfs [Fintype V] {BoolArray : Type*} [Inhabited BoolArray] [AssocArray BoolArray V Bool]
     (g : AdjList V EType EColl StarList) (vs : List V) (visited : BoolArray) :
     BoolArray :=
   match vs with

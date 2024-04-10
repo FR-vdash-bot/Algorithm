@@ -14,7 +14,7 @@ variable
   {V : Type*} [DecidableEq V]
   {EType : Type*} [DecidableEq EType]
   {EColl : Type*} [ToList EColl EType] [Inhabited EColl]
-  {StarList : Type*} [AssocArray StarList V EColl]
+  {StarList : Type*} [Inhabited StarList] [AssocArray StarList V EColl]
   (g : AdjList V EType EColl StarList)
 
 inductive IsDFSForest : Set V → Set V → Forest V → Prop
