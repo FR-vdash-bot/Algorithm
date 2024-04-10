@@ -1,4 +1,8 @@
-
+/-
+Copyright (c) 2023 Yuyang Zhao. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yuyang Zhao
+-/
 import Algorithm.Data.Classes.AssocArray
 import Algorithm.Data.Classes.ToList
 -- import Mathlib.Data.List.Nodup
@@ -15,8 +19,8 @@ structure AdjList
   costar : StarList
   fst_star v : ∀ e ∈ star[v], fst e = v
   snd_costar v : ∀ e ∈ costar[v], snd e = v
-  countSlow_star_fst_eq_countSlow_costar_snd e :
-    countSlow e star[fst e] = countSlow e costar[snd e]
+  count_star_fst_eq_count_costar_snd e :
+    (toMultiset star[fst e]).count e = (toMultiset costar[snd e]).count e
   -- nodup_star' (v : V) : star'[v].Nodup
   -- nodup_costar' (v : V) : costar'[v].Nodup
   -- mem_star'_iff_mem_costar' e : e ∈ star'[fst' e] ↔ e ∈ costar'[snd' e]
@@ -38,8 +42,8 @@ variable
 -- lemma nodup_costar (v : g.V) : v.costar.Nodup := g.nodup_costar' v
 
 lemma mem_star_iff_mem_costar (e : EType) : e ∈ g.star[g.fst e] ↔ e ∈ g.costar[g.snd e] := by
-  rw [← countSlow_ne_zero, ← countSlow_ne_zero,
-    countSlow_star_fst_eq_countSlow_costar_snd]
+  rw [← count_toMultiset_ne_zero, ← count_toMultiset_ne_zero,
+    count_star_fst_eq_count_costar_snd]
 
 variable (g) in
 @[pp_dot]

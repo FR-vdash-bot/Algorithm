@@ -33,7 +33,6 @@ instance : ToMultiset (Array α) α where
 section ToMultiset
 variable {C α : Type*} [ToMultiset C α] (c : C)
 
---TODO: do not introduce this slow instance
 instance (priority := 100) : Membership α C where
   mem a c := a ∈ toMultiset c
 
@@ -49,20 +48,10 @@ lemma isEmpty_eq_size_beq_zero : isEmpty c = (size c == 0) := by
 
 variable [DecidableEq α]
 
-def countSlow (a : α) (c : C) : Nat :=
-  (ToMultiset.toMultiset c).count a
-
-@[simp]
-theorem countSlow_eq_zero {a : α} {c : C} : countSlow a c = 0 ↔ a ∉ c :=
+theorem count_toMultiset_eq_zero {a : α} {c : C} : (toMultiset c).count a = 0 ↔ a ∉ c :=
   Multiset.count_eq_zero
 
-theorem countSlow_ne_zero {a : α} {c : C} : countSlow a c ≠ 0 ↔ a ∈ c := by
-  simp [Ne.def, countSlow_eq_zero]
-
-class Count (C : Type*) (α : outParam Type*) [ToMultiset C α] where
-  count : [DecidableEq α] → α → C → Nat
-  count_eq_countSlow : [DecidableEq α] → ∀ a c,
-    count a c = countSlow a c := by intros; rfl
-export Count (count count_eq_countSlow)
+theorem count_toMultiset_ne_zero {a : α} {c : C} : (toMultiset c).count a ≠ 0 ↔ a ∈ c := by
+  simp [Ne.def, count_toMultiset_eq_zero]
 
 end ToMultiset
