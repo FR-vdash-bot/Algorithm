@@ -242,6 +242,11 @@ theorem equivFunOnFintype_symm_coe [Fintype ι] (f : Π₀' i, [β i, d i]) :
     equivFunOnFintype.symm f = f :=
   Equiv.symm_apply_apply _ _
 
+@[simp]
+theorem coe_equivFunOnFintype_symm [Fintype ι] (f : ∀ i, β i) :
+    (equivFunOnFintype (d := d)).symm f = f :=
+  (equivFunOnFintype (d := d)).apply_symm_apply _
+
 /-! ### Declarations about `single` -/
 
 

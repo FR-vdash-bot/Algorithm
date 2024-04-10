@@ -3,6 +3,7 @@ Copyright (c) 2023 Yuyang Zhao. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuyang Zhao
 -/
+import Algorithm.Data.DFinsupp'.Defs
 import Mathlib.Data.Fintype.Basic
 import Mathlib.Data.Setoid.Basic
 import Std.Data.Array.Lemmas
@@ -24,6 +25,9 @@ variable {α : Type*} {n : ℕ}
 def ofFn (f : Fin n → α) : ArrayVector α n :=
   ⟨.ofFn f, Array.size_ofFn f⟩
 
+instance {α n} [Inhabited α] : Inhabited (ArrayVector α n) where
+  default := .ofFn fun _ ↦ default
+
 @[pp_dot]
 def get (a : ArrayVector α n) (i : Fin n) : α :=
   a.1.get (i.cast a.2.symm)
@@ -38,25 +42,33 @@ lemma get_set (a : ArrayVector α n) (i : Fin n) (v : α) :
   simp_rw [Array.get_fin_set]
   ext; simp [Function.update, Fin.val_eq_val, eq_comm (a := i)]
 
+@[simp]
 lemma get_ofFn (f : Fin n → α) : (ofFn f).get = f := by
   ext; simp [ofFn, get]
 
+@[simp]
+lemma get_default [Inhabited α] : (default : ArrayVector α n).get = default :=
+  get_ofFn _
+
 end ArrayVector
 
-/-- `AssocArray A ι α` is a data structure that acts like a finitely supported function `ι → α`
-  with single point update operation. -/
-class AssocArray (A : Type*) (ι : outParam Type*) [DecidableEq ι]
+/-- `AssocArray A ι α` is a data structure that acts like a finitely supported function
+  `ι →₀' [α, default]` with single point update operation. -/
+class AssocArray (A : Type*) [Inhabited A] (ι : outParam Type*) [DecidableEq ι]
     (α : outParam Type*) [Inhabited α] where
-  empty : A
   update : A → ι → α → A
   get : A → ι → α
   get_update a i v : get (update a i v) = Function.update (get a) i v
-  get_empty : get empty = Function.const _ default
+  get_default : get default = default
+  toDFinsupp' : A → ι →₀' [α, default]
+  coe_toDFinsupp'_eq_get : ∀ a : A, ⇑(toDFinsupp' a) = get a
+export AssocArray (toDFinsupp' coe_toDFinsupp'_eq_get)
 
-attribute [simp] AssocArray.get_update AssocArray.get_empty
+attribute [simp] AssocArray.get_update AssocArray.get_default coe_toDFinsupp'_eq_get
 
 namespace AssocArray
-variable {A ι : Type*} [DecidableEq ι] {α : Type*} [Inhabited α] [AssocArray A ι α]
+variable {A : Type*} [Inhabited A] {ι : Type*} [DecidableEq ι] {α : Type*} [Inhabited α]
+  [AssocArray A ι α]
 
 instance : GetElem A ι α fun _ _ ↦ True where
   getElem a i _ := AssocArray.get a i
@@ -64,15 +76,27 @@ instance : GetElem A ι α fun _ _ ↦ True where
 @[simp]
 lemma get_eq_getElem (a : A) (i : ι) : get a i = a[i] := rfl
 
+lemma toDFinsupp'_apply_eq_getElem (a : A) (i : ι) : toDFinsupp' a i = a[i] := by simp
+
 @[simp]
 lemma getElem_update (a : A) (i : ι) (v : α) (j : ι) :
     (update a i v)[j] = Function.update (get a) i v j :=
   congr_fun (get_update a i v) j
 
 @[simp]
-lemma getElem_empty (i : ι) :
-    (empty : A)[i] = Function.const _ default i :=
-  congr_fun get_empty i
+lemma getElem_default (i : ι) :
+    (default : A)[i] = Function.const _ default i :=
+  congr_fun get_default i
+
+@[simp]
+lemma toDFinsupp'_update (a : A) (i : ι) (v : α) :
+    toDFinsupp' (update a i v) = (toDFinsupp' a).update i v := by
+  ext; simp
+
+@[simp]
+lemma toDFinsupp'_default :
+    toDFinsupp' (default : A) = default := by
+  ext; simp
 
 end AssocArray
 
@@ -80,40 +104,49 @@ namespace ArrayVector
 variable {α : Type*} {n : ℕ}
 
 instance [Inhabited α] : AssocArray (ArrayVector α n) (Fin n) α where
-  empty := .ofFn fun _ ↦ default
   update := set
   get := get
   get_update := get_set
-  get_empty := by simp [get_ofFn]; rfl
+  get_default := get_default
+  toDFinsupp' a := DFinsupp'.equivFunOnFintype.symm (get a)
+  coe_toDFinsupp'_eq_get _ := DFinsupp'.coe_equivFunOnFintype_symm _
 
 end ArrayVector
 
 namespace AssocArray
 
-class Ext (A : Type*) (ι : outParam Type*) [DecidableEq ι]
+class Ext (A : Type*) [Inhabited A] (ι : outParam Type*) [DecidableEq ι]
     (α : outParam Type*) [Inhabited α] [AssocArray A ι α] where
   ext : ∀ {m₁ m₂ : A}, get m₁ = get m₂ → m₁ = m₂
 
-variable {A ι : Type*} [DecidableEq ι] {α : Type*} [Inhabited α] [AssocArray A ι α]
+variable {A : Type*} [Inhabited A] {ι : Type*} [DecidableEq ι] {α : Type*} [Inhabited α]
+  [AssocArray A ι α]
 
 variable (A)
 
-def Quotient := @_root_.Quotient A (Setoid.ker get)
+protected def Quotient := @Quotient A (Setoid.ker get)
 
-instance : AssocArray (Quotient A) ι α where
-  empty := ⟦empty⟧
+instance : Inhabited (AssocArray.Quotient A) :=
+  inferInstanceAs <| Inhabited (@Quotient A (Setoid.ker get))
+
+instance : AssocArray (AssocArray.Quotient A) ι α where
   update q i v := q.map' (update · i v) (fun _ _ hm ↦ (Eq.congr (get_update _ _ _) (get_update _ _ _)).mpr (by rw [hm]))
   get := Quotient.lift get (fun _ _ ↦ id)
   get_update q i v := q.inductionOn (fun _ ↦ get_update _ _ _)
-  get_empty := get_empty
+  get_default := get_default
+  toDFinsupp' := Quotient.lift toDFinsupp' (fun _ _ ↦ by
+    simpa only [DFunLike.ext'_iff, coe_toDFinsupp'_eq_get] using id)
+  coe_toDFinsupp'_eq_get a := by
+    induction a using Quotient.ind
+    exact coe_toDFinsupp'_eq_get _
 
-instance : Ext (Quotient A) ι α where
+instance : Ext (AssocArray.Quotient A) ι α where
   ext {m₁ m₂} := m₂.inductionOn <| m₁.inductionOn (fun _ _ ha ↦ Quotient.sound ha)
 export Ext (ext)
 
 def listIndicator (l : List ι) (f : ∀ i ∈ l, α) : A :=
   match l with
-  | [] => empty
+  | [] => default
   | (i :: l) => update (listIndicator l (fun i hi ↦ f i (List.mem_cons_of_mem _ hi)))
     i (f i (List.mem_cons_self _ _))
 
@@ -122,7 +155,7 @@ variable {A}
 lemma get_listIndicator (l : List ι) (f : ∀ i ∈ l, α) :
     get (listIndicator A l f) = (fun i ↦ if hi : i ∈ l then f i hi else default) :=
   match l with
-  | [] => by ext; simp [listIndicator, get_empty, Function.const]
+  | [] => by ext; simp [listIndicator, get_default, Function.const]
   | (i :: l) => by
     ext j
     rw [listIndicator, get_update, Function.update_apply]
