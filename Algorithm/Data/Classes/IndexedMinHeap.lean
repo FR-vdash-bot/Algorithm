@@ -23,8 +23,8 @@ def minIdx (a : ArrayVector (WithTop α) n) : Fin n :=
 
 def minIdx_spec (a : ArrayVector (WithTop α) n) (i : Fin n) :
     a[a.minIdx] < a[i] ∨ a[a.minIdx] = a[i] ∧ a.minIdx ≤ i := by
-  have : a.minAux.1 = a[a.minIdx]
-  · unfold minIdx minAux
+  have : a.minAux.1 = a[a.minIdx] := by
+    unfold minIdx minAux
     obtain ⟨i, -, h⟩ := (⊤ : Finset (Fin n)).exists_mem_eq_inf'
       ⟨0, Finset.mem_univ 0⟩ (fun i ↦ toLex (a[i], i))
     rw [Prod.eq_iff_fst_eq_snd_eq] at h
