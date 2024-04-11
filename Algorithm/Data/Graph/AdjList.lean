@@ -9,10 +9,9 @@ import Algorithm.Data.Classes.ToList
 import Mathlib.Combinatorics.Quiver.Path
 
 structure AdjList
-    (V : Type*) [DecidableEq V]
-    (EType : Type*) [DecidableEq EType]
+    (V : Type*) (EType : Type*) [DecidableEq EType]
     (EColl : Type*) [ToMultiset EColl EType] [Inhabited EColl]
-    (StarList : Type*) [Inhabited StarList] [AssocArray StarList V EColl] where
+    (StarList : Type*) [AssocArray.ReadOnly StarList V EColl] where
   fst : EType → V
   snd : EType → V
   star : StarList
@@ -31,10 +30,9 @@ attribute [pp_dot] fst snd star costar
 
 section ToMultiset
 variable
-  {V : Type*} [DecidableEq V]
-  {EType : Type*} [DecidableEq EType]
+  {V : Type*} {EType : Type*} [DecidableEq EType]
   {EColl : Type*} [ToMultiset EColl EType] [Inhabited EColl]
-  {StarList : Type*} [Inhabited StarList] [AssocArray StarList V EColl] {g : AdjList V EType EColl StarList}
+  {StarList : Type*} [AssocArray.ReadOnly StarList V EColl] {g : AdjList V EType EColl StarList}
 -- instance : GetElem g.StarList g.V (List g.E) (fun _ _ ↦ True) := AssocArray.instGetElem
 -- by infer_instance
 
@@ -233,10 +231,9 @@ end ToMultiset
 
 section ToList
 variable
-  {V : Type*} [DecidableEq V]
-  {EType : Type*} [DecidableEq EType]
+  {V : Type*} {EType : Type*} [DecidableEq EType]
   {EColl : Type*} [ToList EColl EType] [Inhabited EColl]
-  {StarList : Type*} [Inhabited StarList] [AssocArray StarList V EColl]
+  {StarList : Type*} [AssocArray.ReadOnly StarList V EColl]
   (g : AdjList V EType EColl StarList)
 
 @[pp_dot]

@@ -52,29 +52,41 @@ lemma get_default [Inhabited α] : (default : ArrayVector α n).get = default :=
 
 end ArrayVector
 
+class AssocArray.ReadOnly (A : Type*) (ι : outParam Type*)
+    (α : outParam Type*) [Inhabited α] where
+  get : A → ι → α
+  toDFinsupp' : A → ι →₀' [α, default]
+  coe_toDFinsupp'_eq_get : ∀ a : A, ⇑(toDFinsupp' a) = get a
+export AssocArray.ReadOnly (toDFinsupp' coe_toDFinsupp'_eq_get)
+
 /-- `AssocArray A ι α` is a data structure that acts like a finitely supported function
   `ι →₀' [α, default]` with single point update operation. -/
 class AssocArray (A : Type*) [Inhabited A] (ι : outParam Type*) [DecidableEq ι]
-    (α : outParam Type*) [Inhabited α] where
+    (α : outParam Type*) [Inhabited α] extends AssocArray.ReadOnly A ι α where
   update : A → ι → α → A
-  get : A → ι → α
   get_update a i v : get (update a i v) = Function.update (get a) i v
   get_default : get default = default
-  toDFinsupp' : A → ι →₀' [α, default]
-  coe_toDFinsupp'_eq_get : ∀ a : A, ⇑(toDFinsupp' a) = get a
-export AssocArray (toDFinsupp' coe_toDFinsupp'_eq_get)
+
+namespace AssocArray
+
+export ReadOnly (get toDFinsupp' coe_toDFinsupp'_eq_get)
 
 attribute [simp] AssocArray.get_update AssocArray.get_default coe_toDFinsupp'_eq_get
 
-namespace AssocArray
-variable {A : Type*} [Inhabited A] {ι : Type*} [DecidableEq ι] {α : Type*} [Inhabited α]
-  [AssocArray A ι α]
+section ReadOnly
+variable {A : Type*} {ι : Type*} {α : Type*} [Inhabited α]
+variable [AssocArray.ReadOnly A ι α]
 
 instance : GetElem A ι α fun _ _ ↦ True where
   getElem a i _ := AssocArray.get a i
 
 @[simp]
 lemma get_eq_getElem (a : A) (i : ι) : get a i = a[i] := rfl
+
+end ReadOnly
+
+variable {A : Type*} [Inhabited A] {ι : Type*} [DecidableEq ι] {α : Type*} [Inhabited α]
+  [AssocArray A ι α]
 
 lemma toDFinsupp'_apply_eq_getElem (a : A) (i : ι) : toDFinsupp' a i = a[i] := by simp
 

@@ -25,6 +25,11 @@ instance (priority := 100) : ToMultiset C α where
 @[simp]
 lemma mem_toFinset (v : α) : v ∈ toFinset c ↔ v ∈ c := .rfl
 
+@[simp]
+lemma toFinset_val_eq_toMultiset : (toFinset c).val = toMultiset c := rfl
+
+lemma nodup_toMultiset : (toMultiset c).Nodup := (toFinset c).nodup
+
 variable [DecidableEq α]
 
 end ToFinset

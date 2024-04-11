@@ -12,7 +12,7 @@ namespace AdjList
 variable {V : Type*} [DecidableEq V]
   {EType : Type*} [DecidableEq EType]
   {EColl : Type*} [ToList EColl EType] [Inhabited EColl]
-  {StarList : Type*} [Inhabited StarList] [AssocArray StarList V EColl]
+  {StarList : Type*} [AssocArray.ReadOnly StarList V EColl]
 
 -- 也许在以后可以改成存迭代器
 -- 如何形式化各种使用 dfs 的算法？如 Tarjan's SCC
