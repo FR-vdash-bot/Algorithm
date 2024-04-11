@@ -61,10 +61,10 @@ export AssocArray.ReadOnly (toDFinsupp' coe_toDFinsupp'_eq_get)
 
 /-- `AssocArray A ι α` is a data structure that acts like a finitely supported function
   `ι →₀' [α, default]` with single point update operation. -/
-class AssocArray (A : Type*) [Inhabited A] (ι : outParam Type*) [DecidableEq ι]
+class AssocArray (A : Type*) [Inhabited A] (ι : outParam Type*)
     (α : outParam Type*) [Inhabited α] extends AssocArray.ReadOnly A ι α where
   update : A → ι → α → A
-  get_update a i v : get (update a i v) = Function.update (get a) i v
+  get_update : [DecidableEq ι] → ∀ a i v, get (update a i v) = Function.update (get a) i v
   get_default : get default = default
 
 namespace AssocArray
@@ -85,13 +85,13 @@ lemma get_eq_getElem (a : A) (i : ι) : get a i = a[i] := rfl
 
 end ReadOnly
 
-variable {A : Type*} [Inhabited A] {ι : Type*} [DecidableEq ι] {α : Type*} [Inhabited α]
+variable {A : Type*} [Inhabited A] {ι : Type*} {α : Type*} [Inhabited α]
   [AssocArray A ι α]
 
 lemma toDFinsupp'_apply_eq_getElem (a : A) (i : ι) : toDFinsupp' a i = a[i] := by simp
 
 @[simp]
-lemma getElem_update (a : A) (i : ι) (v : α) (j : ι) :
+lemma getElem_update [DecidableEq ι] (a : A) (i : ι) (v : α) (j : ι) :
     (update a i v)[j] = Function.update (get a) i v j :=
   congr_fun (get_update a i v) j
 
@@ -101,7 +101,7 @@ lemma getElem_default (i : ι) :
   congr_fun get_default i
 
 @[simp]
-lemma toDFinsupp'_update (a : A) (i : ι) (v : α) :
+lemma toDFinsupp'_update [DecidableEq ι] (a : A) (i : ι) (v : α) :
     toDFinsupp' (update a i v) = (toDFinsupp' a).update i v := by
   ext; simp
 
@@ -118,7 +118,7 @@ variable {α : Type*} {n : ℕ}
 instance [Inhabited α] : AssocArray (ArrayVector α n) (Fin n) α where
   update := set
   get := get
-  get_update := get_set
+  get_update a i v := by convert get_set a i v
   get_default := get_default
   toDFinsupp' a := DFinsupp'.equivFunOnFintype.symm (get a)
   coe_toDFinsupp'_eq_get _ := DFinsupp'.coe_equivFunOnFintype_symm _
@@ -127,12 +127,11 @@ end ArrayVector
 
 namespace AssocArray
 
-class Ext (A : Type*) [Inhabited A] (ι : outParam Type*) [DecidableEq ι]
+class Ext (A : Type*) [Inhabited A] (ι : outParam Type*)
     (α : outParam Type*) [Inhabited α] [AssocArray A ι α] where
   ext : ∀ {m₁ m₂ : A}, get m₁ = get m₂ → m₁ = m₂
 
-variable {A : Type*} [Inhabited A] {ι : Type*} [DecidableEq ι] {α : Type*} [Inhabited α]
-  [AssocArray A ι α]
+variable {A : Type*} [Inhabited A] {ι : Type*} {α : Type*} [Inhabited α] [AssocArray A ι α]
 
 variable (A)
 
@@ -142,7 +141,8 @@ instance : Inhabited (AssocArray.Quotient A) :=
   inferInstanceAs <| Inhabited (@Quotient A (Setoid.ker get))
 
 instance : AssocArray (AssocArray.Quotient A) ι α where
-  update q i v := q.map' (update · i v) (fun _ _ hm ↦ (Eq.congr (get_update _ _ _) (get_update _ _ _)).mpr (by rw [hm]))
+  update q i v := q.map' (update · i v) (by classical exact
+    fun _ _ hm ↦ (Eq.congr (get_update _ _ _) (get_update _ _ _)).mpr (by rw [hm]))
   get := Quotient.lift get (fun _ _ ↦ id)
   get_update q i v := q.inductionOn (fun _ ↦ get_update _ _ _)
   get_default := get_default
@@ -164,7 +164,7 @@ def listIndicator (l : List ι) (f : ∀ i ∈ l, α) : A :=
 
 variable {A}
 
-lemma get_listIndicator (l : List ι) (f : ∀ i ∈ l, α) :
+lemma get_listIndicator [DecidableEq ι] (l : List ι) (f : ∀ i ∈ l, α) :
     get (listIndicator A l f) = (fun i ↦ if hi : i ∈ l then f i hi else default) :=
   match l with
   | [] => by ext; simp [listIndicator, get_default, Function.const]
@@ -184,11 +184,11 @@ def indicator (s : Finset ι) (f : ∀ i ∈ s, α) : A :=
   let this := Equiv.subtypeQuotientEquivQuotientSubtype (fun l : List ι ↦ ↑l = s.1)
     (fun m ↦ m = s.1) (fun i ↦ Iff.rfl) (fun _ _ ↦ Iff.rfl) ⟨s.1, rfl⟩
   this.liftOn (fun l ↦ listIndicator A l (fun i hi ↦ f i (l.2 ▸ hi : i ∈ s.1)))
-    (fun l₁ l₂ hl ↦ ext <| by simp_rw [get_listIndicator, List.Perm.mem_iff hl])
+    (fun l₁ l₂ hl ↦ ext <| by classical simp_rw [get_listIndicator, List.Perm.mem_iff hl])
 
 variable {A}
 
-lemma get_indicator (s : Finset ι) (f : ∀ i ∈ s, α) :
+lemma get_indicator [DecidableEq ι] (s : Finset ι) (f : ∀ i ∈ s, α) :
     get (indicator A s f) = (fun i ↦ if hi : i ∈ s then f i hi else default) := by
   unfold indicator
   change _ = (fun i ↦ if hi : i ∈ s.1 then _ else _)
@@ -205,7 +205,7 @@ def ofFn [Fintype ι] (f : ι → α) : A := indicator A Finset.univ (fun i _ �
 
 variable {A}
 
-lemma get_ofFn [Fintype ι] (f : ι → α) :
+lemma get_ofFn [DecidableEq ι] [Fintype ι] (f : ι → α) :
     get (ofFn A f) = f :=
   (get_indicator _ _).trans <| funext fun _ ↦ dif_pos <| Finset.mem_univ _
 

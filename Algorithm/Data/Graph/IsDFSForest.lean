@@ -11,8 +11,7 @@ import Mathlib.Data.Fintype.Basic
 
 namespace AdjList
 variable
-  {V : Type*}
-  {EType : Type*} [DecidableEq EType]
+  {V : Type*} {EType : Type*}
   {EColl : Type*} [ToList EColl EType] [Inhabited EColl]
   {StarList : Type*} [AssocArray.ReadOnly StarList V EColl]
   (g : AdjList V EType EColl StarList)

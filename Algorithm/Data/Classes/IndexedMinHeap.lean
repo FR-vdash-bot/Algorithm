@@ -7,7 +7,7 @@ import Algorithm.Data.Classes.AssocArray
 import Mathlib.Data.Finset.Lattice
 import Mathlib.Data.Prod.Lex
 
-class IndexedMinHeap (H : Type*) (ι : outParam Type*) [DecidableEq ι]
+class IndexedMinHeap (H : Type*) [Inhabited H] (ι : outParam Type*)
     (α : outParam Type*) [LinearOrder α] extends AssocArray H ι (WithTop α) where
   minIdx : H → ι
   get_minIdx_le h (i : ι) : h[minIdx h] ≤ h[i]

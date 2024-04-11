@@ -9,7 +9,7 @@ import Algorithm.Data.Classes.ToList
 import Mathlib.Combinatorics.Quiver.Path
 
 structure AdjList
-    (V : Type*) (EType : Type*) [DecidableEq EType]
+    (V : Type*) (EType : Type*)
     (EColl : Type*) [ToMultiset EColl EType] [Inhabited EColl]
     (StarList : Type*) [AssocArray.ReadOnly StarList V EColl] where
   fst : EType → V
@@ -18,7 +18,7 @@ structure AdjList
   costar : StarList
   fst_star' v : ∀ e ∈ star[v], fst e = v
   snd_costar' v : ∀ e ∈ costar[v], snd e = v
-  count_star_fst_eq_count_costar_snd e :
+  count_star_fst_eq_count_costar_snd : [DecidableEq EType] → ∀ e,
     (toMultiset star[fst e]).count e = (toMultiset costar[snd e]).count e
   -- nodup_star' (v : V) : star'[v].Nodup
   -- nodup_costar' (v : V) : costar'[v].Nodup
@@ -30,7 +30,7 @@ attribute [pp_dot] fst snd star costar
 
 section ToMultiset
 variable
-  {V : Type*} {EType : Type*} [DecidableEq EType]
+  {V : Type*} {EType : Type*}
   {EColl : Type*} [ToMultiset EColl EType] [Inhabited EColl]
   {StarList : Type*} [AssocArray.ReadOnly StarList V EColl] {g : AdjList V EType EColl StarList}
 -- instance : GetElem g.StarList g.V (List g.E) (fun _ _ ↦ True) := AssocArray.instGetElem
@@ -43,7 +43,7 @@ lemma snd_costar {v e} : e ∈ g.costar[v] → g.snd e = v := g.snd_costar' _ _
 -- lemma nodup_costar (v : g.V) : v.costar.Nodup := g.nodup_costar' v
 
 lemma mem_star_iff_mem_costar (e : EType) : e ∈ g.star[g.fst e] ↔ e ∈ g.costar[g.snd e] := by
-  rw [← count_toMultiset_ne_zero, ← count_toMultiset_ne_zero,
+  classical rw [← count_toMultiset_ne_zero, ← count_toMultiset_ne_zero,
     count_star_fst_eq_count_costar_snd]
 
 variable (g) in
@@ -250,7 +250,7 @@ end ToMultiset
 
 section ToList
 variable
-  {V : Type*} {EType : Type*} [DecidableEq EType]
+  {V : Type*} {EType : Type*}
   {EColl : Type*} [ToList EColl EType] [Inhabited EColl]
   {StarList : Type*} [AssocArray.ReadOnly StarList V EColl]
   (g : AdjList V EType EColl StarList)

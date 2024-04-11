@@ -9,8 +9,7 @@ import Mathlib.Data.Finset.Card
 import Mathlib.Data.Fintype.Basic
 
 namespace AdjList
-variable {V : Type*} [DecidableEq V]
-  {EType : Type*} [DecidableEq EType]
+variable {V : Type*} {EType : Type*}
   {EColl : Type*} [ToList EColl EType] [Inhabited EColl]
   {StarList : Type*} [AssocArray.ReadOnly StarList V EColl]
 
@@ -19,22 +18,25 @@ variable {V : Type*} [DecidableEq V]
 
 def dfsForest' [Fintype V] {BoolArray : Type*} [Inhabited BoolArray] [AssocArray BoolArray V Bool]
     (g : AdjList V EType EColl StarList) (vs : List V) (visited : BoolArray) :
-    Forest V × { b : BoolArray // (toDFinsupp' visited).support ⊆ (toDFinsupp' b).support } :=
+    Forest V × { b : BoolArray // [DecidableEq V] →
+      (toDFinsupp' visited).support ⊆ (toDFinsupp' b).support } :=
   match vs with
-  | [] => (.nil, ⟨visited, le_rfl⟩)
+  | [] => (.nil, ⟨visited, @fun _ ↦ subset_rfl⟩)
   | v :: vs =>
     if visited[v] then
       g.dfsForest' vs visited
     else
-      have h : (toDFinsupp' visited).support ⊆
+      have h [DecidableEq V] : (toDFinsupp' visited).support ⊆
           (toDFinsupp' (AssocArray.update visited v true)).support := by
         simp [DFinsupp'.support_update_ne]
       let (fc, ⟨vis₁, hvis₁⟩) := g.dfsForest' (g.succList v) (AssocArray.update visited v true)
       let (fs, ⟨vis₂, hvis₂⟩) := g.dfsForest' vs vis₁
-      (Forest.node v fc fs, ⟨vis₂, (h.trans hvis₁).trans hvis₂⟩)
-termination_by ((toDFinsupp' visited).supportᶜ.card, vs)
+      (Forest.node v fc fs, ⟨vis₂, @fun _ ↦ (h.trans hvis₁).trans hvis₂⟩)
+termination_by by classical exact ((toDFinsupp' visited).supportᶜ.card, vs)
 decreasing_by
-  all_goals simp_wf
+  all_goals
+    letI : DecidableEq V := by classical infer_instance
+    simp_wf
   · simp [Prod.lex_iff]
   · apply Prod.Lex.left
     apply Finset.card_lt_card
@@ -45,7 +47,7 @@ decreasing_by
   · have : (toDFinsupp' vis₁).supportᶜ.card ≤ (toDFinsupp' visited).supportᶜ.card := by
       apply Finset.card_le_card
       simpa using h.trans hvis₁
-    simpa [Prod.lex_iff, ← le_iff_lt_or_eq]
+    simpa [Prod.lex_iff, ← le_iff_lt_or_eq] using this
 
 lemma roots_dfsForest'_fst_subset [Fintype V] {BoolArray : Type*} [Inhabited BoolArray]
     [AssocArray BoolArray V Bool] (g : AdjList V EType EColl StarList)
@@ -63,7 +65,7 @@ lemma roots_dfsForest'_fst_subset [Fintype V] {BoolArray : Type*} [Inhabited Boo
     · simp only [List.mem_cons]
       exact .inr <| g.roots_dfsForest'_fst_subset vs _ h
 
-lemma subset_support_toDFinsupp'_dfsForest'_snd [Fintype V] {BoolArray : Type*}
+lemma subset_support_toDFinsupp'_dfsForest'_snd [DecidableEq V] [Fintype V] {BoolArray : Type*}
     [Inhabited BoolArray] [AssocArray BoolArray V Bool] (g : AdjList V EType EColl StarList)
     (vs : List V) (visited : BoolArray) :
     {v | v ∈ vs} ⊆ (toDFinsupp' (g.dfsForest' vs visited).2.val).support := by
@@ -83,7 +85,7 @@ lemma subset_support_toDFinsupp'_dfsForest'_snd [Fintype V] {BoolArray : Type*}
         simp
       · exact g.subset_support_toDFinsupp'_dfsForest'_snd vs _ h
 
-lemma isDFSForest_dfsForest' [Fintype V] {BoolArray : Type*} [Inhabited BoolArray]
+lemma isDFSForest_dfsForest' [DecidableEq V] [Fintype V] {BoolArray : Type*} [Inhabited BoolArray]
     [AssocArray BoolArray V Bool] (g : AdjList V EType EColl StarList)
     (vs : List V) (visited : BoolArray) :
     g.IsDFSForest
@@ -129,11 +131,14 @@ def dfsForest [Fintype V] {BoolArray : Type*} [Inhabited BoolArray] [AssocArray 
 lemma dfsForest_spec [Fintype V] {BoolArray : Type*} [Inhabited BoolArray]
     [AssocArray BoolArray V Bool] (g : AdjList V EType EColl StarList) (vs : List V) :
     let (f, vis) := (g.dfsForest vs (default : BoolArray))
-    f.support = (toDFinsupp' vis).support ∧ ∀ v, v ∈ f.support ↔ ∃ r ∈ vs, g.Reachable r v := by
+    ([DecidableEq V] → f.support = (toDFinsupp' vis).support) ∧
+      ∀ v, v ∈ f.support ↔ ∃ r ∈ vs, g.Reachable r v := by
+  letI : DecidableEq V := by classical infer_instance
   have := g.isDFSForest_dfsForest' vs (default : BoolArray)
   simp only [AssocArray.toDFinsupp'_default, DFinsupp'.support_default, Finset.coe_empty] at this
   dsimp
-  refine ⟨this.spec.1, fun v ↦ ⟨fun hv ↦ ?_, fun ⟨r, hr, hrv⟩ ↦ this.complete v r ?_ hrv⟩⟩
+  refine ⟨@fun _ ↦ by convert this.spec.1,
+    fun v ↦ ⟨fun hv ↦ ?_, fun ⟨r, hr, hrv⟩ ↦ this.complete v r ?_ hrv⟩⟩
   · obtain ⟨r, hr, hrv⟩ := this.sound v hv
     exact ⟨r, g.roots_dfsForest'_fst_subset vs _ hr, hrv⟩
   · exact this.spec.1 ▸ g.subset_support_toDFinsupp'_dfsForest'_snd vs default hr
@@ -151,9 +156,12 @@ def dfsForestTR [Fintype V] {BoolArray : Type*} [Inhabited BoolArray] [AssocArra
       g.dfsForestTR ((f, vs) :: vss) visited
     else
       g.dfsForestTR ((.nil, g.succList v) :: (f, vs) :: vss) (AssocArray.update visited v true)
-termination_by ((toDFinsupp' visited).supportᶜ.card, (vs.map (·.snd.length + 1)).sum)
+termination_by by classical exact
+  ((toDFinsupp' visited).supportᶜ.card, (vs.map (·.snd.length + 1)).sum)
 decreasing_by
-  all_goals simp_wf
+  all_goals
+    letI : DecidableEq V := by classical infer_instance
+    simp_wf
   · simp [Prod.lex_iff]
     omega
   · simp [Prod.lex_iff]
@@ -175,9 +183,12 @@ def dfs'TR [Fintype V] {BoolArray : Type*} [Inhabited BoolArray] [AssocArray Boo
       g.dfs'TR (vs :: vss) visited
     else
       g.dfs'TR (g.succList v :: (vs :: vss)) (AssocArray.update visited v true)
-termination_by ((toDFinsupp' visited).supportᶜ.card, (vs.map (·.length + 1)).sum)
+termination_by by classical exact
+  ((toDFinsupp' visited).supportᶜ.card, (vs.map (·.length + 1)).sum)
 decreasing_by
-  all_goals simp_wf
+  all_goals
+    letI : DecidableEq V := by classical infer_instance
+    simp_wf
   · simp [Prod.lex_iff]
   · simp [Prod.lex_iff]
   · apply Prod.Lex.left
@@ -197,9 +208,11 @@ def dfsTR [Fintype V] {BoolArray : Type*} [Inhabited BoolArray] [AssocArray Bool
       g.dfsTR vs visited
     else
       g.dfsTR (g.succList v ++ vs) (AssocArray.update visited v true)
-termination_by ((toDFinsupp' visited).supportᶜ.card, vs.length)
+termination_by by classical exact ((toDFinsupp' visited).supportᶜ.card, vs.length)
 decreasing_by
-  all_goals simp_wf
+  all_goals
+    letI : DecidableEq V := by classical infer_instance
+    simp_wf
   · simp [Prod.lex_iff]
   · apply Prod.Lex.left
     apply Finset.card_lt_card
