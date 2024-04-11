@@ -11,10 +11,10 @@ import Mathlib.Data.Fintype.Basic
 
 namespace AdjList
 variable
-  {V : Type*} [DecidableEq V]
+  {V : Type*}
   {EType : Type*} [DecidableEq EType]
   {EColl : Type*} [ToList EColl EType] [Inhabited EColl]
-  {StarList : Type*} [Inhabited StarList] [AssocArray StarList V EColl]
+  {StarList : Type*} [AssocArray.ReadOnly StarList V EColl]
   (g : AdjList V EType EColl StarList)
 
 inductive IsDFSForest : Set V → Set V → Forest V → Prop
@@ -102,20 +102,21 @@ lemma succSet_subset' (hf : g.IsDFSForest i o f) (h : g.succSet i ⊆ o) :
 --   hf.succSet_subset' (h.trans hf.subset)
 
 lemma complete' (hf : g.IsDFSForest i o f) (h : g.succSet i ⊆ o) :
-    ∀ v, ∀ r ∈ f.roots, g.Reachable r v → v ∈ o := by
+    ∀ v, ∀ r ∈ f.support, g.Reachable r v → v ∈ o := by
   intro v r hr h
   rw [g.reachable_eq_reflTransGen] at h
   induction h with
-  | refl => exact hf.support_subset (f.roots_subset_support hr)
+  | refl => exact hf.support_subset hr
   | tail _ e ih => exact hf.succSet_subset' h ⟨_, ih, e⟩
 
 lemma complete (hf : g.IsDFSForest ∅ o f) :
-    ∀ v, ∀ r ∈ f.roots, g.Reachable r v → v ∈ f.support := by
+    ∀ v, ∀ r ∈ f.support, g.Reachable r v → v ∈ f.support := by
   convert hf.complete' (by simp)
   simp [← hf.union]
 
-lemma spec (hf : g.IsDFSForest ∅ o f) {v : V} :
-    v ∈ f.support ↔ ∃ r ∈ f.roots, g.Reachable r v :=
-  ⟨hf.sound v, fun ⟨r, hr, hrv⟩ ↦ hf.complete v r hr hrv⟩
+lemma spec (hf : g.IsDFSForest ∅ o f) :
+    f.support = o ∧ ∀ v, v ∈ f.support ↔ ∃ r ∈ f.roots, g.Reachable r v :=
+  ⟨by simp [← hf.union],
+    fun v ↦ ⟨hf.sound v, fun ⟨r, hr, hrv⟩ ↦ hf.complete v r (f.roots_subset_support hr) hrv⟩⟩
 
 end IsDFSForest

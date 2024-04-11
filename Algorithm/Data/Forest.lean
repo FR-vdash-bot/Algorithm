@@ -13,12 +13,12 @@ deriving Repr
 namespace Forest
 variable {α : Type*}
 
-@[simp]
+@[pp_dot, simp]
 def roots : (f : Forest α) → Set α
   | .nil => ∅
   | .node a _ s => insert a s.roots
 
-@[simp]
+@[pp_dot, simp]
 def support : (f : Forest α) → Set α
   | .nil => ∅
   | .node a c s => insert a (c.support ∪ s.support)
@@ -29,17 +29,17 @@ lemma roots_subset_support (f : Forest α) : f.roots ⊆ f.support := by
   | node a c s _ ihs =>
     exact Set.insert_subset_insert (Set.subset_union_of_subset_right ihs _)
 
-@[simp]
+@[pp_dot, simp]
 def pre : (f : Forest α) → List α
   | .nil => ∅
   | .node a c s => a :: c.pre ++ s.pre
 
-@[simp]
+@[pp_dot, simp]
 def post : (f : Forest α) → List α
   | .nil => ∅
   | .node a c s => c.post ++ a :: s.post
 
-@[simp]
+@[pp_dot, simp]
 protected def append (f g : Forest α) : Forest α :=
   match f with
   | .nil  => g

@@ -16,8 +16,8 @@ structure AdjList
   snd : EType → V
   star : StarList
   costar : StarList
-  fst_star v : ∀ e ∈ star[v], fst e = v
-  snd_costar v : ∀ e ∈ costar[v], snd e = v
+  fst_star' v : ∀ e ∈ star[v], fst e = v
+  snd_costar' v : ∀ e ∈ costar[v], snd e = v
   count_star_fst_eq_count_costar_snd e :
     (toMultiset star[fst e]).count e = (toMultiset costar[snd e]).count e
   -- nodup_star' (v : V) : star'[v].Nodup
@@ -36,6 +36,9 @@ variable
 -- instance : GetElem g.StarList g.V (List g.E) (fun _ _ ↦ True) := AssocArray.instGetElem
 -- by infer_instance
 
+lemma fst_star {v e} : e ∈ g.star[v] → g.fst e = v := g.fst_star' _ _
+lemma snd_costar {v e} : e ∈ g.costar[v] → g.snd e = v := g.snd_costar' _ _
+
 -- lemma nodup_star (v : g.V) : v.star.Nodup := g.nodup_star' v
 -- lemma nodup_costar (v : g.V) : v.costar.Nodup := g.nodup_costar' v
 
@@ -51,10 +54,10 @@ def E := {e : EType // e ∈ g.star[g.fst e]}
 def E.val (e : g.E) : EType := Subtype.val e
 
 def starToE (v : V) (e : EType) (he : e ∈ g.star[v]) : g.E :=
-  ⟨e, g.fst_star v e he ▸ he⟩
+  ⟨e, g.fst_star he ▸ he⟩
 
 def costarToE (v : V) (e : EType) (he : e ∈ g.costar[v]) : g.E :=
-  ⟨e, (g.mem_star_iff_mem_costar e).mpr <| g.snd_costar v e he ▸ he⟩
+  ⟨e, (g.mem_star_iff_mem_costar e).mpr <| g.snd_costar he ▸ he⟩
 
 @[pp_dot]
 def E.fst (e : g.E) : V := g.fst e.val
@@ -68,18 +71,26 @@ lemma E.fst_val (e : g.E) : g.fst e.val = e.fst := rfl
 @[simp]
 lemma starToE_fst (v : V) (e : EType) (he : e ∈ g.star[v]) :
     (g.starToE v e he).fst = v :=
-  g.fst_star v e he
+  g.fst_star he
 
 @[simp]
 lemma costarToE_snd (v : V) (e : EType) (he : e ∈ g.costar[v]) :
     (g.costarToE v e he).snd = v :=
-  g.snd_costar v e he
+  g.snd_costar he
 
 @[simp]
 lemma E.snd_val (e : g.E) : g.snd e.val = e.snd := rfl
 
 lemma E.mem_star (e : g.E) : e.val ∈ g.star[e.fst] := e.2
 lemma E.mem_costar (e : g.E) : e.val ∈ g.costar[e.snd] := (mem_star_iff_mem_costar _).mp e.2
+
+@[simp]
+lemma E.mem_star_iff {e : g.E} {v : V} : e.val ∈ g.star[v] ↔ e.fst = v :=
+  ⟨fun h ↦ fst_star h, fun h ↦ h ▸ mem_star e⟩
+
+@[simp]
+lemma E.mem_costar_iff {e : g.E} {v : V} : e.val ∈ g.costar[v] ↔ e.snd = v :=
+  ⟨fun h ↦ snd_costar h, fun h ↦ h ▸ mem_costar e⟩
 
 @[pp_dot]
 protected structure Quiver (g : AdjList V EType EColl StarList) where
@@ -123,13 +134,13 @@ def ofHom {v w : g.Quiver} (e : v ⟶ w) :
 @[simp]
 lemma ofHom_fst {v w : g.Quiver}
     (e : v ⟶ w) :
-    (g.ofHom e).fst = ↑v :=
+    (ofHom e).fst = ↑v :=
   congr_arg Quiver.val e.2.1
 
 @[simp]
 lemma ofHom_snd {v w : g.Quiver}
     (e : v ⟶ w) :
-    (g.ofHom e).snd = ↑w :=
+    (ofHom e).snd = ↑w :=
   congr_arg Quiver.val e.2.2
 
 @[pp_dot]
@@ -167,6 +178,14 @@ lemma to_reachable {v w : V} (h : g.Adj v w) :
   h.map (·.toPath)
 
 end Adj
+
+lemma adj_iff_star {v w : V} :
+    g.Adj v w ↔ ∃ e ∈ g.star[v], g.snd e = w :=
+  ⟨fun ⟨e⟩ ↦ ⟨(ofHom e).val, by simp, by simp⟩, fun ⟨e, he, h⟩ ↦ h ▸ .of_star e he⟩
+
+lemma adj_iff_costar {v w : V} :
+    g.Adj v w ↔ ∃ e ∈ g.costar[w], g.fst e = v :=
+  ⟨fun ⟨e⟩ ↦ ⟨(ofHom e).val, by simp, by simp⟩, fun ⟨e, he, h⟩ ↦ h ▸ .of_costar e he⟩
 
 namespace Reachable
 
@@ -239,15 +258,13 @@ variable
 @[pp_dot]
 def succList (v : V) : List V := (toList g.star[v]).map g.snd
 
--- @[pp_dot]
--- def succSet (s : Set V) : Set V := ⋃ v ∈ s, {t | t ∈ g.succList v}
+@[simp]
+lemma mem_succList_iff {v w : V} : w ∈ g.succList v ↔ g.Adj v w := by
+  simp [succList, ← adj_iff_star]
 
--- section lemmas
--- variable {g}
-
--- @[simp]
--- lemma mem_succList_iff {v w : V} : w ∈ g.succList v ↔ ∃ e ∈ g.star[v], g.snd e = w :=
---   List.mem_map
+@[simp]
+lemma succList_eq_succSet (v : V) : {w | w ∈ g.succList v} = g.succSet {v} := by
+  ext; simp
 
 -- @[simp]
 -- lemma mem_succSet_iff {s : Set V} {w : V} :
