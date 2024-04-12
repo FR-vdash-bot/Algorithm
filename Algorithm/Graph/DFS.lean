@@ -29,9 +29,9 @@ def dfsForest' [Fintype V] {BoolArray : Type*} [Inhabited BoolArray] [AssocArray
       have h [DecidableEq V] : (toDFinsupp' visited).support ⊆
           (toDFinsupp' (AssocArray.update visited v true)).support := by
         simp [DFinsupp'.support_update_ne]
-      let (fc, ⟨vis₁, hvis₁⟩) := g.dfsForest' (g.succList v) (AssocArray.update visited v true)
-      let (fs, ⟨vis₂, hvis₂⟩) := g.dfsForest' vs vis₁
-      (Forest.node v fc fs, ⟨vis₂, @fun _ ↦ (h.trans hvis₁).trans hvis₂⟩)
+      let (fc, ⟨vis₁, h₁⟩) := g.dfsForest' (g.succList v) (AssocArray.update visited v true)
+      let (fs, ⟨vis₂, h₂⟩) := g.dfsForest' vs vis₁
+      (Forest.node v fc fs, ⟨vis₂, @fun _ ↦ (h.trans h₁).trans h₂⟩)
 termination_by by classical exact ((toDFinsupp' visited).supportᶜ.card, vs)
 decreasing_by
   all_goals
@@ -46,7 +46,7 @@ decreasing_by
     simp [*, Function.update]
   · have : (toDFinsupp' vis₁).supportᶜ.card ≤ (toDFinsupp' visited).supportᶜ.card := by
       apply Finset.card_le_card
-      simpa using h.trans hvis₁
+      simpa using h.trans h₁
     simpa [Prod.lex_iff, ← le_iff_lt_or_eq] using this
 
 lemma roots_dfsForest'_fst_subset [Fintype V] {BoolArray : Type*} [Inhabited BoolArray]
@@ -128,7 +128,7 @@ def dfsForest [Fintype V] {BoolArray : Type*} [Inhabited BoolArray] [AssocArray 
     Forest V × BoolArray :=
   (g.dfsForest' vs visited).map id Subtype.val
 
-lemma dfsForest_spec [Fintype V] {BoolArray : Type*} [Inhabited BoolArray]
+lemma dfsForest_spec' [Fintype V] (BoolArray : Type*) [Inhabited BoolArray]
     [AssocArray BoolArray V Bool] (g : AdjList V EType EColl StarList) (vs : List V) :
     let (f, vis) := (g.dfsForest vs (default : BoolArray))
     ([DecidableEq V] → f.support = (toDFinsupp' vis).support) ∧
@@ -142,6 +142,70 @@ lemma dfsForest_spec [Fintype V] {BoolArray : Type*} [Inhabited BoolArray]
   · obtain ⟨r, hr, hrv⟩ := this.sound v hv
     exact ⟨r, g.roots_dfsForest'_fst_subset vs _ hr, hrv⟩
   · exact this.spec.1 ▸ g.subset_support_toDFinsupp'_dfsForest'_snd vs default hr
+
+lemma dfsForest_spec [Fintype V] (BoolArray : Type*) [Inhabited BoolArray]
+    [AssocArray BoolArray V Bool] (g : AdjList V EType EColl StarList) (vs : List V) :
+    let (f, vis) := (g.dfsForest vs (default : BoolArray))
+    f.support = {v : V | vis[v]} ∧ ∀ v : V, vis[v] ↔ ∃ r ∈ vs, g.Reachable r v := by
+  letI : Unique (DecidableEq V) := uniqueOfSubsingleton <| by classical infer_instance
+  have H := g.dfsForest_spec' BoolArray vs
+  dsimp at H ⊢
+  simp only [Unique.forall_iff] at H
+  convert H
+  · ext; simp
+  · simp [H.1]
+
+def dfs' [Fintype V] {BoolArray : Type*} [Inhabited BoolArray] [AssocArray BoolArray V Bool]
+    (g : AdjList V EType EColl StarList) (vs : List V) (visited : BoolArray) :
+    { b : BoolArray // ([DecidableEq V] →
+      (toDFinsupp' visited).support ⊆ (toDFinsupp' b).support) ∧
+      b = (dfsForest' g vs visited).2.val } :=
+  match vs with
+  | [] => ⟨visited, @fun _ ↦ subset_rfl, by unfold dfsForest'; rfl⟩
+  | v :: vs =>
+    if hv : visited[v] then
+      let ⟨vis, h, hvis⟩ := g.dfs' vs visited
+      ⟨vis, @fun _ ↦ h, by rw [hvis, dfsForest']; simp [hv]⟩
+    else
+      have h [DecidableEq V] : (toDFinsupp' visited).support ⊆
+          (toDFinsupp' (AssocArray.update visited v true)).support := by
+        simp [DFinsupp'.support_update_ne]
+      let ⟨vis₁, h₁, hvis₁⟩ := g.dfs' (g.succList v) (AssocArray.update visited v true)
+      let ⟨vis₂, h₂, hvis₂⟩ := g.dfs' vs vis₁
+      ⟨vis₂, @fun _ ↦ (h.trans h₁).trans h₂, by rw [hvis₂, hvis₁, dfsForest']; simp [hv]⟩
+termination_by by classical exact ((toDFinsupp' visited).supportᶜ.card, vs)
+decreasing_by
+  all_goals
+    letI : DecidableEq V := by classical infer_instance
+    simp_wf
+  · simp [Prod.lex_iff]
+  · apply Prod.Lex.left
+    apply Finset.card_lt_card
+    rw [Finset.ssubset_iff]
+    refine ⟨v, by simp [*], ?_⟩
+    rw [Finset.subset_iff]
+    simp [*, Function.update]
+  · have : (toDFinsupp' vis₁).supportᶜ.card ≤ (toDFinsupp' visited).supportᶜ.card := by
+      apply Finset.card_le_card
+      simpa using h.trans h₁
+    simpa [Prod.lex_iff, ← le_iff_lt_or_eq] using this
+
+def dfs [Fintype V] {BoolArray : Type*} [Inhabited BoolArray] [AssocArray BoolArray V Bool]
+    (g : AdjList V EType EColl StarList) (vs : List V) (visited : BoolArray) :
+    BoolArray :=
+  (g.dfs' vs visited).val
+
+@[simp]
+lemma dfsForest_snd [Fintype V] {BoolArray : Type*} [Inhabited BoolArray]
+    [AssocArray BoolArray V Bool] (g : AdjList V EType EColl StarList)
+    (vs : List V) (visited : BoolArray) :
+    (g.dfsForest vs visited).snd = g.dfs vs visited :=
+  (g.dfs' vs visited).prop.2.symm
+
+lemma dfs_spec [Fintype V] (BoolArray : Type*) [Inhabited BoolArray]
+    [AssocArray BoolArray V Bool] (g : AdjList V EType EColl StarList) (vs : List V) :
+    ∀ v : V, (g.dfs vs (default : BoolArray))[v] ↔ ∃ r ∈ vs, g.Reachable r v :=
+  g.dfsForest_snd vs (default : BoolArray) ▸ (g.dfsForest_spec BoolArray vs).2
 
 def dfsForestTR [Fintype V] {BoolArray : Type*} [Inhabited BoolArray] [AssocArray BoolArray V Bool]
     (g : AdjList V EType EColl StarList) (vs : List (Forest V × List V)) (visited : BoolArray) :
