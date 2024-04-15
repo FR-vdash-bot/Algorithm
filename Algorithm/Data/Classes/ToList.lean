@@ -121,7 +121,7 @@ instance (priority := 100) : ToMultiset C α where
   card_toMultiset_eq_size c := length_toList c
 
 @[simp]
-lemma coe_toList_eq_toMultiset : ↑(toList c) = toMultiset c := rfl
+lemma coe_toList : ↑(toList c) = toMultiset c := rfl
 
 lemma isEmpty_toList : (toList c).isEmpty = isEmpty c := by
   rw [isEmpty_eq_decide_size, List.isEmpty_eq_decide_length, length_toList]

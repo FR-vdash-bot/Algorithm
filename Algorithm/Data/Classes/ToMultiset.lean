@@ -39,6 +39,9 @@ instance (priority := 100) : Membership α C where
 @[simp]
 lemma mem_toMultiset (v : α) : v ∈ toMultiset c ↔ v ∈ c := .rfl
 
+@[simp]
+lemma toMultiset_list (l : List α) : toMultiset l = ↑l := rfl
+
 lemma isEmpty_eq_decide_size : isEmpty c = decide (size c = 0) := by
   simp only [← isEmpty_iff_size_eq_zero, Bool.decide_coe]
 
