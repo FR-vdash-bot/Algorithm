@@ -378,8 +378,8 @@ def dijkstraStep [LinearOrderedAddCommMonoid CostType]
     DistHeap × DistArray :=
   let v := minIdx heap
   let d := heap[v].untop hMinIdx
-  let r := AssocArray.update res v ↑d
-  (decreaseKeysD (AssocArray.update heap v ⊤) <|
+  let r := AssocArray.set res v ↑d
+  (decreaseKeysD (AssocArray.set heap v ⊤) <|
     (toList g.star[v]).filterMap fun e ↦
       if r[g.snd e] = ⊤ then some (g.snd e, ↑(d + c e)) else none,
     r)
@@ -441,7 +441,7 @@ lemma dijkstraStep_fst_getElem' [DecidableEq V] [LinearOrderedAddCommMonoid Cost
       if v = minIdx heap ∨ res[v] ≠ ⊤ then ⊤ else min heap[v]
         ((toMultiset g.star[minIdx heap]).filterMap fun e ↦
           if g.snd e = v then some (heap[minIdx heap] + c e) else none).inf := by
-  simp only [dijkstraStep, WithTop.coe_untop, AssocArray.getElem_update, WithTop.coe_add,
+  simp only [dijkstraStep, WithTop.coe_untop, AssocArray.getElem_set, WithTop.coe_add,
     decreaseKeysD_getElem, toMultiset_list, ← Multiset.filterMap_coe, coe_toList]
   split_ifs with h
   · -- simp? [dijkstraStep, Function.update_apply, h]

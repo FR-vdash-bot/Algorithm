@@ -5,7 +5,7 @@
  ["docBlame", "AssocArray.ReadOnly"],
  ["docBlame", "AssocArray.ReadOnly.get"],
  ["docBlame", "AssocArray.ReadOnly.toDFinsupp'"],
- ["docBlame", "AssocArray.update"],
+ ["docBlame", "AssocArray.set"],
  ["docBlame", "AssocArray.Ext"],
  ["docBlame", "AssocArray.Quotient"],
  ["docBlame", "AssocArray.listIndicator"],

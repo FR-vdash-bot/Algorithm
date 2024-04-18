@@ -27,9 +27,9 @@ def dfsForest' [Fintype V] {BoolArray : Type*} [Inhabited BoolArray] [AssocArray
       g.dfsForest' vs visited
     else
       have h [DecidableEq V] : (toDFinsupp' visited).support ⊆
-          (toDFinsupp' (AssocArray.update visited v true)).support := by
+          (toDFinsupp' (AssocArray.set visited v true)).support := by
         simp [DFinsupp'.support_update_ne]
-      let (fc, ⟨vis₁, h₁⟩) := g.dfsForest' (g.succList v) (AssocArray.update visited v true)
+      let (fc, ⟨vis₁, h₁⟩) := g.dfsForest' (g.succList v) (AssocArray.set visited v true)
       let (fs, ⟨vis₂, h₂⟩) := g.dfsForest' vs vis₁
       (Forest.node v fc fs, ⟨vis₂, @fun _ ↦ (h.trans h₁).trans h₂⟩)
 termination_by by classical exact ((toDFinsupp' visited).supportᶜ.card, vs)
@@ -97,7 +97,7 @@ lemma isDFSForest_dfsForest' [DecidableEq V] [Fintype V] {BoolArray : Type*} [In
   | v :: vs =>
     unfold dfsForest'; split; · exact isDFSForest_dfsForest' _ _ _
     rename_i v vs hv
-    let rc := g.dfsForest' (g.succList v) (AssocArray.update visited v true)
+    let rc := g.dfsForest' (g.succList v) (AssocArray.set visited v true)
     dsimp; apply IsDFSForest.node (toDFinsupp' rc.2.val).support
     · simp [hv]
     · convert isDFSForest_dfsForest' _ _ _
@@ -116,7 +116,7 @@ decreasing_by
     rw [Finset.subset_iff]
     simp [*, Function.update]
   · have h : (toDFinsupp' visited).support ⊆
-        (toDFinsupp' (AssocArray.update visited v true)).support := by
+        (toDFinsupp' (AssocArray.set visited v true)).support := by
       simp [DFinsupp'.support_update_ne]
     have : (toDFinsupp' rc.2.val).supportᶜ.card ≤ (toDFinsupp' visited).supportᶜ.card := by
       apply Finset.card_le_card
@@ -168,9 +168,9 @@ def dfs' [Fintype V] {BoolArray : Type*} [Inhabited BoolArray] [AssocArray BoolA
       ⟨vis, @fun _ ↦ h, by rw [hvis, dfsForest']; simp [hv]⟩
     else
       have h [DecidableEq V] : (toDFinsupp' visited).support ⊆
-          (toDFinsupp' (AssocArray.update visited v true)).support := by
+          (toDFinsupp' (AssocArray.set visited v true)).support := by
         simp [DFinsupp'.support_update_ne]
-      let ⟨vis₁, h₁, hvis₁⟩ := g.dfs' (g.succList v) (AssocArray.update visited v true)
+      let ⟨vis₁, h₁, hvis₁⟩ := g.dfs' (g.succList v) (AssocArray.set visited v true)
       let ⟨vis₂, h₂, hvis₂⟩ := g.dfs' vs vis₁
       ⟨vis₂, @fun _ ↦ (h.trans h₁).trans h₂, by rw [hvis₂, hvis₁, dfsForest']; simp [hv]⟩
 termination_by by classical exact ((toDFinsupp' visited).supportᶜ.card, vs)
@@ -219,7 +219,7 @@ def dfsForestTR [Fintype V] {BoolArray : Type*} [Inhabited BoolArray] [AssocArra
     if visited[v] then
       g.dfsForestTR ((f, vs) :: vss) visited
     else
-      g.dfsForestTR ((.nil, g.succList v) :: (f, vs) :: vss) (AssocArray.update visited v true)
+      g.dfsForestTR ((.nil, g.succList v) :: (f, vs) :: vss) (AssocArray.set visited v true)
 termination_by by classical exact
   ((toDFinsupp' visited).supportᶜ.card, (vs.map (·.snd.length + 1)).sum)
 decreasing_by
@@ -246,7 +246,7 @@ def dfs'TR [Fintype V] {BoolArray : Type*} [Inhabited BoolArray] [AssocArray Boo
     if visited[v] then
       g.dfs'TR (vs :: vss) visited
     else
-      g.dfs'TR (g.succList v :: (vs :: vss)) (AssocArray.update visited v true)
+      g.dfs'TR (g.succList v :: (vs :: vss)) (AssocArray.set visited v true)
 termination_by by classical exact
   ((toDFinsupp' visited).supportᶜ.card, (vs.map (·.length + 1)).sum)
 decreasing_by
@@ -271,7 +271,7 @@ def dfsTR [Fintype V] {BoolArray : Type*} [Inhabited BoolArray] [AssocArray Bool
     if visited[v] then
       g.dfsTR vs visited
     else
-      g.dfsTR (g.succList v ++ vs) (AssocArray.update visited v true)
+      g.dfsTR (g.succList v ++ vs) (AssocArray.set visited v true)
 termination_by by classical exact ((toDFinsupp' visited).supportᶜ.card, vs.length)
 decreasing_by
   all_goals

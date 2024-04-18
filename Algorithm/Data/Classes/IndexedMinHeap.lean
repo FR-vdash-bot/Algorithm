@@ -11,19 +11,19 @@ class IndexedMinHeap (C : Type*) [Inhabited C] (ι : outParam Type*)
     (α : outParam Type*) [Inhabited α] [LinearOrder α] extends AssocArray C ι α where
   minIdx : C → ι
   getElem_minIdx_le h (i : ι) : h[minIdx h] ≤ h[i]
-  decreaseKey (c : C) (i : ι) : ∀ v < c[i], C := fun v _ ↦ update c i v
-  decreaseKey_eq_update (c : C) (i : ι) v (h : v < c[i]) : decreaseKey c i v h = update c i v := by
+  decreaseKey (c : C) (i : ι) : ∀ v < c[i], C := fun v _ ↦ set c i v
+  decreaseKey_eq_set (c : C) (i : ι) v (h : v < c[i]) : decreaseKey c i v h = set c i v := by
     intros; rfl
-export IndexedMinHeap (minIdx getElem_minIdx_le decreaseKey decreaseKey_eq_update)
+export IndexedMinHeap (minIdx getElem_minIdx_le decreaseKey decreaseKey_eq_set)
 
-attribute [simp] decreaseKey_eq_update
+attribute [simp] decreaseKey_eq_set
 
 section IndexedMinHeap
 variable {C : Type*} [Inhabited C] {ι : Type*} {α : Type*} [Inhabited α] [LinearOrder α]
   [IndexedMinHeap C ι α]
 
 def decreaseKeyD (c : C) (i : ι) (v : α) : C :=
-  if c[i] ≤ v then c else AssocArray.update c i v
+  if c[i] ≤ v then c else AssocArray.set c i v
 
 @[simp]
 lemma decreaseKeyD_getElem [DecidableEq ι]
