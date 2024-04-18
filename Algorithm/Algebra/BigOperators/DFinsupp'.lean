@@ -58,7 +58,7 @@ theorem prod_mapRange_index
     simp [h1]
 
 @[to_additive]
-theorem prod_default_index [∀ i, AddCommMonoid (β i)] [∀ (i) (x : β i), Decidable (x ≠ d i)]
+theorem prod_default_index [∀ (i) (x : β i), Decidable (x ≠ d i)]
     [CommMonoid γ] {h : ∀ i, β i → γ} : (default : Π₀' i, [β i, d i]).prod h = 1 :=
   rfl
 
@@ -81,18 +81,18 @@ theorem prod_comm {ι₁ ι₂ : Sort _} {β₁ : ι₁ → Type*} {β₂ : ι�
   Finset.prod_comm
 
 @[to_additive (attr := simp)]
-theorem prod_one [∀ i, AddCommMonoid (β i)] [∀ (i) (x : β i), Decidable (x ≠ d i)] [CommMonoid γ]
+theorem prod_one [∀ (i) (x : β i), Decidable (x ≠ d i)] [CommMonoid γ]
     {f : Π₀' i, [β i, d i]} : (f.prod fun _ _ => (1 : γ)) = 1 :=
   Finset.prod_const_one
 
 @[to_additive (attr := simp)]
-theorem prod_mul [∀ i, AddCommMonoid (β i)] [∀ (i) (x : β i), Decidable (x ≠ d i)] [CommMonoid γ]
+theorem prod_mul [∀ (i) (x : β i), Decidable (x ≠ d i)] [CommMonoid γ]
     {f : Π₀' i, [β i, d i]} {h₁ h₂ : ∀ i, β i → γ} :
     (f.prod fun i b => h₁ i b * h₂ i b) = f.prod h₁ * f.prod h₂ :=
   Finset.prod_mul_distrib
 
 @[to_additive (attr := simp)]
-theorem prod_inv [∀ i, AddCommMonoid (β i)] [∀ (i) (x : β i), Decidable (x ≠ d i)] [CommGroup γ]
+theorem prod_inv [∀ (i) (x : β i), Decidable (x ≠ d i)] [CommGroup γ]
     {f : Π₀' i, [β i, d i]} {h : ∀ i, β i → γ} : (f.prod fun i b => (h i b)⁻¹) = (f.prod h)⁻¹ :=
   (map_prod (invMonoidHom : γ →* γ) _ f.support).symm
 

@@ -26,7 +26,7 @@ def decreaseKeyD (c : C) (i : ι) (v : α) : C :=
   if c[i] ≤ v then c else AssocArray.update c i v
 
 @[simp]
-lemma decreaseKeyD_getElem [DecidableEq ι] [OrderTop α]
+lemma decreaseKeyD_getElem [DecidableEq ι]
     (c : C) (i : ι) (v : α) (j : ι) :
     (decreaseKeyD c i v)[j] = if i = j then min c[j] v else c[j] := by
   split_ifs with h <;> rw [decreaseKeyD, apply_ite (fun c : C ↦ c[j])]
@@ -64,7 +64,7 @@ def minAux (a : ArrayVector α n) : Lex (α × Fin n) :=
 def minIdx (a : ArrayVector α n) : Fin n :=
   a.minAux.2
 
-def minIdx_spec (a : ArrayVector α n) (i : Fin n) :
+lemma minIdx_spec (a : ArrayVector α n) (i : Fin n) :
     a[a.minIdx] < a[i] ∨ a[a.minIdx] = a[i] ∧ a.minIdx ≤ i := by
   have : a.minAux.1 = a[a.minIdx] := by
     unfold minIdx minAux
@@ -77,7 +77,7 @@ def minIdx_spec (a : ArrayVector α n) (i : Fin n) :
   apply (Prod.Lex.le_iff _ (a[i], i)).mp
   exact Finset.inf'_le _ (Finset.mem_univ _)
 
-def minIdx_le (a : ArrayVector α n) (i : Fin n) :
+lemma minIdx_le (a : ArrayVector α n) (i : Fin n) :
     a[a.minIdx] ≤ a[i] :=
   (a.minIdx_spec i).elim LT.lt.le (fun ⟨h, _⟩ ↦ h.le)
 

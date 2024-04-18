@@ -31,7 +31,6 @@ variable [DecidableEq α]
 theorem count_eq_zero {a : α} {c : C} : count a c = 0 ↔ a ∉ c :=
   count_toMultiset_eq_count a c ▸ count_toMultiset_eq_zero
 
-@[simp]
 theorem count_ne_zero {a : α} {c : C} : count a c ≠ 0 ↔ a ∈ c :=
   count_toMultiset_eq_count a c ▸ count_toMultiset_ne_zero
 

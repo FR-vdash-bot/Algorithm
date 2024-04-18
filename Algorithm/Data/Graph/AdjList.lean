@@ -424,8 +424,11 @@ lemma mem_succList_iff {v w : V} : w ∈ g.succList v ↔ g.Adj v w := by
   simp [succList, - mem_star_iff, ← adj_iff_star]
 
 @[simp]
-lemma succList_eq_succSet (v : V) : {w | w ∈ g.succList v} = g.succSet {v} := by
+lemma succSet_singleton (v : V) : g.succSet {v} = {w | g.Adj v w} := by
   ext; simp
+
+lemma succList_eq_succSet (v : V) : {w | w ∈ g.succList v} = g.succSet {v} := by
+  simp
 
 -- @[simp]
 -- lemma mem_succSet_iff {s : Set V} {w : V} :

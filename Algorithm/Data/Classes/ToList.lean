@@ -110,7 +110,7 @@ class ToList (C : Type*) (α : outParam Type*) extends Size C α where
   length_toList c : (toList c).length = size c
 export ToList (toList toArray toArray_toList length_toList)
 
-attribute [simp] toArray_toList length_toList
+attribute [simp] length_toList
 
 section ToList
 variable {C α : Type*} [ToList C α] (c : C)
@@ -120,10 +120,14 @@ instance (priority := 100) ToList.toMultiset : ToMultiset C α where
   card_toMultiset_eq_size c := length_toList c
 
 @[simp]
+lemma toArray_data : (toArray c).data = toList c := by
+  simp [← toArray_toList]
+
+@[simp]
 lemma toArray_size : (toArray c).size = size c := by
-  trans (toArray c).toList.length
-  · simp
-  · simp [- Array.toList_eq]
+  trans (toArray c).data.length
+  · simp only [Array.data_length]
+  · simp only [toArray_data, length_toList]
 
 @[simp]
 lemma coe_toList : ↑(toList c) = toMultiset c := rfl
