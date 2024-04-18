@@ -103,5 +103,4 @@
  ["docBlame", "AdjList.dijkstraStep"],
  ["docBlame", "AdjList.dijkstraStep.Spec"],
  ["docBlame", "AdjList.dijkstra"],
- ["docBlame", "AdjList.dijkstra.go"]
-]
+ ["docBlame", "AdjList.dijkstra.go"]]
