@@ -18,7 +18,7 @@ variable {α : Type*}
 section ToFinset
 variable {C α : Type*} [ToFinset C α] (c : C)
 
-instance (priority := 100) : ToMultiset C α where
+instance (priority := 100) ToFinset.toMultiset : ToMultiset C α where
   toMultiset c := (toFinset c).val
   card_toMultiset_eq_size c := card_toFinset_eq_size c
 

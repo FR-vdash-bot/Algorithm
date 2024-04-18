@@ -1,3 +1,6 @@
+on:
+  push:
+  pull_request:
 
 name: continuous integration
 
@@ -32,7 +35,7 @@ jobs:
 
   build:
     name: Build
-    runs-on: pr
+    runs-on: ubuntu-latest
     steps:
       - name: cleanup
         run: |
@@ -102,6 +105,21 @@ jobs:
           linters: gcc
           run: |
             bash -o pipefail -c "env LEAN_ABORT_ON_PANIC=1 lake build -KCI | tee stdout.log"
+
+      - name: check for unused imports
+        id: shake
+        uses: liskin/gh-problem-matcher-wrap@v3
+        with:
+          linters: gcc
+          run: env LEAN_ABORT_ON_PANIC=1 lake exe shake --gh-style
+
+      - name: lint algorithm
+        if: ${{ always() && steps.build.outcome == 'success' || steps.build.outcome == 'failure' }}
+        id: lint
+        uses: liskin/gh-problem-matcher-wrap@v3
+        with:
+          linters: gcc
+          run: env LEAN_ABORT_ON_PANIC=1 lake exe runLinter Algorithm
 
       - name: check for noisy stdout lines
         id: noisy

@@ -66,11 +66,8 @@ lemma isEmpty_toList {α : Type*} (a : Array α) : a.toList.isEmpty = a.isEmpty 
 lemma isEmpty_toListRev {α : Type*} (a : Array α) : a.toListRev.isEmpty = a.isEmpty := by
   rw [toListRev_eq, List.isEmpty_reverse, isEmpty_data]
 
-@[simp]
-lemma length_data {α : Type*} (a : Array α) : a.data.length = a.size := rfl
-
-lemma length_toList {α : Type*} (a : Array α) : a.toList.length = a.size := by
-  rw [toList_eq, length_data]
+lemma toList_length {α : Type*} (a : Array α) : a.toList.length = a.size := by
+  rw [toList_eq, data_length]
 
 @[simp]
 lemma get?_data {α : Type*} (a : Array α) : a.data.get? = a.get? := by
@@ -82,7 +79,7 @@ lemma get?_toList {α : Type*} (a : Array α) : a.toList.get? = a.get? := by
 
 lemma get?_toListRev {α : Type*} (a : Array α) (i : Nat) (h : i < a.size) :
     a.toListRev.get? i = a.get? (a.size - 1 - i) := by
-  rw [toListRev_eq, List.get?_reverse _ (by rwa [length_data]), get?_data]
+  rw [toListRev_eq, List.get?_reverse _ (by rwa [data_length]), get?_data]
 
 lemma head?_toListRev {α : Type*} (a : Array α) : a.toListRev.head? = a.back? := by
   cases a.size.eq_zero_or_pos
@@ -113,12 +110,24 @@ class ToList (C : Type*) (α : outParam Type*) extends Size C α where
   length_toList c : (toList c).length = size c
 export ToList (toList toArray toArray_toList length_toList)
 
+attribute [simp] length_toList
+
 section ToList
 variable {C α : Type*} [ToList C α] (c : C)
 
-instance (priority := 100) : ToMultiset C α where
+instance (priority := 100) ToList.toMultiset : ToMultiset C α where
   toMultiset c := ↑(toList c)
   card_toMultiset_eq_size c := length_toList c
+
+@[simp]
+lemma toArray_data : (toArray c).data = toList c := by
+  simp [← toArray_toList]
+
+@[simp]
+lemma toArray_size : (toArray c).size = size c := by
+  trans (toArray c).data.length
+  · simp only [Array.data_length]
+  · simp only [toArray_data, length_toList]
 
 @[simp]
 lemma coe_toList : ↑(toList c) = toMultiset c := rfl

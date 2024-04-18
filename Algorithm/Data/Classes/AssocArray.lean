@@ -128,7 +128,7 @@ end ArrayVector
 namespace AssocArray
 
 class Ext (C : Type*) [Inhabited C] (ι : outParam Type*)
-    (α : outParam Type*) [Inhabited α] [AssocArray C ι α] where
+    (α : outParam Type*) [Inhabited α] [AssocArray C ι α] : Prop where
   ext : ∀ {m₁ m₂ : C}, get m₁ = get m₂ → m₁ = m₂
 
 variable {C : Type*} [Inhabited C] {ι : Type*} {α : Type*} [Inhabited α] [AssocArray C ι α]
