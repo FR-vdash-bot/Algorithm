@@ -115,7 +115,7 @@ attribute [simp] toArray_toList length_toList
 section ToList
 variable {C α : Type*} [ToList C α] (c : C)
 
-instance (priority := 100) : ToMultiset C α where
+instance (priority := 100) ToList.toMultiset : ToMultiset C α where
   toMultiset c := ↑(toList c)
   card_toMultiset_eq_size c := length_toList c
 
