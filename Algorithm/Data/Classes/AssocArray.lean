@@ -63,15 +63,15 @@ export AssocArray.ReadOnly (toDFinsupp' coe_toDFinsupp'_eq_get)
   `ι →₀' [α, default]` with single point update operation. -/
 class AssocArray (C : Type*) [Inhabited C] (ι : outParam Type*)
     (α : outParam Type*) [Inhabited α] extends AssocArray.ReadOnly C ι α where
-  update : C → ι → α → C
-  get_update : [DecidableEq ι] → ∀ a i v, get (update a i v) = Function.update (get a) i v
+  set : C → ι → α → C
+  get_set : [DecidableEq ι] → ∀ a i v, get (set a i v) = Function.update (get a) i v
   get_default : get default = default
 
 namespace AssocArray
 
 export ReadOnly (get toDFinsupp' coe_toDFinsupp'_eq_get)
 
-attribute [simp] AssocArray.get_update AssocArray.get_default coe_toDFinsupp'_eq_get
+attribute [simp] AssocArray.get_set AssocArray.get_default coe_toDFinsupp'_eq_get
 
 section ReadOnly
 variable {C : Type*} {ι : Type*} {α : Type*} [Inhabited α]
@@ -91,9 +91,9 @@ variable {C : Type*} [Inhabited C] {ι : Type*} {α : Type*} [Inhabited α]
 lemma toDFinsupp'_apply_eq_getElem (a : C) (i : ι) : toDFinsupp' a i = a[i] := by simp
 
 @[simp]
-lemma getElem_update [DecidableEq ι] (a : C) (i : ι) (v : α) (j : ι) :
-    (update a i v)[j] = Function.update (get a) i v j :=
-  congr_fun (get_update a i v) j
+lemma getElem_set [DecidableEq ι] (a : C) (i : ι) (v : α) (j : ι) :
+    (set a i v)[j] = Function.update (get a) i v j :=
+  congr_fun (get_set a i v) j
 
 @[simp]
 lemma getElem_default (i : ι) :
@@ -101,8 +101,8 @@ lemma getElem_default (i : ι) :
   congr_fun get_default i
 
 @[simp]
-lemma toDFinsupp'_update [DecidableEq ι] (a : C) (i : ι) (v : α) :
-    toDFinsupp' (update a i v) = (toDFinsupp' a).update i v := by
+lemma toDFinsupp'_set [DecidableEq ι] (a : C) (i : ι) (v : α) :
+    toDFinsupp' (set a i v) = (toDFinsupp' a).update i v := by
   ext; simp
 
 @[simp]
@@ -116,9 +116,9 @@ namespace ArrayVector
 variable {α : Type*} {n : ℕ}
 
 instance [Inhabited α] : AssocArray (ArrayVector α n) (Fin n) α where
-  update := set
+  set := set
   get := get
-  get_update a i v := by convert get_set a i v
+  get_set a i v := by convert get_set a i v
   get_default := get_default
   toDFinsupp' a := DFinsupp'.equivFunOnFintype.symm (get a)
   coe_toDFinsupp'_eq_get _ := DFinsupp'.coe_equivFunOnFintype_symm _
@@ -141,10 +141,10 @@ instance : Inhabited (AssocArray.Quotient C) :=
   inferInstanceAs <| Inhabited (@Quotient C (Setoid.ker get))
 
 instance : AssocArray (AssocArray.Quotient C) ι α where
-  update q i v := q.map' (update · i v) (by classical exact
-    fun _ _ hm ↦ (Eq.congr (get_update _ _ _) (get_update _ _ _)).mpr (by rw [hm]))
+  set q i v := q.map' (set · i v) (by classical exact
+    fun _ _ hm ↦ (Eq.congr (get_set _ _ _) (get_set _ _ _)).mpr (by rw [hm]))
   get := Quotient.lift get (fun _ _ ↦ id)
-  get_update q i v := q.inductionOn (fun _ ↦ get_update _ _ _)
+  get_set q i v := q.inductionOn (fun _ ↦ get_set _ _ _)
   get_default := get_default
   toDFinsupp' := Quotient.lift toDFinsupp' (fun _ _ ↦ by
     simpa only [DFunLike.ext'_iff, coe_toDFinsupp'_eq_get] using id)
@@ -159,7 +159,7 @@ export Ext (ext)
 def listIndicator (l : List ι) (f : ∀ i ∈ l, α) : C :=
   match l with
   | [] => default
-  | (i :: l) => update (listIndicator l (fun i hi ↦ f i (List.mem_cons_of_mem _ hi)))
+  | (i :: l) => set (listIndicator l (fun i hi ↦ f i (List.mem_cons_of_mem _ hi)))
     i (f i (List.mem_cons_self _ _))
 
 variable {C}
@@ -170,7 +170,7 @@ lemma get_listIndicator [DecidableEq ι] (l : List ι) (f : ∀ i ∈ l, α) :
   | [] => by ext; simp [listIndicator, get_default, Function.const]
   | (i :: l) => by
     ext j
-    rw [listIndicator, get_update, Function.update_apply]
+    rw [listIndicator, get_set, Function.update_apply]
     split_ifs with h₁ h₂ h₂
     · simp [h₁]
     · simp [h₁] at h₂
