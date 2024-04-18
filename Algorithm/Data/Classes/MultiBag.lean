@@ -20,6 +20,11 @@ class MultiBag.ReadOnly (C : Type*) (α : outParam Type*) extends
     (toMultiset c).count a = count a c := by intros; rfl
 export MultiBag.ReadOnly (count count_toMultiset_eq_count)
 
+class MultiBag (C : Type*) (α : outParam Type*) extends
+    MultiBag.ReadOnly C α, EmptyCollection C, Insert α C where
+  toMultiset_empty : toMultiset (∅ : C) = 0
+export MultiBag (toMultiset_empty)
+
 attribute [instance 100] MultiBag.ReadOnly.decidableMem
 
 section MultiBag.ReadOnly
