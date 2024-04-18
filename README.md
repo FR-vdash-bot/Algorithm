@@ -1,4 +1,4 @@
-# mathlib4
+# Algorithm
 
 Verified efficient algorithms in Lean4.
 
