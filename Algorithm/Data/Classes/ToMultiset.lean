@@ -55,6 +55,6 @@ theorem count_toMultiset_eq_zero {a : α} {c : C} : (toMultiset c).count a = 0 �
   Multiset.count_eq_zero
 
 theorem count_toMultiset_ne_zero {a : α} {c : C} : (toMultiset c).count a ≠ 0 ↔ a ∈ c := by
-  simp [Ne.def, count_toMultiset_eq_zero]
+  simp [count_toMultiset_eq_zero]
 
 end ToMultiset
