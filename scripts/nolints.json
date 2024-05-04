@@ -28,6 +28,7 @@
  ["docBlame", "DecidableMem"],
  ["docBlame", "MultiBag.ReadOnly"],
  ["docBlame", "MultiBag.ReadOnly.count"],
+ ["docBlame", "MultiBag.EmptyCollection"],
  ["docBlame", "MultiBag"],
  ["docBlame", "Size"],
  ["docBlame", "Size.size"],
