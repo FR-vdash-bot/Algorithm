@@ -22,7 +22,8 @@ instance (priority := 100) ToFinset.toMultiset : ToMultiset C α where
   toMultiset c := (toFinset c).val
   card_toMultiset_eq_size c := card_toFinset_eq_size c
 
-@[simp]
+lemma ToFinset.mem_iff (v : α) : v ∈ c ↔ v ∈ toFinset c := .rfl
+
 lemma mem_toFinset (v : α) : v ∈ toFinset c ↔ v ∈ c := .rfl
 
 @[simp]

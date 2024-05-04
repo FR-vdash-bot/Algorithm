@@ -36,7 +36,8 @@ variable {C α : Type*} [ToMultiset C α] (c : C)
 instance (priority := 100) : Membership α C where
   mem a c := a ∈ toMultiset c
 
-@[simp]
+lemma ToMultiset.mem_iff (v : α) : v ∈ c ↔ v ∈ toMultiset c := .rfl
+
 lemma mem_toMultiset (v : α) : v ∈ toMultiset c ↔ v ∈ c := .rfl
 
 @[simp]
@@ -55,6 +56,6 @@ theorem count_toMultiset_eq_zero {a : α} {c : C} : (toMultiset c).count a = 0 �
   Multiset.count_eq_zero
 
 theorem count_toMultiset_ne_zero {a : α} {c : C} : (toMultiset c).count a ≠ 0 ↔ a ∈ c := by
-  simp [count_toMultiset_eq_zero]
+  simp [count_toMultiset_eq_zero, mem_toMultiset]
 
 end ToMultiset

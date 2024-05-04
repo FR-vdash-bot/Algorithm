@@ -135,6 +135,8 @@ lemma coe_toList : ↑(toList c) = toMultiset c := rfl
 lemma isEmpty_toList : (toList c).isEmpty = isEmpty c := by
   rw [isEmpty_eq_decide_size, List.isEmpty_eq_decide_length, length_toList]
 
+lemma ToList.mem_iff (v : α) : v ∈ c ↔ v ∈ toList c := .rfl
+
 @[simp]
 lemma mem_toList (v : α) : v ∈ toList c ↔ v ∈ c := .rfl
 

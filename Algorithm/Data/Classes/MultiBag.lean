@@ -16,9 +16,9 @@ class MultiBag.ReadOnly (C : Type*) (α : outParam Type*) extends
     ToMultiset C α where
   [decidableMem : DecidableMem α C]
   count : α → C → Nat
-  count_toMultiset_eq_count : [DecidableEq α] → ∀ a c,
-    (toMultiset c).count a = count a c := by intros; rfl
-export MultiBag.ReadOnly (count count_toMultiset_eq_count)
+  count_eq_count_toMultiset : [DecidableEq α] → ∀ a c,
+    count a c = (toMultiset c).count a := by intros; rfl
+export MultiBag.ReadOnly (count count_eq_count_toMultiset)
 
 class MultiBag.EmptyCollection (C : Type*) (α : outParam Type*)
     [MultiBag.ReadOnly C α] [EmptyCollection C] : Prop where
@@ -32,18 +32,17 @@ export MultiBag (toMultiset_insert)
 
 attribute [instance 100] MultiBag.ReadOnly.decidableMem
 
-attribute [simp] toMultiset_empty toMultiset_insert
+attribute [simp] count_eq_count_toMultiset toMultiset_empty toMultiset_insert
 
 section MultiBag.ReadOnly
 variable {C α : Type*} [MultiBag.ReadOnly C α] (c : C)
 
 variable [DecidableEq α]
 
-@[simp]
 theorem count_eq_zero {a : α} {c : C} : count a c = 0 ↔ a ∉ c :=
-  count_toMultiset_eq_count a c ▸ count_toMultiset_eq_zero
+  count_eq_count_toMultiset a c ▸ count_toMultiset_eq_zero
 
 theorem count_ne_zero {a : α} {c : C} : count a c ≠ 0 ↔ a ∈ c :=
-  count_toMultiset_eq_count a c ▸ count_toMultiset_ne_zero
+  count_eq_count_toMultiset a c ▸ count_toMultiset_ne_zero
 
 end MultiBag.ReadOnly
