@@ -14,7 +14,6 @@ See also `LeanColls.Bag`.
 class Bag.ReadOnly (C : Type*) (α : outParam Type*) extends
     ToFinset C α where
   [decidableMem : DecidableMem α C]
-export MultiBag.ReadOnly (count count_toMultiset_eq_count)
 
 section Bag.ReadOnly
 variable {C α : Type*} [Bag.ReadOnly C α] (c : C)
@@ -22,7 +21,7 @@ variable {C α : Type*} [Bag.ReadOnly C α] (c : C)
 attribute [local instance 100] Bag.ReadOnly.decidableMem in
 instance : MultiBag.ReadOnly C α where
   count a c := if a ∈ c then 1 else 0
-  count_toMultiset_eq_count a c := by convert Multiset.count_eq_of_nodup (nodup_toMultiset c)
+  count_eq_count_toMultiset a c := by symm; convert Multiset.count_eq_of_nodup (nodup_toMultiset c)
 
 instance : AssocArray.ReadOnly C α Bool where
   get c a := a ∈ c
