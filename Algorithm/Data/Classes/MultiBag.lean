@@ -20,13 +20,13 @@ class MultiBag.ReadOnly (C : Type*) (α : outParam Type*) extends
     count a c = (toMultiset c).count a := by intros; rfl
 export MultiBag.ReadOnly (count count_eq_count_toMultiset)
 
-class MultiBag.EmptyCollection (C : Type*) (α : outParam Type*)
+class MultiBag.LawfulEmptyCollection (C : Type*) (α : outParam Type*)
     [MultiBag.ReadOnly C α] [EmptyCollection C] : Prop where
   toMultiset_empty : toMultiset (∅ : C) = 0
-export MultiBag.EmptyCollection (toMultiset_empty)
+export MultiBag.LawfulEmptyCollection (toMultiset_empty)
 
 class MultiBag (C : Type*) (α : outParam Type*) [EmptyCollection C] extends
-    MultiBag.ReadOnly C α, MultiBag.EmptyCollection C α, Insert α C where
+    MultiBag.ReadOnly C α, MultiBag.LawfulEmptyCollection C α, Insert α C where
   toMultiset_insert a c : toMultiset (insert a c) = a ::ₘ (toMultiset c)
 export MultiBag (toMultiset_insert)
 
