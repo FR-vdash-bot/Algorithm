@@ -67,7 +67,6 @@ lemma mem_costar_iff {e : EType} {v : V} : e ∈ g.costar[v] ↔ g.IsE e ∧ g.s
   ⟨fun he ↦ ⟨.of_mem_costar he, snd_costar he⟩, fun ⟨h₁, h₂⟩ ↦ h₂ ▸ h₁.mem_costar⟩
 
 variable (g) in
-@[pp_dot]
 def E := {e : EType // g.IsE e}
 
 @[coe]
@@ -84,10 +83,8 @@ def starToE (e : EType) {v : V} (he : e ∈ g.star[v]) : g.E :=
 def costarToE (e : EType) {v : V} (he : e ∈ g.costar[v]) : g.E :=
   ⟨e, .of_mem_costar he⟩
 
-@[pp_dot]
 def E.fst (e : g.E) : V := g.fst e.val
 
-@[pp_dot]
 def E.snd (e : g.E) : V := g.snd e.val
 
 @[simp]
@@ -128,7 +125,6 @@ lemma E.mem_star_iff {e : g.E} {v : V} : e.val ∈ g.star[v] ↔ e.fst = v :=
 lemma E.mem_costar_iff {e : g.E} {v : V} : e.val ∈ g.costar[v] ↔ e.snd = v :=
   ⟨fun h ↦ snd_costar h, fun h ↦ h ▸ mem_costar e⟩
 
-@[pp_dot]
 protected structure Quiver (g : AdjList V EType EColl StarList) where
   _intro ::
   val : V
@@ -140,7 +136,6 @@ instance : CoeOut g.Quiver V := ⟨Quiver.val⟩
 section Quiver
 
 variable (g) in
-@[pp_dot]
 def toQuiver : V ≃ g.Quiver := ⟨Quiver._intro, (↑), fun _ ↦ rfl, fun _ ↦ rfl⟩
 
 @[simp]
@@ -215,11 +210,9 @@ instance [DecidableEq V] [DecidableEq EType] {v w : g.Quiver} : Fintype (v ⟶ w
 end Quiver
 
 variable (g) in
-@[pp_dot]
 def Adj (v w : V) : Prop := Nonempty (g.toQuiver v ⟶ g.toQuiver w)
 
 variable (g) in
-@[pp_dot]
 def Reachable (v w : V) : Prop := Nonempty (Quiver.Path (g.toQuiver v) (g.toQuiver w))
 
 namespace Adj
@@ -296,7 +289,6 @@ lemma Reachable.cases_head {v w : V} (hvw : g.Reachable v w) :
   exact hvw.cases_head
 
 variable (g) in
-@[pp_dot]
 def ReachableWithin (s : Set V) (v w : V) : Prop :=
   Relation.ReflTransGen (fun v w ↦ g.Adj v w ∧ w ∈ s) v w
 
@@ -342,7 +334,6 @@ lemma reachableWithin_iff_inter_compl_singleton_self {s : Set V} {v w : V} :
   ⟨.inter_compl_singleton_self, .mono (Set.inter_subset_left _ _)⟩
 
 variable (g) in
-@[pp_dot]
 def succSet (s : Set V) : Set V := {w | ∃ v ∈ s, g.Adj v w} -- ⋃ v ∈ s, {w | g.Adj v w}
 
 section lemmas
@@ -367,7 +358,6 @@ lemma succSet_union {s t : Set V} :
   simp [succSet, or_and_right, exists_or, Set.setOf_or]
 
 variable (g) in
-@[pp_dot]
 def traversal (s t : Set V) : Set V :=
   s ∪ {w | ∃ v ∈ t, g.ReachableWithin sᶜ v w}
 
@@ -416,7 +406,6 @@ variable
   {StarList : Type*} [AssocArray.ReadOnly StarList V EColl]
   (g : AdjList V EType EColl StarList)
 
-@[pp_dot]
 def succList (v : V) : List V := (toList g.star[v]).map g.snd
 
 @[simp]

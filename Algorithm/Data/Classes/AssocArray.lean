@@ -28,11 +28,9 @@ def ofFn (f : Fin n → α) : ArrayVector α n :=
 instance {α n} [Inhabited α] : Inhabited (ArrayVector α n) where
   default := .ofFn fun _ ↦ default
 
-@[pp_dot]
 def get (a : ArrayVector α n) (i : Fin n) : α :=
   a.1.get (i.cast a.2.symm)
 
-@[pp_dot]
 def set (a : ArrayVector α n) (i : Fin n) (v : α) : ArrayVector α n :=
   ⟨a.1.set (i.cast a.2.symm) v, (Array.size_set _ _ _).trans a.2⟩
 

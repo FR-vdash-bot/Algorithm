@@ -81,7 +81,6 @@ namespace Quiver.Path
 universe v u
 variable {V : Type u} {C : Type*} [AddMonoid C] [Quiver.{v} V] {a b : V}
 
-@[pp_dot]
 def cost (f : ∀ a b : V, (a ⟶ b) → C) {a b : V} : Path a b → C
   | nil => 0
   | cons p e => p.cost f + f _ _ e

@@ -494,7 +494,6 @@ section SupportBasic
 variable [∀ (i) (x : β i), Decidable (x ≠ d i)]
 
 /-- Set `{i | f x ≠ d i}` as a `Finset`. -/
-@[pp_dot]
 def support (f : Π₀' i, [β i, d i]) : Finset ι :=
   (f.support'.lift fun xs => (Multiset.toFinset xs.1).filter fun i => f i ≠ d i) <| by
     rintro ⟨sx, hx⟩ ⟨sy, hy⟩
