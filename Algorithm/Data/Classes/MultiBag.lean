@@ -21,7 +21,7 @@ class MultiBag.ReadOnly (C : Type*) (α : outParam Type*) extends
 export MultiBag.ReadOnly (count count_toMultiset_eq_count)
 
 class MultiBag.EmptyCollection (C : Type*) (α : outParam Type*)
-    [MultiBag.ReadOnly C α] [EmptyCollection C] where
+    [MultiBag.ReadOnly C α] [EmptyCollection C] : Prop where
   toMultiset_empty : toMultiset (∅ : C) = 0
 export MultiBag.EmptyCollection (toMultiset_empty)
 
