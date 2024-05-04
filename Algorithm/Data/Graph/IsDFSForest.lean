@@ -13,8 +13,8 @@ namespace AdjList
 variable
   {V : Type*} {EType : Type*}
   {EColl : Type*} [ToList EColl EType] [Inhabited EColl]
-  {StarList : Type*} [AssocArray.ReadOnly StarList V EColl]
-  (g : AdjList V EType EColl StarList)
+  {StarColl : Type*} [AssocArray.ReadOnly StarColl V EColl]
+  (g : AdjList V EType EColl StarColl)
 
 inductive IsDFSForest : Set V → Set V → Forest V → Prop
   | nil (i : Set V) : IsDFSForest i i .nil

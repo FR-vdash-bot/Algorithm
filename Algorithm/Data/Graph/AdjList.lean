@@ -11,11 +11,11 @@ import Mathlib.Combinatorics.Quiver.Path
 structure AdjList
     (V : Type*) (EType : Type*)
     (EColl : Type*) [ToMultiset EColl EType] [Inhabited EColl]
-    (StarList : Type*) [AssocArray.ReadOnly StarList V EColl] where
+    (StarColl : Type*) [AssocArray.ReadOnly StarColl V EColl] where
   fst : EType → V
   snd : EType → V
-  star : StarList
-  costar : StarList
+  star : StarColl
+  costar : StarColl
   fst_star' v : ∀ e ∈ star[v], fst e = v
   snd_costar' v : ∀ e ∈ costar[v], snd e = v
   count_star_fst_eq_count_costar_snd : [DecidableEq EType] → ∀ e,
@@ -26,14 +26,12 @@ structure AdjList
 
 namespace AdjList
 
-attribute [pp_dot] fst snd star costar
-
 section ToMultiset
 variable
   {V : Type*} {EType : Type*}
   {EColl : Type*} [ToMultiset EColl EType] [Inhabited EColl]
-  {StarList : Type*} [AssocArray.ReadOnly StarList V EColl] {g : AdjList V EType EColl StarList}
--- instance : GetElem g.StarList g.V (List g.E) (fun _ _ ↦ True) := AssocArray.instGetElem
+  {StarColl : Type*} [AssocArray.ReadOnly StarColl V EColl] {g : AdjList V EType EColl StarColl}
+-- instance : GetElem g.StarColl g.V (List g.E) (fun _ _ ↦ True) := AssocArray.instGetElem
 -- by infer_instance
 
 lemma fst_star {v e} : e ∈ g.star[v] → g.fst e = v := g.fst_star' _ _
@@ -125,7 +123,7 @@ lemma E.mem_star_iff {e : g.E} {v : V} : e.val ∈ g.star[v] ↔ e.fst = v :=
 lemma E.mem_costar_iff {e : g.E} {v : V} : e.val ∈ g.costar[v] ↔ e.snd = v :=
   ⟨fun h ↦ snd_costar h, fun h ↦ h ▸ mem_costar e⟩
 
-protected structure Quiver (g : AdjList V EType EColl StarList) where
+protected structure Quiver (g : AdjList V EType EColl StarColl) where
   _intro ::
   val : V
 
@@ -403,8 +401,8 @@ section ToList
 variable
   {V : Type*} {EType : Type*}
   {EColl : Type*} [ToList EColl EType] [Inhabited EColl]
-  {StarList : Type*} [AssocArray.ReadOnly StarList V EColl]
-  (g : AdjList V EType EColl StarList)
+  {StarColl : Type*} [AssocArray.ReadOnly StarColl V EColl]
+  (g : AdjList V EType EColl StarColl)
 
 def succList (v : V) : List V := (toList g.star[v]).map g.snd
 
