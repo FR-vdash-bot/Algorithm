@@ -458,7 +458,7 @@ lemma dijkstraStep_fst_getElem' [DecidableEq V] [LinearOrderedAddCommMonoid Cost
     -- simp? [dijkstraStep, Function.update_apply, h, Multiset.filterMap_filterMap]
     simp only [ne_eq, h, not_false_eq_true, Function.update_noteq, AssocArray.get_eq_getElem,
       Function.update_apply, Multiset.filterMap_filterMap]
-    congr! with e
+    congr!
     split; · rename_i snde; simp [snde, Ne.symm h.1]
     split; · simp
     split
