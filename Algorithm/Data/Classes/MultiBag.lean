@@ -15,7 +15,7 @@ abbrev DecidableMem (α : Type*) (C : Type*) [Membership α C] :=
 class MultiBag.ReadOnly (C : Type*) (α : outParam Type*) extends
     ToMultiset C α where
   [decidableMem : DecidableMem α C]
-  count : [DecidableEq α] → α → C → Nat
+  count : α → C → Nat
   count_toMultiset_eq_count : [DecidableEq α] → ∀ a c,
     (toMultiset c).count a = count a c := by intros; rfl
 export MultiBag.ReadOnly (count count_toMultiset_eq_count)
