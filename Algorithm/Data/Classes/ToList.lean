@@ -156,18 +156,37 @@ export Front (front? front?_def frontD front frontD_def front_mem)
 
 attribute [simp] front?_def frontD_def
 
+lemma front?_isSome {C α : Type*} [ToList C α] [Front C α] {c : C} (h : ¬isEmpty c) :
+    (front? c).isSome := by
+  rwa [front?_def, List.head?_isSome, ← List.not_isEmpty_iff_ne_nil, isEmpty_toList]
+
+@[simp]
+lemma front_def {C α : Type*} [ToList C α] [Front C α] (c : C) (h : ¬isEmpty c) :
+    front c h = (front? c).get (front?_isSome h) :=
+  Option.some_injective _ (by simpa using (front_mem c h).symm)
+
 class Back (C : Type*) (α : outParam Type*) [ToList C α] where
   back? : C → Option α
   back?_def s : back? s = (toList s).getLast?
   backD : C → α → α :=
     fun s d ↦ (back? s).getD d
   back (c : C) : ¬isEmpty c → α :=
-    fun h ↦ (back? c).get (by rwa [back?_def, List.getLast?_isSome, ← List.not_isEmpty_iff_ne_nil, isEmpty_toList])
+    fun h ↦ (back? c).get (by rwa [back?_def, List.getLast?_isSome, ← List.not_isEmpty_iff_ne_nil,
+      isEmpty_toList])
   backD_def c d : backD c d = (back? c).getD d := by intros; rfl
   back_mem c h : back c h ∈ back? c := by simp
 export Back (back? back?_def backD back backD_def back_mem)
 
 attribute [simp] back?_def backD_def
+
+lemma back?_isSome {C α : Type*} [ToList C α] [Back C α] {c : C} (h : ¬isEmpty c) :
+    (back? c).isSome := by
+  rwa [back?_def, List.getLast?_isSome, ← List.not_isEmpty_iff_ne_nil, isEmpty_toList]
+
+@[simp]
+lemma back_def {C α : Type*} [ToList C α] [Back C α] (c : C) (h : ¬isEmpty c) :
+    back c h = (back? c).get (back?_isSome h) :=
+  Option.some_injective _ (by simpa using (back_mem c h).symm)
 
 class PopFront (C : Type*) (α : outParam Type*) [ToList C α] where
   popFront : C → C
@@ -219,6 +238,13 @@ instance : ToList (Array α) α where
   toArray := id
   toArray_toList _ := rfl
   length_toList _ := by simp [size]
+
+instance : Front (Array α) α where
+  front? c := c.get? 0
+  front?_def c := by
+    dsimp only
+    rw [← Array.get?_toList, List.get?_zero]
+    rfl
 
 instance : Back (Array α) α where
   back? := Array.back?
