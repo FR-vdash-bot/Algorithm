@@ -5,10 +5,6 @@ Authors: Yuyang Zhao
 -/
 import Algorithm.Data.Classes.ToMultiset
 
-/-!
-See also `LeanColls.MultiBag`.
--/
-
 abbrev DecidableMem (α : Type*) (C : Type*) [Membership α C] :=
   ∀ (a : α) (c : C), Decidable (a ∈ c)
 
@@ -20,19 +16,14 @@ class MultiBag.ReadOnly (C : Type*) (α : outParam Type*) extends
     count a c = (toMultiset c).count a := by intros; rfl
 export MultiBag.ReadOnly (count count_eq_count_toMultiset)
 
-class MultiBag.LawfulEmptyCollection (C : Type*) (α : outParam Type*)
-    [MultiBag.ReadOnly C α] [EmptyCollection C] : Prop where
-  toMultiset_empty : toMultiset (∅ : C) = 0
-export MultiBag.LawfulEmptyCollection (toMultiset_empty)
-
 class MultiBag (C : Type*) (α : outParam Type*) [EmptyCollection C] extends
-    MultiBag.ReadOnly C α, MultiBag.LawfulEmptyCollection C α, Insert α C where
+    MultiBag.ReadOnly C α, ToMultiset.LawfulEmptyCollection C α, Insert α C where
   toMultiset_insert a c : toMultiset (insert a c) = a ::ₘ (toMultiset c)
 export MultiBag (toMultiset_insert)
 
 attribute [instance 100] MultiBag.ReadOnly.decidableMem
 
-attribute [simp] count_eq_count_toMultiset toMultiset_empty toMultiset_insert
+attribute [simp] count_eq_count_toMultiset toMultiset_insert
 
 section MultiBag.ReadOnly
 variable {C α : Type*} [MultiBag.ReadOnly C α] (c : C)
