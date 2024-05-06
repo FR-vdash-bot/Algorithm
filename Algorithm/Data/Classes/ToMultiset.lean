@@ -20,6 +20,13 @@ export ToMultiset.LawfulEmptyCollection (toMultiset_empty)
 
 attribute [simp] toMultiset_empty
 
+class ToMultiset.LawfulInsert (C : Type*) (α : outParam Type*)
+    [ToMultiset C α] [Insert α C] : Prop where
+  toMultiset_insert a (c : C) : toMultiset (insert a c) = a ::ₘ (toMultiset c)
+export ToMultiset.LawfulInsert (toMultiset_insert)
+
+attribute [simp] toMultiset_insert
+
 section
 variable {α : Type*}
 

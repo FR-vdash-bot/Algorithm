@@ -11,10 +11,10 @@ class Bag.ReadOnly (C : Type*) (α : outParam Type*) extends
     ToFinset C α where
   [decidableMem : DecidableMem α C]
 
-class Bag (C : Type*) (α : outParam Type*) [EmptyCollection C] extends
-    Bag.ReadOnly C α, ToFinset.LawfulEmptyCollection C α, Insert α C where
-  toFinset_insert a c : [DecidableEq α] → toFinset (insert a c) = Insert.insert a (toFinset c)
-export Bag (toFinset_insert)
+class Bag (C : Type*) (α : outParam Type*) extends
+    Bag.ReadOnly C α,
+    EmptyCollection C, ToFinset.LawfulEmptyCollection C α,
+    Insert α C, ToFinset.LawfulInsert C α
 
 section Bag.ReadOnly
 variable {C α : Type*} [Bag.ReadOnly C α] (c : C)

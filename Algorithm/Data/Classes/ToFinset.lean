@@ -20,6 +20,13 @@ export ToFinset.LawfulEmptyCollection (toFinset_empty)
 
 attribute [simp] toFinset_empty
 
+class ToFinset.LawfulInsert (C : Type*) (α : outParam Type*)
+    [ToFinset C α] [Insert α C] : Prop where
+  toFinset_insert a (c : C) : [DecidableEq α] → toFinset (insert a c) = Insert.insert a (toFinset c)
+export ToFinset.LawfulInsert (toFinset_insert)
+
+attribute [simp] toFinset_insert
+
 section
 variable {α : Type*}
 
