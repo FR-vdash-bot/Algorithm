@@ -359,6 +359,10 @@ variable (g) in
 def traversal (s t : Set V) : Set V :=
   s ∪ {w | ∃ v ∈ t, g.ReachableWithin sᶜ v w}
 
+@[simp]
+lemma traversal_empty_right (s : Set V) : g.traversal s ∅ = s := by
+  simp [traversal]
+
 lemma traversal_insert (s t : Set V) (v : V) (hv : v ∈ t) (t' : Set V)
     (hst : s ∩ t = ∅) (h : t' = (t ∪ g.succSet {v}) \ insert v s) :
     g.traversal (insert v s) t' = g.traversal s t := by

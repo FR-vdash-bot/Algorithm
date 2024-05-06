@@ -323,7 +323,8 @@ decreasing_by
 
 lemma dfsTR_spec [Fintype V] (BoolArray : Type*) [Inhabited BoolArray] [AssocArray BoolArray V Bool]
     (g : AdjList V EType EColl StarColl) (vs : List V) :
-    g.traversal ∅ {v | v ∈ vs} =
-      g.traversal {v | (g.dfsTR vs (default : BoolArray))[v]} ∅ := by
+    g.traversal ∅ {v | v ∈ vs} = {v : V | (g.dfsTR vs (default : BoolArray))[v]} := by
   letI : DecidableEq V := by classical infer_instance
-  convert g.dfsTR_spec' vs (default : BoolArray) <;> aesop
+  trans g.traversal {v | (g.dfsTR vs (default : BoolArray))[v]} ∅
+  · convert g.dfsTR_spec' vs (default : BoolArray) <;> aesop
+  · simp
