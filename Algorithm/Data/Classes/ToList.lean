@@ -144,25 +144,30 @@ end ToList
 
 class Front (C : Type*) (α : outParam Type*) [ToList C α] where
   front? : C → Option α
-  head?_toList s : (toList s).head? = front? s
+  front?_def s : front? s = (toList s).head?
   frontD : C → α → α :=
     fun s d ↦ (front? s).getD d
   front (c : C) : ¬isEmpty c → α :=
-    fun h ↦ (front? c).get (by rwa [← head?_toList, List.head?_isSome, ← List.not_isEmpty_iff_ne_nil, isEmpty_toList])
+    fun h ↦ (front? c).get (by rwa [front?_def, List.head?_isSome, ← List.not_isEmpty_iff_ne_nil,
+      isEmpty_toList])
   frontD_def c d : frontD c d = (front? c).getD d := by intros; rfl
   front_mem c h : front c h ∈ front? c := by simp
-export Front (front? head?_toList frontD front frontD_def front_mem)
+export Front (front? front?_def frontD front frontD_def front_mem)
+
+attribute [simp] front?_def frontD_def
 
 class Back (C : Type*) (α : outParam Type*) [ToList C α] where
   back? : C → Option α
-  getLast?_toList s : (toList s).getLast? = back? s
+  back?_def s : back? s = (toList s).getLast?
   backD : C → α → α :=
     fun s d ↦ (back? s).getD d
   back (c : C) : ¬isEmpty c → α :=
-    fun h ↦ (back? c).get (by rwa [← getLast?_toList, List.getLast?_isSome, ← List.not_isEmpty_iff_ne_nil, isEmpty_toList])
+    fun h ↦ (back? c).get (by rwa [back?_def, List.getLast?_isSome, ← List.not_isEmpty_iff_ne_nil, isEmpty_toList])
   backD_def c d : backD c d = (back? c).getD d := by intros; rfl
   back_mem c h : back c h ∈ back? c := by simp
-export Back (back? getLast?_toList backD back backD_def back_mem)
+export Back (back? back?_def backD back backD_def back_mem)
+
+attribute [simp] back?_def backD_def
 
 class PopFront (C : Type*) (α : outParam Type*) [ToList C α] where
   popFront : C → C
@@ -195,7 +200,7 @@ instance : ToList (List α) α where
 
 instance : Front (List α) α where
   front? := List.head?
-  head?_toList _ := rfl
+  front?_def _ := rfl
   frontD := List.headD
   front l h := l.head <| List.not_isEmpty_iff_ne_nil.mp h
   frontD_def := List.headD_eq_head?
@@ -217,7 +222,7 @@ instance : ToList (Array α) α where
 
 instance : Back (Array α) α where
   back? := Array.back?
-  getLast?_toList := Array.getLast?_toList
+  back?_def c := (Array.getLast?_toList c).symm
 
 instance : PopBack (Array α) α where
   popBack := Array.pop
