@@ -8,10 +8,10 @@ import Mathlib.Data.Finset.Card
 
 class ToFinset (C : Type*) (α : outParam Type*) extends Size C α where
   toFinset : C → Finset α
-  card_toFinset_eq_size c : (toFinset c).card = size c
-export ToFinset (toFinset card_toFinset_eq_size)
+  size_eq_card_toFinset c : size c = (toFinset c).card
+export ToFinset (toFinset size_eq_card_toFinset)
 
-attribute [simp] card_toFinset_eq_size
+attribute [simp] size_eq_card_toFinset
 
 class ToFinset.LawfulEmptyCollection (C : Type*) (α : outParam Type*)
     [ToFinset C α] [EmptyCollection C] : Prop where
@@ -35,7 +35,7 @@ variable {C α : Type*} [ToFinset C α] (c : C)
 
 instance (priority := 100) ToFinset.toMultiset : ToMultiset C α where
   toMultiset c := (toFinset c).val
-  card_toMultiset_eq_size c := card_toFinset_eq_size c
+  size_eq_card_toMultiset c := size_eq_card_toFinset c
 
 section ToFinset.LawfulEmptyCollection
 variable [EmptyCollection C] [ToFinset.LawfulEmptyCollection C α] (c : C)

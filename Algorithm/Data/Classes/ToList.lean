@@ -117,7 +117,7 @@ variable {C α : Type*} [ToList C α] (c : C)
 
 instance (priority := 100) ToList.toMultiset : ToMultiset C α where
   toMultiset c := ↑(toList c)
-  card_toMultiset_eq_size c := length_toList c
+  size_eq_card_toMultiset c := (length_toList c).symm
 
 @[simp]
 lemma toArray_data : (toArray c).data = toList c := by

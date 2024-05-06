@@ -9,3 +9,5 @@ class Size (C : Type _) (α : outParam <| Type _) where
   isEmpty : C → Bool
   isEmpty_iff_size_eq_zero c : isEmpty c ↔ size c = 0
 export Size (size isEmpty isEmpty_iff_size_eq_zero)
+
+attribute [simp] isEmpty_iff_size_eq_zero

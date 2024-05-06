@@ -8,10 +8,10 @@ import Mathlib.Data.Multiset.Basic
 
 class ToMultiset (C : Type*) (α : outParam Type*) extends Size C α where
   toMultiset : C → Multiset α
-  card_toMultiset_eq_size c : Multiset.card (toMultiset c) = size c
-export ToMultiset (toMultiset card_toMultiset_eq_size)
+  size_eq_card_toMultiset c : size c = Multiset.card (toMultiset c)
+export ToMultiset (toMultiset size_eq_card_toMultiset)
 
-attribute [simp] card_toMultiset_eq_size
+attribute [simp] size_eq_card_toMultiset
 
 class ToMultiset.LawfulEmptyCollection (C : Type*) (α : outParam Type*)
     [ToMultiset C α] [EmptyCollection C] : Prop where
@@ -33,14 +33,14 @@ variable {α : Type*}
 instance : ToMultiset (List α) α where
   toMultiset := (↑)
   size := List.length
-  card_toMultiset_eq_size c := rfl
+  size_eq_card_toMultiset c := rfl
   isEmpty := List.isEmpty
   isEmpty_iff_size_eq_zero l := by cases l <;> simp
 
 instance : ToMultiset (Array α) α where
   toMultiset a := ↑a.toList
   size := Array.size
-  card_toMultiset_eq_size c := by simp
+  size_eq_card_toMultiset c := by simp
   isEmpty := Array.isEmpty
   isEmpty_iff_size_eq_zero l := by simp
 
