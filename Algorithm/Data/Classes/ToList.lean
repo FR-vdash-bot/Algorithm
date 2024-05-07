@@ -112,12 +112,28 @@ export ToList (toList toArray toArray_toList length_toList)
 
 attribute [simp] length_toList
 
+-- Actually the same as `ToMultiset` version
+class ToList.LawfulEmptyCollection (C : Type*) (α : outParam Type*)
+    [ToList C α] [EmptyCollection C] : Prop where
+  toList_empty : toList (∅ : C) = []
+export ToList.LawfulEmptyCollection (toList_empty)
+
+attribute [simp] toList_empty
+
 section ToList
 variable {C α : Type*} [ToList C α] (c : C)
 
 instance (priority := 100) ToList.toMultiset : ToMultiset C α where
   toMultiset c := ↑(toList c)
   size_eq_card_toMultiset c := (length_toList c).symm
+
+section LawfulEmptyCollection
+variable [EmptyCollection C] [ToList.LawfulEmptyCollection C α] (c : C)
+
+instance : ToMultiset.LawfulEmptyCollection C α where
+  toMultiset_empty := congr_arg Multiset.ofList toList_empty
+
+end LawfulEmptyCollection
 
 @[simp]
 lemma toArray_data : (toArray c).data = toList c := by
