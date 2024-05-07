@@ -190,23 +190,31 @@ lemma back_def {C α : Type*} [ToList C α] [Back C α] (c : C) (h : ¬isEmpty c
 
 class PopFront (C : Type*) (α : outParam Type*) [ToList C α] where
   popFront : C → C
-  tail_toList s : (toList s).tail = toList (popFront s)
-export PopFront (popFront tail_toList)
+  toList_popFront s : toList (popFront s) = (toList s).tail
+export PopFront (popFront toList_popFront)
+
+attribute [simp] toList_popFront
 
 class PopBack (C : Type*) (α : outParam Type*) [ToList C α] where
   popBack : C → C
-  dropLast_toList s : (toList s).dropLast = toList (popBack s)
-export PopBack (dropLast_toList dropLast_toList)
+  toList_popBack s : toList (popBack s) = (toList s).dropLast
+export PopBack (popBack toList_popBack)
+
+attribute [simp] toList_popBack
 
 class PushFront (C : Type*) (α : outParam Type*) [ToList C α] where
   pushFront : C → α → C
-  cons_toList s a : List.cons a (toList s) = toList (pushFront s a)
-export PopFront (popFront tail_toList)
+  toList_pushFront s a : toList (pushFront s a) = List.cons a (toList s)
+export PushFront (pushFront toList_pushFront)
+
+attribute [simp] toList_popBack
 
 class PushBack (C : Type*) (α : outParam Type*) [ToList C α] where
   pushBack : C → α → C
-  toList_append_singleton s a : toList s ++ [a] = toList (pushBack s a)
-export PopFront (popFront tail_toList)
+  toList_pushBack s a : toList (pushBack s a) = toList s ++ [a]
+export PushBack (pushBack toList_pushBack)
+
+attribute [simp] toList_pushBack
 
 section
 variable {α : Type*}
@@ -227,11 +235,11 @@ instance : Front (List α) α where
 
 instance : PopFront (List α) α where
   popFront := List.tail
-  tail_toList _ := rfl
+  toList_popFront _ := rfl
 
 instance : PushFront (List α) α where
   pushFront c a := List.cons a c
-  cons_toList _ _ := rfl
+  toList_pushFront _ _ := rfl
 
 instance : ToList (Array α) α where
   toList := Array.toList
@@ -252,10 +260,10 @@ instance : Back (Array α) α where
 
 instance : PopBack (Array α) α where
   popBack := Array.pop
-  dropLast_toList := Array.dropLast_toList
+  toList_popBack s := (Array.dropLast_toList s).symm
 
 instance : PushBack (Array α) α where
   pushBack := Array.push
-  toList_append_singleton _ _ := by simp [toList]
+  toList_pushBack := by simp [toList]
 
 end
