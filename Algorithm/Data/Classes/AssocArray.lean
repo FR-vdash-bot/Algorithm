@@ -50,41 +50,51 @@ lemma get_default [Inhabited α] : (default : ArrayVector α n).get = default :=
 
 end ArrayVector
 
-class AssocArray.ReadOnly (C : Type*) (ι : outParam Type*)
-    (α : outParam Type*) [Inhabited α] where
+class AssocDArray.ReadOnly (C : Type*) (ι : outParam Type*)
+    (α : outParam Type*) (d : outParam <| ι → α) where
   get : C → ι → α
-  toDFinsupp' : C → ι →₀' [α, default]
+  toDFinsupp' : C → Π₀' i, [α, d i]
   coe_toDFinsupp'_eq_get : ∀ a : C, ⇑(toDFinsupp' a) = get a
-export AssocArray.ReadOnly (toDFinsupp' coe_toDFinsupp'_eq_get)
+export AssocDArray.ReadOnly (toDFinsupp' coe_toDFinsupp'_eq_get)
 
-/-- `AssocArray C ι α` is a data structure that acts like a finitely supported function
-  `ι →₀' [α, default]` with single point update operation. -/
-class AssocArray (C : Type*) [Inhabited C] (ι : outParam Type*)
-    (α : outParam Type*) [Inhabited α] extends AssocArray.ReadOnly C ι α where
+/-- `AssocDArray C ι α d` is a data structure that acts like a finitely supported function
+  `Π₀' i, [α, d i]` with single point update operation. -/
+class AssocDArray (C : Type*) [Inhabited C] (ι : outParam Type*)
+    (α : outParam Type*) (d : outParam <| ι → α) extends AssocDArray.ReadOnly C ι α d where
   set : C → ι → α → C
   get_set : [DecidableEq ι] → ∀ a i v, get (set a i v) = Function.update (get a) i v
-  get_default : get default = default
+  get_default : get default = d
 
-namespace AssocArray
+abbrev AssocArray.ReadOnly (C : Type*) (ι : outParam Type*)
+    (α : outParam Type*) (d : outParam α) :=
+  AssocDArray.ReadOnly C ι α (fun _ ↦ d)
+
+/-- `AssocArray C ι α d` is a data structure that acts like a finitely supported function
+  `ι →₀' [α, d]` with single point update operation. -/
+abbrev AssocArray (C : Type*) [Inhabited C] (ι : outParam Type*)
+    (α : outParam Type*) (d : outParam α) :=
+  AssocDArray C ι α (fun _ ↦ d)
+
+namespace AssocDArray
 
 export ReadOnly (get toDFinsupp' coe_toDFinsupp'_eq_get)
 
-attribute [simp] AssocArray.get_set AssocArray.get_default coe_toDFinsupp'_eq_get
+attribute [simp] get_set get_default coe_toDFinsupp'_eq_get
+
+variable {C ι α : Type*} {d : ι → α}
 
 section ReadOnly
-variable {C : Type*} {ι : Type*} {α : Type*} [Inhabited α]
-variable [AssocArray.ReadOnly C ι α]
+variable [AssocDArray.ReadOnly C ι α d]
 
 instance : GetElem C ι α fun _ _ ↦ True where
-  getElem a i _ := AssocArray.get a i
+  getElem a i _ := AssocDArray.get a i
 
 @[simp]
 lemma get_eq_getElem (a : C) (i : ι) : get a i = a[i] := rfl
 
 end ReadOnly
 
-variable {C : Type*} [Inhabited C] {ι : Type*} {α : Type*} [Inhabited α]
-  [AssocArray C ι α]
+variable [Inhabited C] [AssocDArray C ι α d]
 
 lemma toDFinsupp'_apply_eq_getElem (a : C) (i : ι) : toDFinsupp' a i = a[i] := by simp
 
@@ -95,7 +105,7 @@ lemma getElem_set [DecidableEq ι] (a : C) (i : ι) (v : α) (j : ι) :
 
 @[simp]
 lemma getElem_default (i : ι) :
-    (default : C)[i] = Function.const _ default i :=
+    (default : C)[i] = d i :=
   congr_fun get_default i
 
 @[simp]
@@ -108,12 +118,12 @@ lemma toDFinsupp'_default :
     toDFinsupp' (default : C) = default := by
   ext; simp
 
-end AssocArray
+end AssocDArray
 
 namespace ArrayVector
 variable {α : Type*} {n : ℕ}
 
-instance [Inhabited α] : AssocArray (ArrayVector α n) (Fin n) α where
+instance [Inhabited α] : AssocArray (ArrayVector α n) (Fin n) α default where
   set := set
   get := get
   get_set a i v := by convert get_set a i v
@@ -125,11 +135,14 @@ end ArrayVector
 
 namespace AssocArray
 
+export AssocDArray.ReadOnly (get toDFinsupp' coe_toDFinsupp'_eq_get)
+export AssocDArray (set get_set get_default)
+
 class Ext (C : Type*) [Inhabited C] (ι : outParam Type*)
-    (α : outParam Type*) [Inhabited α] [AssocArray C ι α] : Prop where
+    (α : outParam Type*) (d : outParam α) [AssocArray C ι α d] : Prop where
   ext : ∀ {m₁ m₂ : C}, get m₁ = get m₂ → m₁ = m₂
 
-variable {C : Type*} [Inhabited C] {ι : Type*} {α : Type*} [Inhabited α] [AssocArray C ι α]
+variable {C : Type*} [Inhabited C] {ι : Type*} {α : Type*} {d : α} [AssocArray C ι α d]
 
 variable (C)
 
@@ -138,7 +151,7 @@ protected def Quotient := @Quotient C (Setoid.ker get)
 instance : Inhabited (AssocArray.Quotient C) :=
   inferInstanceAs <| Inhabited (@Quotient C (Setoid.ker get))
 
-instance : AssocArray (AssocArray.Quotient C) ι α where
+instance : AssocArray (AssocArray.Quotient C) ι α d where
   set q i v := q.map' (set · i v) (by classical exact
     fun _ _ hm ↦ (Eq.congr (get_set _ _ _) (get_set _ _ _)).mpr (by rw [hm]))
   get := Quotient.lift get (fun _ _ ↦ id)
@@ -150,7 +163,7 @@ instance : AssocArray (AssocArray.Quotient C) ι α where
     induction a using Quotient.ind
     exact coe_toDFinsupp'_eq_get _
 
-instance : Ext (AssocArray.Quotient C) ι α where
+instance : Ext (AssocArray.Quotient C) ι α d where
   ext {m₁ m₂} := m₂.inductionOn <| m₁.inductionOn (fun _ _ ha ↦ Quotient.sound ha)
 export Ext (ext)
 
@@ -163,7 +176,7 @@ def listIndicator (l : List ι) (f : ∀ i ∈ l, α) : C :=
 variable {C}
 
 lemma get_listIndicator [DecidableEq ι] (l : List ι) (f : ∀ i ∈ l, α) :
-    get (listIndicator C l f) = (fun i ↦ if hi : i ∈ l then f i hi else default) :=
+    get (listIndicator C l f) = (fun i ↦ if hi : i ∈ l then f i hi else d) :=
   match l with
   | [] => by ext; simp [listIndicator, get_default, Function.const]
   | (i :: l) => by
@@ -175,7 +188,7 @@ lemma get_listIndicator [DecidableEq ι] (l : List ι) (f : ∀ i ∈ l, α) :
     · simp_rw [get_listIndicator, dif_pos (List.mem_of_ne_of_mem h₁ h₂)]
     · simp_rw [get_listIndicator, dif_neg (List.not_mem_of_not_mem_cons h₂)]
 
-variable [Ext C ι α]
+variable [Ext C ι α d]
 variable (C)
 
 def indicator (s : Finset ι) (f : ∀ i ∈ s, α) : C :=
@@ -187,7 +200,7 @@ def indicator (s : Finset ι) (f : ∀ i ∈ s, α) : C :=
 variable {C}
 
 lemma get_indicator [DecidableEq ι] (s : Finset ι) (f : ∀ i ∈ s, α) :
-    get (indicator C s f) = (fun i ↦ if hi : i ∈ s then f i hi else default) := by
+    get (indicator C s f) = (fun i ↦ if hi : i ∈ s then f i hi else d) := by
   unfold indicator
   change _ = (fun i ↦ if hi : i ∈ s.1 then _ else _)
   obtain ⟨l, hl⟩ := s.1.exists_rep

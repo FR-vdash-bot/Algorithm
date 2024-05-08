@@ -24,7 +24,7 @@ instance : MultiBag.ReadOnly C α where
   count a c := if a ∈ c then 1 else 0
   count_eq_count_toMultiset a c := by symm; convert Multiset.count_eq_of_nodup (nodup_toMultiset c)
 
-instance : AssocArray.ReadOnly C α Bool where
+instance : AssocArray.ReadOnly C α Bool false where
   get c a := a ∈ c
   toDFinsupp' c := ⟨(· ∈ c), Trunc.mk ⟨toMultiset c, fun i ↦ by simpa using em _⟩⟩
   coe_toDFinsupp'_eq_get a := rfl

@@ -130,7 +130,8 @@ instance (priority := 100) ToList.toMultiset : ToMultiset C α where
 section LawfulEmptyCollection
 variable [EmptyCollection C] [ToList.LawfulEmptyCollection C α] (c : C)
 
-instance : ToMultiset.LawfulEmptyCollection C α where
+instance (priority := 100) ToList.toMultisetLawfulEmptyCollection :
+    ToMultiset.LawfulEmptyCollection C α where
   toMultiset_empty := congr_arg Multiset.ofList toList_empty
 
 end LawfulEmptyCollection

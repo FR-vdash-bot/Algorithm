@@ -41,7 +41,8 @@ instance (priority := 100) ToFinset.toMultiset : ToMultiset C α where
 section LawfulEmptyCollection
 variable [EmptyCollection C] [ToFinset.LawfulEmptyCollection C α] (c : C)
 
-instance : ToMultiset.LawfulEmptyCollection C α where
+instance (priority := 100) ToFinset.toMultisetLawfulEmptyCollection :
+    ToMultiset.LawfulEmptyCollection C α where
   toMultiset_empty := congr_arg Finset.val toFinset_empty
 
 end LawfulEmptyCollection

@@ -8,7 +8,7 @@ import Algorithm.Data.Classes.ToList
 import Mathlib.Data.Prod.Lex
 
 class IndexedMinHeap (C : Type*) [Inhabited C] (ι : outParam Type*)
-    (α : outParam Type*) [Inhabited α] [LinearOrder α] extends AssocArray C ι α where
+    (α : outParam Type*) [LinearOrder α] [OrderTop α] extends AssocDArray C ι α fun _ ↦ ⊤ where
   minIdx : C → ι
   getElem_minIdx_le h (i : ι) : h[minIdx h] ≤ h[i]
   decreaseKey (c : C) (i : ι) : ∀ v < c[i], C := fun v _ ↦ set c i v
@@ -19,7 +19,7 @@ export IndexedMinHeap (minIdx getElem_minIdx_le decreaseKey decreaseKey_eq_set)
 attribute [simp] decreaseKey_eq_set
 
 section IndexedMinHeap
-variable {C : Type*} [Inhabited C] {ι : Type*} {α : Type*} [Inhabited α] [LinearOrder α]
+variable {C : Type*} [Inhabited C] {ι : Type*} {α : Type*} [LinearOrder α] [OrderTop α]
   [IndexedMinHeap C ι α]
 
 def decreaseKeyD (c : C) (i : ι) (v : α) : C :=
@@ -37,7 +37,7 @@ def decreaseKeysD {ια : Type*} [ToList ια (ι × α)] (c : C) (iv : ια) : 
   (toList iv).foldl (fun c ⟨i, v⟩ ↦ decreaseKeyD c i v) c
 
 @[simp]
-lemma decreaseKeysD_getElem [DecidableEq ι] [OrderTop α] {ια : Type*} [ToList ια (ι × α)]
+lemma decreaseKeysD_getElem [DecidableEq ι] {ια : Type*} [ToList ια (ι × α)]
     (c : C) (iv : ια) (i : ι) :
     (decreaseKeysD c iv)[i] = min c[i] ((toMultiset iv).filterMap
       (fun iv ↦ if iv.1 = i then some iv.2 else none)).inf := by
@@ -56,7 +56,11 @@ lemma decreaseKeysD_getElem [DecidableEq ι] [OrderTop α] {ια : Type*} [ToLis
 end IndexedMinHeap
 
 namespace ArrayVector
-variable {α : Type*} [Inhabited α] [LinearOrder α] {n : ℕ} [NeZero n]
+variable {α : Type*} [LinearOrder α] {n : ℕ} [NeZero n] {d : Fin n → α}
+
+section ReadOnly
+
+variable [AssocDArray.ReadOnly (ArrayVector α n) (Fin n) α d]
 
 def minAux (a : ArrayVector α n) : Lex (α × Fin n) :=
   (⊤ : Finset (Fin n)).inf' ⟨0, Finset.mem_univ 0⟩ (fun i ↦ toLex (a[i], i))
@@ -81,7 +85,10 @@ lemma minIdx_le (a : ArrayVector α n) (i : Fin n) :
     a[a.minIdx] ≤ a[i] :=
   (a.minIdx_spec i).elim LT.lt.le (fun ⟨h, _⟩ ↦ h.le)
 
-instance [NeZero n] : IndexedMinHeap (ArrayVector α n) (Fin n) α where
+end ReadOnly
+
+instance [OrderTop α] [Inhabited (ArrayVector α n)] [AssocArray (ArrayVector α n) (Fin n) α ⊤] :
+    IndexedMinHeap (ArrayVector α n) (Fin n) α where
   minIdx a := ((⊤ : Finset (Fin n)).inf' ⟨0, Finset.mem_univ 0⟩ (fun i ↦ toLex (a[i], i))).2
   getElem_minIdx_le a i := a.minIdx_le i
 

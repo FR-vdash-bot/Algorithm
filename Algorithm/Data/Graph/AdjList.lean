@@ -10,8 +10,9 @@ import Mathlib.Combinatorics.Quiver.Path
 
 structure AdjList
     (V : Type*) (EType : Type*)
-    (EColl : Type*) [ToMultiset EColl EType] [Inhabited EColl]
-    (StarColl : Type*) [AssocArray.ReadOnly StarColl V EColl] where
+    (EColl : Type*) [ToMultiset EColl EType] [EmptyCollection EColl]
+    [ToMultiset.LawfulEmptyCollection EColl EType]
+    (StarColl : Type*) [AssocArray.ReadOnly StarColl V EColl ∅] where
   fst : EType → V
   snd : EType → V
   star : StarColl
@@ -29,8 +30,9 @@ namespace AdjList
 section ToMultiset
 variable
   {V : Type*} {EType : Type*}
-  {EColl : Type*} [ToMultiset EColl EType] [Inhabited EColl]
-  {StarColl : Type*} [AssocArray.ReadOnly StarColl V EColl] {g : AdjList V EType EColl StarColl}
+  {EColl : Type*} [ToMultiset EColl EType] [EmptyCollection EColl]
+  [ToMultiset.LawfulEmptyCollection EColl EType]
+  {StarColl : Type*} [AssocArray.ReadOnly StarColl V EColl ∅] {g : AdjList V EType EColl StarColl}
 -- instance : GetElem g.StarColl g.V (List g.E) (fun _ _ ↦ True) := AssocArray.instGetElem
 -- by infer_instance
 
@@ -404,8 +406,9 @@ end ToMultiset
 section ToList
 variable
   {V : Type*} {EType : Type*}
-  {EColl : Type*} [ToList EColl EType] [Inhabited EColl]
-  {StarColl : Type*} [AssocArray.ReadOnly StarColl V EColl]
+  {EColl : Type*} [ToList EColl EType] [EmptyCollection EColl]
+  [ToMultiset.LawfulEmptyCollection EColl EType]
+  {StarColl : Type*} [AssocArray.ReadOnly StarColl V EColl ∅]
   (g : AdjList V EType EColl StarColl)
 
 def succList (v : V) : List V := (toList g.star[v]).map g.snd

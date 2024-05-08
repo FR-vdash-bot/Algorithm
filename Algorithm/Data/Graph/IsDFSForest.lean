@@ -12,8 +12,9 @@ import Mathlib.Data.Fintype.Basic
 namespace AdjList
 variable
   {V : Type*} {EType : Type*}
-  {EColl : Type*} [ToList EColl EType] [Inhabited EColl]
-  {StarColl : Type*} [AssocArray.ReadOnly StarColl V EColl]
+  {EColl : Type*} [ToList EColl EType] [EmptyCollection EColl]
+  [ToList.LawfulEmptyCollection EColl EType]
+  {StarColl : Type*} [AssocArray.ReadOnly StarColl V EColl ∅]
   (g : AdjList V EType EColl StarColl)
 
 inductive IsDFSForest : Set V → Set V → Forest V → Prop
