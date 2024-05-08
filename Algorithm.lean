@@ -3,6 +3,7 @@ import Algorithm.Data.Classes.AssocArray
 import Algorithm.Data.Classes.Bag
 import Algorithm.Data.Classes.DynamicArrayLike
 import Algorithm.Data.Classes.IndexedMinHeap
+import Algorithm.Data.Classes.MinHeap
 import Algorithm.Data.Classes.MultiBag
 import Algorithm.Data.Classes.Size
 import Algorithm.Data.Classes.ToFinset
