@@ -52,11 +52,6 @@ end
 namespace Multiset -- should be in mathlb
 variable {α : Type*} [SemilatticeInf α] [OrderTop α]
 
-@[simp]
-theorem inf_eq_top {m : Multiset α} : m.inf = ⊤ ↔ ∀ a ∈ m, a = ⊤ := by
-  rw [le_antisymm_iff]
-  simp
-
 theorem inf_congr {m₁ m₂ : Multiset α} (hm : ∀ a, a ∈ m₁ ↔ a ∈ m₂) : m₁.inf = m₂.inf := by
   haveI : DecidableEq α := by classical infer_instance
   rw [← m₁.inf_dedup, ← m₂.inf_dedup]

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuyang Zhao
 -/
 import Algorithm.Data.Classes.AssocArray
+import Algorithm.Data.Classes.MinHeap
 import Algorithm.Data.Classes.ToList
 import Mathlib.Data.Prod.Lex
 
@@ -93,3 +94,16 @@ instance [OrderTop α] [Inhabited (ArrayVector α n)] [AssocArray (ArrayVector �
   getElem_minIdx_le a i := a.minIdx_le i
 
 end ArrayVector
+
+structure AssocArrayWithHeap (C C' : Type*) {ι α : Type*}
+    [Inhabited C'] [AssocArray C' ι (WithTop α) ⊤]
+    [LinearOrder α] [MinHeap C (Lex (α × ι))] where
+  minHeap : C
+  assocArray : C'
+
+
+namespace MinHeapWithIndex
+
+class IndexedMinHeap (C : Type*) [Inhabited C] (ι : outParam Type*)
+    (α : outParam Type*) [Inhabited α] [LinearOrder α] extends AssocArray C ι α
+end MinHeap
