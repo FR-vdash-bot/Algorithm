@@ -235,7 +235,7 @@ instance [DecidableEq α] : AssocArray (AssocArrayWithHeap C C') ι (WithTop α)
         split_ifs with hx <;>
           simp? [Function.update_apply] at hj ⊢ says
             simp only [AssocDArray.getElem_set, Function.update_apply, AssocDArray.get_eq_getElem,
-              ne_eq] at hj ⊢
+              assocArray_getElem, ne_eq] at hj ⊢
         · subst hx
           rw [ite_eq_left_iff, Classical.not_imp] at hj
           simp only [hj.1, ↓reduceIte]
