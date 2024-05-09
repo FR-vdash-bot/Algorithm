@@ -11,10 +11,11 @@ class ToMultiset (C : Type*) (α : outParam Type*) extends Size C α where
   size_eq_card_toMultiset c : size c = Multiset.card (toMultiset c)
 export ToMultiset (toMultiset size_eq_card_toMultiset)
 
-class ToMultiset.LawfulEmptyCollection (C : Type*) (α : outParam Type*)
+@[mk_iff ToMultiset.lawfulEmptyCollection_iff]
+class LawfulEmptyCollection (C : Type*) (α : outParam Type*)
     [ToMultiset C α] [EmptyCollection C] : Prop where
   toMultiset_empty : toMultiset (∅ : C) = 0
-export ToMultiset.LawfulEmptyCollection (toMultiset_empty)
+export LawfulEmptyCollection (toMultiset_empty)
 
 attribute [simp] toMultiset_empty
 

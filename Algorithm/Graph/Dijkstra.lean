@@ -100,7 +100,7 @@ end Quiver.Path
 namespace AdjList
 variable {V : Type*} {EType : Type*}
   {EColl : Type*} [ToList EColl EType] [EmptyCollection EColl]
-  [ToList.LawfulEmptyCollection EColl EType]
+  [LawfulEmptyCollection EColl EType]
   {StarColl : Type*} [AssocArray.ReadOnly StarColl V EColl ∅]
   {CostType : Type*}
 

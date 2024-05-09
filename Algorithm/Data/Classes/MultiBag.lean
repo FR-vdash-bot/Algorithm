@@ -18,7 +18,7 @@ export MultiBag.ReadOnly (count count_eq_count_toMultiset)
 
 class MultiBag (C : Type*) (α : outParam Type*) extends
     MultiBag.ReadOnly C α,
-    EmptyCollection C, ToMultiset.LawfulEmptyCollection C α,
+    EmptyCollection C, LawfulEmptyCollection C α,
     Insert α C, ToMultiset.LawfulInsert C α
 
 attribute [instance 100] MultiBag.ReadOnly.decidableMem

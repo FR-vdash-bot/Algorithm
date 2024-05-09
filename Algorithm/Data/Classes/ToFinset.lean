@@ -11,14 +11,6 @@ class ToFinset (C : Type*) (α : outParam Type*) extends Size C α where
   size_eq_card_toFinset c : size c = (toFinset c).card
 export ToFinset (toFinset size_eq_card_toFinset)
 
--- Actually the same as `ToMultiset` version
-class ToFinset.LawfulEmptyCollection (C : Type*) (α : outParam Type*)
-    [ToFinset C α] [EmptyCollection C] : Prop where
-  toFinset_empty : toFinset (∅ : C) = ∅
-export ToFinset.LawfulEmptyCollection (toFinset_empty)
-
-attribute [simp] toFinset_empty
-
 class ToFinset.LawfulInsert (C : Type*) (α : outParam Type*)
     [ToFinset C α] [Insert α C] : Prop where
   toFinset_insert a (c : C) : [DecidableEq α] → toFinset (insert a c) = Insert.insert a (toFinset c)
@@ -37,11 +29,20 @@ instance (priority := 100) ToFinset.toMultiset : ToMultiset C α where
   size_eq_card_toMultiset c := size_eq_card_toFinset c
 
 section LawfulEmptyCollection
-variable [EmptyCollection C] [ToFinset.LawfulEmptyCollection C α] (c : C)
+variable [EmptyCollection C] [LawfulEmptyCollection C α]
 
-instance (priority := 100) ToFinset.toMultisetLawfulEmptyCollection :
-    ToMultiset.LawfulEmptyCollection C α where
-  toMultiset_empty := congr_arg Finset.val toFinset_empty
+lemma ToFinset.lawfulEmptyCollection_iff [ToFinset C α] [EmptyCollection C] :
+    LawfulEmptyCollection C α ↔ toFinset (∅ : C) = ∅ := by
+  rw [ToMultiset.lawfulEmptyCollection_iff]
+  change (toFinset (∅ : C)).val = ∅ ↔ _
+  simp
+
+alias ⟨_, LawfulEmptyCollection.ofToFinset⟩ := ToFinset.lawfulEmptyCollection_iff
+
+@[simp]
+lemma toFinset_empty [ToFinset C α] [EmptyCollection C] [inst : LawfulEmptyCollection C α] :
+    toFinset (∅ : C) = ∅ := by
+  rwa [ToFinset.lawfulEmptyCollection_iff] at inst
 
 end LawfulEmptyCollection
 

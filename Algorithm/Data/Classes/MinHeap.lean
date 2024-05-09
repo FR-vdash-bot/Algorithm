@@ -19,7 +19,7 @@ end Multiset
 class MinHeap (C : Type*) (α : outParam Type*)
     [Preorder α] [IsTotalPreorder α (· ≤ ·)] extends
     ToMultiset C α,
-    EmptyCollection C, ToMultiset.LawfulEmptyCollection C α,
+    EmptyCollection C, LawfulEmptyCollection C α,
     Insert α C, ToMultiset.LawfulInsert C α where
   head? : C → WithTop α
   head?_eq_top c : isEmpty c → head? c = ⊤
