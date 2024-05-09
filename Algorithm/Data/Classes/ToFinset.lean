@@ -11,8 +11,6 @@ class ToFinset (C : Type*) (α : outParam Type*) extends Size C α where
   size_eq_card_toFinset c : size c = (toFinset c).card
 export ToFinset (toFinset size_eq_card_toFinset)
 
-attribute [simp] size_eq_card_toFinset
-
 -- Actually the same as `ToMultiset` version
 class ToFinset.LawfulEmptyCollection (C : Type*) (α : outParam Type*)
     [ToFinset C α] [EmptyCollection C] : Prop where
@@ -47,9 +45,9 @@ instance (priority := 100) ToFinset.toMultisetLawfulEmptyCollection :
 
 end LawfulEmptyCollection
 
-lemma ToFinset.mem_iff (v : α) : v ∈ c ↔ v ∈ toFinset c := .rfl
+lemma ToFinset.mem_iff {c : C} {v : α} : v ∈ c ↔ v ∈ toFinset c := .rfl
 
-lemma mem_toFinset (v : α) : v ∈ toFinset c ↔ v ∈ c := .rfl
+lemma mem_toFinset {c : C} {v : α} : v ∈ toFinset c ↔ v ∈ c := .rfl
 
 @[simp]
 lemma toFinset_val : (toFinset c).val = toMultiset c := rfl

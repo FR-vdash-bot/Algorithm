@@ -9,9 +9,10 @@ import Algorithm.Data.Classes.ToList
 import Mathlib.Data.Prod.Lex
 
 class IndexedMinHeap (C : Type*) [Inhabited C] (ι : outParam Type*)
-    (α : outParam Type*) [LinearOrder α] [OrderTop α] extends AssocDArray C ι α fun _ ↦ ⊤ where
+    (α : outParam Type*) [Preorder α] [IsTotalPreorder α (· ≤ ·)] [OrderTop α] extends
+    AssocDArray C ι α fun _ ↦ ⊤ where
   minIdx : C → ι
-  getElem_minIdx_le h (i : ι) : h[minIdx h] ≤ h[i]
+  getElem_minIdx_le c (i : ι) : c[minIdx c] ≤ c[i]
   decreaseKey (c : C) (i : ι) : ∀ v < c[i], C := fun v _ ↦ set c i v
   decreaseKey_eq_set (c : C) (i : ι) v (h : v < c[i]) : decreaseKey c i v h = set c i v := by
     intros; rfl
@@ -94,3 +95,193 @@ instance [OrderTop α] [Inhabited (ArrayVector α n)] [AssocArray (ArrayVector �
   getElem_minIdx_le a i := a.minIdx_le i
 
 end ArrayVector
+
+namespace WithTop
+
+instance (α) [Preorder α] [IsTotalPreorder α (· ≤ ·)] :
+  IsTotalPreorder (WithTop α) (· ≤ ·) where
+
+instance (α) (x : WithTop α) : Decidable (x = ⊤) :=
+  match x with
+  | ⊤ => .isTrue rfl
+  | (x : α) => .isFalse nofun
+
+end WithTop
+
+structure AssocArrayWithHeap.WithIdx (α ι : Type*) where
+  val : α
+  idx : ι
+
+namespace AssocArrayWithHeap.WithIdx
+variable {α ι : Type*}
+
+instance [LE α] : LE (AssocArrayWithHeap.WithIdx α ι) where
+  le x y := x.val ≤ y.val
+
+lemma le_def [LE α] {x y : AssocArrayWithHeap.WithIdx α ι} :
+    x ≤ y ↔ x.val ≤ y.val :=
+  Iff.rfl
+
+@[simp]
+lemma mk_le_mk [LE α] {x y : α} {xi yi : ι} :
+    mk x xi ≤ mk y yi ↔ x ≤ y :=
+  Iff.rfl
+
+instance [LT α] : LT (AssocArrayWithHeap.WithIdx α ι) where
+  lt x y := x.val < y.val
+
+@[simp]
+lemma mk_lt_mk [LT α] {x y : α} {xi yi : ι} :
+    mk x xi < mk y yi ↔ x < y :=
+  Iff.rfl
+
+instance [Preorder α] : Preorder (AssocArrayWithHeap.WithIdx α ι) where
+  le_refl _ := le_refl _
+  le_trans _ _ _ := le_trans
+  lt_iff_le_not_le _ _ := lt_iff_le_not_le
+
+instance [Preorder α] [IsTotalPreorder α (· ≤ ·)] :
+    IsTotalPreorder (AssocArrayWithHeap.WithIdx α ι) (· ≤ ·) where
+  total _ _ := total_of (α := α) (· ≤ ·) _ _
+
+end AssocArrayWithHeap.WithIdx
+
+structure AssocArrayWithHeap (C C' : Type*) {ι α : Type*} [Preorder α] [IsTotalPreorder α (· ≤ ·)]
+    [Inhabited C] [AssocArray C ι (WithTop α) ⊤]
+    [MinHeap C' (AssocArrayWithHeap.WithIdx α ι)] where mk' ::
+  assocArray : C
+  minHeap : C'
+  mem_minHeap' : ∀ i : ι, (hi : assocArray[i] ≠ ⊤) → ⟨assocArray[i].untop hi, i⟩ ∈ minHeap
+  getElem_minIdx' : (h : ¬isEmpty minHeap) →
+    assocArray[(MinHeap.head minHeap h).idx] = (MinHeap.head minHeap h).val
+
+namespace AssocArrayWithHeap
+variable {C C' : Type*} {ι α : Type*} [Preorder α] [IsTotalPreorder α (· ≤ ·)]
+  [Inhabited C] [AssocArray C ι (WithTop α) ⊤]
+  [MinHeap C' (AssocArrayWithHeap.WithIdx α ι)]
+
+instance : AssocArray.ReadOnly (AssocArrayWithHeap C C') ι (WithTop α) ⊤ where
+  get c := AssocArray.get c.assocArray
+  toDFinsupp' c := AssocArray.toDFinsupp' c.assocArray
+  coe_toDFinsupp'_eq_get c := AssocArray.coe_toDFinsupp'_eq_get c.assocArray
+
+@[simp]
+lemma assocArray_getElem (c : AssocArrayWithHeap C C') (i : ι) :
+    c.assocArray[i] = c[i] :=
+  rfl
+
+lemma mem_minHeap (c : AssocArrayWithHeap C C') :
+    ∀ i : ι, (hi : c[i] ≠ ⊤) → ⟨c[i].untop hi, i⟩ ∈ c.minHeap :=
+  c.mem_minHeap'
+
+lemma getElem_minIdx (c : AssocArrayWithHeap C C') (h : ¬isEmpty c.minHeap) :
+    c[(MinHeap.head c.minHeap h).idx] = (MinHeap.head c.minHeap h).val :=
+  c.getElem_minIdx' h
+
+instance : Inhabited (AssocArrayWithHeap C C') where
+  default := ⟨default, ∅, by simp, by simp [size_eq_card_toMultiset]⟩
+
+def mk [DecidableEq α] (assocArray : C) (minHeap : C')
+    (mem_minHeap : ∀ i : ι, (hi : assocArray[i] ≠ ⊤) → ⟨(assocArray[i]).untop hi, i⟩ ∈ minHeap) :
+    AssocArrayWithHeap C C' :=
+  if h : isEmpty minHeap then
+    ⟨assocArray, minHeap, mem_minHeap, (False.elim <| · h)⟩
+  else if h' : assocArray[(MinHeap.head minHeap h).idx] = (MinHeap.head minHeap h).val then
+    ⟨assocArray, minHeap, mem_minHeap, fun _ ↦ h'⟩
+  else
+    haveI : DecidableEq (WithIdx α ι) := by classical infer_instance
+    have : size (MinHeap.tail minHeap) < size minHeap := by
+      simpa [h, size_eq_card_toMultiset, Multiset.card_erase_lt_of_mem, - MinHeap.head_def] using
+        Multiset.card_erase_lt_of_mem (MinHeap.head_mem_toMultiset _ _)
+    mk assocArray (MinHeap.tail minHeap) fun i hi ↦ by
+      simp? [ToMultiset.mem_iff, h] says
+        simp only [ToMultiset.mem_iff, MinHeap.toMultiset_tail, h, Bool.false_eq_true, ↓reduceDite,
+          MinHeap.head_def]
+      rw [Multiset.mem_erase_of_ne]
+      · exact mem_minHeap _ _
+      · intro h''
+        apply h'
+        simp [← h'']
+termination_by size minHeap
+
+@[simp]
+lemma mk_assocArray [DecidableEq α] (assocArray : C) (minHeap : C')
+    (mem_minHeap : ∀ i : ι, (hi : assocArray[i] ≠ ⊤) → ⟨(assocArray[i]).untop hi, i⟩ ∈ minHeap) :
+    (mk assocArray minHeap mem_minHeap).assocArray = assocArray := by
+  unfold mk
+  split_ifs
+  · rfl
+  · rfl
+  · generalize_proofs; exact mk_assocArray _ _ _
+termination_by size minHeap
+
+@[simp]
+lemma default_assocArray :
+    (default : AssocArrayWithHeap C C').assocArray = default :=
+  rfl
+
+@[simp]
+lemma default_minHeap :
+    (default : AssocArrayWithHeap C C').minHeap = ∅ :=
+  rfl
+
+instance [DecidableEq α] : AssocArray (AssocArrayWithHeap C C') ι (WithTop α) ⊤ where
+  set c i x :=
+    mk
+      (AssocArray.set c.assocArray i x)
+      (if hx : x = ⊤ then c.minHeap else insert ⟨x.untop hx, i⟩ c.minHeap)
+      fun j hj ↦ by
+        haveI : DecidableEq ι := by classical infer_instance
+        split_ifs with hx <;>
+          simp? [Function.update_apply] at hj ⊢ says
+            simp only [AssocDArray.getElem_set, Function.update_apply, AssocDArray.get_eq_getElem,
+              ne_eq] at hj ⊢
+        · subst hx
+          rw [ite_eq_left_iff, Classical.not_imp] at hj
+          simp only [hj.1, ↓reduceIte]
+          exact c.mem_minHeap j hj.2
+        · rw [ToMultiset.mem_iff, toMultiset_insert, Multiset.mem_cons]
+          split_ifs at hj ⊢ with hji
+          · simp [hji]
+          · exact .inr <| c.mem_minHeap j hj
+  get_set := by simp [AssocDArray.get]
+  get_default := by simp [AssocDArray.get]
+
+@[simp]
+lemma set_assocArray [DecidableEq α] (c : AssocArrayWithHeap C C') (i x) :
+    (AssocArray.set c i x).assocArray = AssocArray.set c.assocArray i x := by
+  simp [AssocArray.set]
+
+instance [Inhabited ι] [DecidableEq α] :
+    IndexedMinHeap (AssocArrayWithHeap C C') ι (WithTop α) where
+  minIdx c := if h : isEmpty c.minHeap then default else (MinHeap.head c.minHeap h).idx
+  getElem_minIdx_le c i := by
+    dsimp; split_ifs with h
+    · suffices ∀ i : ι, c[i] = ⊤ by simp [this]
+      intro i
+      contrapose h with hi
+      simpa [size_eq_card_toMultiset, Multiset.eq_zero_iff_forall_not_mem] using
+        ⟨_, c.mem_minHeap i hi⟩
+    · rw [getElem_minIdx c h, WithTop.coe_le_iff]
+      intro x hx
+      refine (WithIdx.le_def.mp <| MinHeap.head_le c.minHeap _ (c.mem_minHeap i ?_)).trans ?_ <;>
+        simp [hx]
+  -- 我们不能定义一个无需操作堆的 `decreaseKey`，除非假设 `LinearOrder`。
+  -- 考虑有无法通过比较区分的 `x` 和 `x'`， `fun | 0 ↦ x + 1 | 1 ↦ x'`
+  -- 堆中按顺序为 `(x', 1)` `(x, 0)` `(x + 1, 0)`
+  -- 将 `0` 处更新为 `x'`，堆可以变为 `(x, 0)` `(x', 0)` `(x', 1)` `(x + 1, 0)`
+  -- 此时必须操作堆弹出 `(x, 0)`
+  -- decreaseKey c i x hx := ⟨AssocArray.set c.assocArray i x,
+  --   insert ⟨x.untop (hx.trans_le le_top).ne, i⟩ c.minHeap,
+  --   by
+  --     haveI : DecidableEq ι := by classical infer_instance
+  --     intro j hj
+  --     simp? [Function.update_apply] at hj ⊢ says
+  --       simp only [AssocDArray.getElem_set, Function.update_apply, AssocDArray.get_eq_getElem,
+  --         assocArray_getElem, ne_eq] at hj ⊢
+  --     rw [ToMultiset.mem_iff, toMultiset_insert, Multiset.mem_cons]
+  --     split_ifs at hj ⊢ with hji
+  --     · simp [hji]
+  --     · exact .inr <| c.mem_minHeap j hj,
+
+end AssocArrayWithHeap

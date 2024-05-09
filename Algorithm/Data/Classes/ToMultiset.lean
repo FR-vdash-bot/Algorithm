@@ -11,8 +11,6 @@ class ToMultiset (C : Type*) (α : outParam Type*) extends Size C α where
   size_eq_card_toMultiset c : size c = Multiset.card (toMultiset c)
 export ToMultiset (toMultiset size_eq_card_toMultiset)
 
-attribute [simp] size_eq_card_toMultiset
-
 class ToMultiset.LawfulEmptyCollection (C : Type*) (α : outParam Type*)
     [ToMultiset C α] [EmptyCollection C] : Prop where
   toMultiset_empty : toMultiset (∅ : C) = 0
@@ -50,9 +48,13 @@ variable {C α : Type*} [ToMultiset C α] (c : C)
 instance (priority := 100) : Membership α C where
   mem a c := a ∈ toMultiset c
 
-lemma ToMultiset.mem_iff (v : α) : v ∈ c ↔ v ∈ toMultiset c := .rfl
+lemma ToMultiset.mem_iff {c : C} {v : α} : v ∈ c ↔ v ∈ toMultiset c := .rfl
 
-lemma mem_toMultiset (v : α) : v ∈ toMultiset c ↔ v ∈ c := .rfl
+lemma mem_toMultiset {c : C} {v : α} : v ∈ toMultiset c ↔ v ∈ c := .rfl
+
+@[simp]
+lemma toMultiset_of_isEmpty (h : isEmpty c) : toMultiset c = 0 := by
+  simpa [size_eq_card_toMultiset] using h
 
 @[simp]
 lemma toMultiset_list (l : List α) : toMultiset l = ↑l := rfl
@@ -63,6 +65,10 @@ lemma isEmpty_eq_decide_size : isEmpty c = decide (size c = 0) := by
 lemma isEmpty_eq_size_beq_zero : isEmpty c = (size c == 0) := by
   rw [isEmpty_eq_decide_size]
   cases size c <;> rfl
+
+@[simp]
+lemma ToMultiset.not_isEmpty_of_mem {c : C} {v} (hv : v ∈ c) : ¬isEmpty c := by
+  simpa [size_eq_card_toMultiset, Multiset.eq_zero_iff_forall_not_mem] using ⟨v, hv⟩
 
 variable [DecidableEq α]
 

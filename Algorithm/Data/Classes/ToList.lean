@@ -107,10 +107,8 @@ class ToList (C : Type*) (α : outParam Type*) extends Size C α where
   toList : C → List α
   toArray : C → Array α
   toArray_toList a : (toArray a).toList = toList a
-  length_toList c : (toList c).length = size c
-export ToList (toList toArray toArray_toList length_toList)
-
-attribute [simp] length_toList
+  size_eq_length_toList c : size c = (toList c).length
+export ToList (toList toArray toArray_toList size_eq_length_toList)
 
 -- Actually the same as `ToMultiset` version
 class ToList.LawfulEmptyCollection (C : Type*) (α : outParam Type*)
@@ -125,7 +123,7 @@ variable {C α : Type*} [ToList C α] (c : C)
 
 instance (priority := 100) ToList.toMultiset : ToMultiset C α where
   toMultiset c := ↑(toList c)
-  size_eq_card_toMultiset c := (length_toList c).symm
+  size_eq_card_toMultiset c := size_eq_length_toList c
 
 section LawfulEmptyCollection
 variable [EmptyCollection C] [ToList.LawfulEmptyCollection C α] (c : C)
@@ -144,18 +142,18 @@ lemma toArray_data : (toArray c).data = toList c := by
 lemma toArray_size : (toArray c).size = size c := by
   trans (toArray c).data.length
   · simp only [Array.data_length]
-  · simp only [toArray_data, length_toList]
+  · simp only [toArray_data, size_eq_length_toList]
 
 @[simp]
 lemma coe_toList : ↑(toList c) = toMultiset c := rfl
 
 lemma isEmpty_toList : (toList c).isEmpty = isEmpty c := by
-  rw [isEmpty_eq_decide_size, List.isEmpty_eq_decide_length, length_toList]
+  rw [isEmpty_eq_decide_size, List.isEmpty_eq_decide_length, size_eq_length_toList]
 
-lemma ToList.mem_iff (v : α) : v ∈ c ↔ v ∈ toList c := .rfl
+lemma ToList.mem_iff {c : C} {v : α} : v ∈ c ↔ v ∈ toList c := .rfl
 
 @[simp]
-lemma mem_toList (v : α) : v ∈ toList c ↔ v ∈ c := .rfl
+lemma mem_toList {c : C} {v : α} : v ∈ toList c ↔ v ∈ c := .rfl
 
 end ToList
 
@@ -240,7 +238,7 @@ instance : ToList (List α) α where
   toList := id
   toArray := List.toArray
   toArray_toList _ := by simp
-  length_toList _ := rfl
+  size_eq_length_toList _ := rfl
 
 instance : Front (List α) α where
   front? := List.head?
@@ -262,7 +260,7 @@ instance : ToList (Array α) α where
   toList := Array.toList
   toArray := id
   toArray_toList _ := rfl
-  length_toList _ := by simp [size]
+  size_eq_length_toList _ := by simp [size]
 
 instance : Front (Array α) α where
   front? c := c.get? 0
