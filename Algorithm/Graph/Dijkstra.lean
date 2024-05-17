@@ -729,17 +729,17 @@ lemma dijkstraStep_spec (g : G) (c : Info → CostType)
       obtain ⟨v, w, hv, hw, psv, evw, pwt, rfl⟩ := this _ rMinIdx p
       simp? [add_vadd] says
         simp only [Quiver.Path.cost_comp, Quiver.Path.cost_cons,
-          AddOpposite.op_add, add_vadd, WithTop.coe_vadd, WithTop.coe_untop, ge_iff_le]
+          AddOpposite.op_add, add_vadd, ge_iff_le]
       apply le_vadd_right
       obtain ⟨d, hd, (⟨rfl, h₂⟩ | ⟨-, h₂⟩)⟩ := h₂ w hw; · exact (h₂ v hv).elim evw
       replace h₃ := (h₃ v hv).2 s inits psv
       exact (getElem_minIdx_le heap w).trans <| hd.symm ▸
         (min_le_right _ _).trans <| (h₂ v hv evw).trans (vadd_le_vadd_left _ h₃)
   · intro v
-    -- simp? [dijkstraStep_snd_getElem_eq_top, dijkstraStep_fst_getElem_eq_top (spec₁ := h₁), h₄]
-    simp only [ne_eq, h₄, dijkstraStep_snd_support, not_and,
-      dijkstraStep_fst_getElem_eq_top (spec₁ := h₁), mem_succSet_iff, Set.mem_singleton_iff,
-      exists_eq_left]
+    simp? [dijkstraStep_snd_support, dijkstraStep_fst_getElem_eq_top (spec₁ := h₁), h₄,
+        -not_or] says
+      simp only [ne_eq, h₄, dijkstraStep_snd_support,
+        dijkstraStep_fst_getElem_eq_top (spec₁ := h₁), succSet_singleton, Set.mem_setOf_eq]
     rw [traversal_insert]
     · simpa
     · ext s
