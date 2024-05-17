@@ -9,272 +9,229 @@ import Algorithm.Data.Classes.ToList
 import Mathlib.Combinatorics.Quiver.Path
 
 structure AdjList
-    (V : Type*) (EType : Type*)
-    (EColl : Type*) [ToMultiset EColl EType] [EmptyCollection EColl]
-    [LawfulEmptyCollection EColl EType]
+    (V : Type*) (Info : Type*)
+    (EColl : Type*) [ToMultiset EColl Info] [EmptyCollection EColl]
+    [LawfulEmptyCollection EColl Info]
     (StarColl : Type*) [AssocArray.ReadOnly StarColl V EColl ∅] where
-  fst : EType → V
-  snd : EType → V
-  star : StarColl
+  protected snd : Info → V
+  protected star : StarColl
+
+structure AdjList₂
+    (V : Type*) (Info : Type*)
+    (EColl : Type*) [ToMultiset EColl Info] [EmptyCollection EColl]
+    [LawfulEmptyCollection EColl Info]
+    (StarColl : Type*) [AssocArray.ReadOnly StarColl V EColl ∅] extends
+    AdjList V Info EColl StarColl where
+  fst : Info → V
   costar : StarColl
   fst_star' v : ∀ e ∈ star[v], fst e = v
   snd_costar' v : ∀ e ∈ costar[v], snd e = v
-  count_star_fst_eq_count_costar_snd : [DecidableEq EType] → ∀ e,
+  count_star_fst_eq_count_costar_snd : [DecidableEq Info] → ∀ e,
     (toMultiset star[fst e]).count e = (toMultiset costar[snd e]).count e
   -- nodup_star' (v : V) : star'[v].Nodup
   -- nodup_costar' (v : V) : costar'[v].Nodup
   -- mem_star'_iff_mem_costar' e : e ∈ star'[fst' e] ↔ e ∈ costar'[snd' e]
 
-namespace AdjList
+class AdjListClass (G : Type*)
+    (V : outParam <| Type*) (Info : outParam <| Type*)
+    (EColl : outParam <| Type*) [ToMultiset EColl Info] [EmptyCollection EColl]
+    [LawfulEmptyCollection EColl Info]
+    (StarColl : outParam <| Type*) [AssocArray.ReadOnly StarColl V EColl ∅] where
+  snd : G → Info → V
+  star : G → StarColl
+
+namespace AdjListClass
+
+-- 一个邪恶的hack，用来假装我还能使用点符号
+scoped syntax:max term noWs ".." noWs ident : term
+macro_rules
+  |`($g..$name) => do
+    match name.raw with
+    | .ident _ _ name _ =>
+      `($(Lean.mkIdent (Lean.Name.mkStr1 "AdjListClass" ++ name)) $g)
+    | _ => `($g..$name)
 
 section ToMultiset
 variable
-  {V : Type*} {EType : Type*}
-  {EColl : Type*} [ToMultiset EColl EType] [EmptyCollection EColl]
-  [LawfulEmptyCollection EColl EType]
-  {StarColl : Type*} [AssocArray.ReadOnly StarColl V EColl ∅] {g : AdjList V EType EColl StarColl}
--- instance : GetElem g.StarColl g.V (List g.E) (fun _ _ ↦ True) := AssocArray.instGetElem
--- by infer_instance
+  {V : Type*} {Info : Type*}
+  {EColl : Type*} [ToMultiset EColl Info] [EmptyCollection EColl]
+  [LawfulEmptyCollection EColl Info]
+  {StarColl : Type*} [AssocArray.ReadOnly StarColl V EColl ∅]
 
-lemma fst_star {v e} : e ∈ g.star[v] → g.fst e = v := g.fst_star' _ _
-lemma snd_costar {v e} : e ∈ g.costar[v] → g.snd e = v := g.snd_costar' _ _
+instance : AdjListClass (AdjList V Info EColl StarColl) V Info EColl StarColl where
+  snd := AdjList.snd
+  star := AdjList.star
 
--- lemma nodup_star (v : g.V) : v.star.Nodup := g.nodup_star' v
--- lemma nodup_costar (v : g.V) : v.costar.Nodup := g.nodup_costar' v
+instance : AdjListClass (AdjList₂ V Info EColl StarColl) V Info EColl StarColl where
+  snd g := g.snd
+  star g := g.star
 
-lemma mem_star_iff_mem_costar {e : EType} : e ∈ g.star[g.fst e] ↔ e ∈ g.costar[g.snd e] := by
-  classical rw [← count_toMultiset_ne_zero, ← count_toMultiset_ne_zero,
-    count_star_fst_eq_count_costar_snd]
+variable {G : Type*} [AdjListClass G V Info EColl StarColl] {g : G}
 
-variable (g) in
-def IsE (e : EType) : Prop := e ∈ g.star[g.fst e]
-
-lemma IsE.mem_star {e : EType} : g.IsE e → e ∈ g.star[g.fst e] := id
-lemma IsE.mem_costar {e : EType} : g.IsE e → e ∈ g.costar[g.snd e] := mem_star_iff_mem_costar.mp
-
-lemma IsE.of_mem_star {e : EType} {v : V} (he : e ∈ g.star[v]) : g.IsE e :=
-  show e ∈ g.star[g.fst e] by rwa [fst_star he]
-
-lemma IsE.of_mem_costar {e : EType} {v : V} (he : e ∈ g.costar[v]) : g.IsE e :=
-  mem_star_iff_mem_costar.mpr (by rwa [snd_costar he])
-
-@[simp]
-lemma mem_star_iff {e : EType} {v : V} : e ∈ g.star[v] ↔ g.IsE e ∧ g.fst e = v :=
-  ⟨fun he ↦ ⟨.of_mem_star he, fst_star he⟩, fun ⟨he, hv⟩ ↦ hv ▸ he.mem_star⟩
-
-@[simp]
-lemma mem_costar_iff {e : EType} {v : V} : e ∈ g.costar[v] ↔ g.IsE e ∧ g.snd e = v :=
-  ⟨fun he ↦ ⟨.of_mem_costar he, snd_costar he⟩, fun ⟨h₁, h₂⟩ ↦ h₂ ▸ h₁.mem_costar⟩
+instance : GetElem G V EColl (fun _ _ ↦ True) where
+  getElem g v _ := g..star[v]
 
 variable (g) in
-def E := {e : EType // g.IsE e}
+@[ext, pp_using_anonymous_constructor]
+structure E where ofStar ::
+  fst : V
+  info : Info
+  mem_star : info ∈ g[fst]
 
-@[coe]
-def E.val (e : g.E) : EType := Subtype.val e
-
-instance : CoeOut g.E EType := ⟨E.val⟩
-
-@[simp]
-lemma E.isE_val (e : g.E) : g.IsE e := e.2
-
-def starToE (e : EType) {v : V} (he : e ∈ g.star[v]) : g.E :=
-  ⟨e, .of_mem_star he⟩
-
-def costarToE (e : EType) {v : V} (he : e ∈ g.costar[v]) : g.E :=
-  ⟨e, .of_mem_costar he⟩
-
-def E.fst (e : g.E) : V := g.fst e.val
-
-def E.snd (e : g.E) : V := g.snd e.val
+attribute [simp] E.mem_star
 
 @[simp]
-lemma E.coe_mk (e : EType) (he : g.IsE e) : E.val ⟨e, he⟩ = e := rfl
+protected lemma E.eta (e : g..E) (he : e.info ∈ g[e.fst]) :
+    ⟨e.fst, e.info, he⟩ = e :=
+  rfl
+
+instance E.instDecidableEq [DecidableEq V] [DecidableEq Info] : DecidableEq g..E :=
+  fun x y ↦ decidable_of_iff _ (E.ext_iff x y).symm
+
+protected def E.snd (e : g..E) : V := g..snd e.info
 
 @[simp]
-theorem E.coe_inj {e₁ e₂ : g.E} : e₁.val = e₂.val ↔ e₁ = e₂ :=
-  Subtype.coe_inj
+lemma E.info_snd (e : g..E) :
+    g..snd e.info = e.snd :=
+  rfl
 
-@[simp]
-lemma E.mk_fst (e : EType) (he : g.IsE e) : E.fst ⟨e, he⟩ = g.fst e := rfl
+lemma E.ofStar_fst (v : V) (x : Info) (hx : x ∈ g[v]) :
+    (E.ofStar v x hx).fst = v :=
+  rfl
 
-@[simp]
-lemma E.mk_snd (e : EType) (he : g.IsE e) : E.snd ⟨e, he⟩ = g.snd e := rfl
+lemma E.ofStar_snd (v : V) (x : Info) (hx : x ∈ g[v]) :
+    (E.ofStar v x hx).snd = g..snd x :=
+  rfl
 
-@[simp]
-lemma E.fst_val (e : g.E) : g.fst e.val = e.fst := rfl
-
-@[simp]
-lemma E.snd_val (e : g.E) : g.snd e.val = e.snd := rfl
-
-@[simp]
-lemma starToE_fst (v : V) (e : EType) (he : e ∈ g.star[v]) :
-    (g.starToE e he).fst = v :=
-  g.fst_star he
-
-@[simp]
-lemma costarToE_snd (v : V) (e : EType) (he : e ∈ g.costar[v]) :
-    (g.costarToE e he).snd = v :=
-  g.snd_costar he
-
-lemma E.mem_star (e : g.E) : e.val ∈ g.star[e.fst] := e.2.mem_star
-lemma E.mem_costar (e : g.E) : e.val ∈ g.costar[e.snd] := e.2.mem_costar
-
-lemma E.mem_star_iff {e : g.E} {v : V} : e.val ∈ g.star[v] ↔ e.fst = v :=
-  ⟨fun h ↦ fst_star h, fun h ↦ h ▸ mem_star e⟩
-
-lemma E.mem_costar_iff {e : g.E} {v : V} : e.val ∈ g.costar[v] ↔ e.snd = v :=
-  ⟨fun h ↦ snd_costar h, fun h ↦ h ▸ mem_costar e⟩
-
-protected structure Quiver (g : AdjList V EType EColl StarColl) where
+protected structure Quiver (g : G) [AdjListClass G V Info EColl StarColl] where
   _intro ::
   val : V
 
 attribute [coe] Quiver.val
 
-instance : CoeOut g.Quiver V := ⟨Quiver.val⟩
+instance : CoeOut g..Quiver V := ⟨Quiver.val⟩
 
 section Quiver
 
 variable (g) in
-def toQuiver : V ≃ g.Quiver := ⟨Quiver._intro, (↑), fun _ ↦ rfl, fun _ ↦ rfl⟩
+def toQuiver : V ≃ g..Quiver := ⟨Quiver._intro, (↑), fun _ ↦ rfl, fun _ ↦ rfl⟩
 
 @[simp]
-lemma toQuiver_val (v : g.Quiver) :
-    g.toQuiver ↑v = v :=
+lemma toQuiver_coe (v : g..Quiver) :
+    g..toQuiver ↑v = v :=
   rfl
 
 variable (g) in
 @[simp]
-lemma val_toQuiver (v : V) :
-    ↑(g.toQuiver v) = v :=
+lemma coe_toQuiver (v : V) :
+    ↑(g..toQuiver v) = v :=
   rfl
 
--- 需要考虑相等的重边吗？
-instance : Quiver g.Quiver where
-  Hom v w := {e : g.E // g.toQuiver e.fst = v ∧ g.toQuiver e.snd = w}
+instance : Quiver g..Quiver where
+  Hom v w := {e : g..E // g..toQuiver e.fst = v ∧ g..toQuiver e.snd = w}
 
--- instance {v w : g.Quiver} : CoeOut (v ⟶ w) g.E := ⟨Subtype.val⟩
-
-def ofHom {v w : g.Quiver} (e : v ⟶ w) :
-    g.E :=
+@[coe]
+def ofHom {v w : g..Quiver} (e : v ⟶ w) :
+    g..E :=
   e.1
 
-@[simp]
-theorem ofHom_inj {v w : g.Quiver} {e₁ e₂ : v ⟶ w} : ofHom e₁ = ofHom e₂ ↔ e₁ = e₂ :=
+instance {v w : g..Quiver} : CoeOut (v ⟶ w) (E g) := ⟨ofHom⟩
+
+@[simp, norm_cast]
+theorem coe_inj {v w : g..Quiver} {e₁ e₂ : v ⟶ w} :
+    (e₁ : g..E) = e₂ ↔ e₁ = e₂ :=
   Subtype.coe_inj
 
-instance [DecidableEq EType] {v w : g.Quiver} : DecidableEq (v ⟶ w) := fun e₁ e₂ ↦ by
-  convert decEq (ofHom e₁).val (ofHom e₂).val
+instance [DecidableEq V] [DecidableEq Info] {v w : g..Quiver} :
+    DecidableEq (v ⟶ w) := fun e₁ e₂ ↦ by
+  convert decEq (ofHom e₁) (ofHom e₂)
   simp
 
-@[simp]
-lemma mk_ofHom {v w : g.Quiver}
-    (e : g.E) (he) :
-    ofHom (⟨e, he⟩ : v ⟶ w) = e :=
+lemma coe_mk {v w : g..Quiver} (e : g..E) (he) :
+    (⟨e, he⟩ : v ⟶ w) = e :=
   rfl
 
 @[simp]
-lemma ofHom_fst {v w : g.Quiver}
-    (e : v ⟶ w) :
-    (ofHom e).fst = ↑v :=
+lemma coe_fst {v w : g..Quiver} (e : v ⟶ w) :
+    (e : g..E).fst = ↑v :=
   congr_arg Quiver.val e.2.1
 
 @[simp]
-lemma ofHom_snd {v w : g.Quiver}
-    (e : v ⟶ w) :
-    (ofHom e).snd = ↑w :=
+lemma coe_snd {v w : g..Quiver} (e : v ⟶ w) :
+    (e : g..E).snd = ↑w :=
   congr_arg Quiver.val e.2.2
 
-def homOfStar {v : V} (e : EType) (he : e ∈ g.star[v]) :
-    g.toQuiver v ⟶ g.toQuiver (g.snd e) :=
-  ⟨starToE e he, ⟨congr_arg g.toQuiver <| starToE_fst v e he, rfl⟩⟩
+@[simp]
+lemma coe_info_mem_star {v w : g..Quiver} (e : v ⟶ w) :
+    (e : g..E).info ∈ g[(v : V)] :=
+  coe_fst e ▸ (e : E g).mem_star
 
-def homOfCostar {v : V} (e : EType) (he : e ∈ g.costar[v]) :
-    g.toQuiver (g.fst e) ⟶ g.toQuiver v :=
-  ⟨costarToE e he, ⟨rfl, congr_arg g.toQuiver <| costarToE_snd v e he⟩⟩
+def homOfStar {v : V} (x : Info) (hx : x ∈ g[v]) :
+    g..toQuiver v ⟶ g..toQuiver (g..snd x) :=
+  ⟨.ofStar v x hx, ⟨congr_arg g..toQuiver (E.ofStar_fst v x hx), rfl⟩⟩
 
-instance [DecidableEq V] [DecidableEq EType] {v w : g.Quiver} : Fintype (v ⟶ w) where
+instance [DecidableEq V] [DecidableEq Info] {v w : g..Quiver} : Fintype (v ⟶ w) where
   elems :=
-    (((toMultiset g.star[(v : V)]).filter (fun e ↦ g.snd e = (w : V))).pmap
-      (fun e he ↦ by
-        simp only [Multiset.mem_filter, mem_toMultiset, mem_star_iff] at he
-        exact ⟨⟨e, he.1.1⟩, ⟨by simp [he.1.2], by simp [he.2]⟩⟩) (fun _ ↦ id)).toFinset
+    (((toMultiset g[(v : V)]).filter (fun e ↦ g..snd e = (w : V))).pmap
+      (fun x hx ↦ by
+        simp only [Multiset.mem_filter, mem_toMultiset] at hx
+        exact ⟨⟨v, x, hx.1⟩, ⟨rfl, by simp [E.ofStar_snd, hx.2]⟩⟩) (fun _ ↦ id)).toFinset
   complete := by
-    rintro ⟨⟨e, he⟩, ⟨fste, snde⟩⟩
-    simp only [E.mk_fst, E.mk_snd, Multiset.mem_toFinset, Multiset.mem_pmap, Multiset.mem_filter,
-      mem_toMultiset, mem_star_iff] at fste snde ⊢
-    subst fste snde
-    use e
-    simpa
+    rintro ⟨e, rfl, rfl⟩
+    simp only [coe_toQuiver, Multiset.mem_toFinset, Multiset.mem_pmap, Multiset.mem_filter,
+      mem_toMultiset, id_eq]
+    refine ⟨e.info, ⟨e.mem_star, rfl⟩, rfl⟩
 
 end Quiver
 
 variable (g) in
-def Adj (v w : V) : Prop := Nonempty (g.toQuiver v ⟶ g.toQuiver w)
+def Adj (v w : V) : Prop := Nonempty (g..toQuiver v ⟶ g..toQuiver w)
 
 variable (g) in
-def Reachable (v w : V) : Prop := Nonempty (Quiver.Path (g.toQuiver v) (g.toQuiver w))
+def Reachable (v w : V) : Prop := Nonempty (Quiver.Path (g..toQuiver v) (g..toQuiver w))
 
 namespace Adj
 
-lemma of_star {v : V} (e : EType) (he : e ∈ g.star[v]) :
-    g.Adj v (g.snd e) :=
+lemma of_star {v : V} (e : Info) (he : e ∈ g[v]) :
+    g..Adj v (g..snd e) :=
   ⟨homOfStar e he⟩
 
-lemma of_costar {v : V} (e : EType) (he : e ∈ g.costar[v]) :
-    g.Adj (g.fst e) v :=
-  ⟨homOfCostar e he⟩
-
-lemma to_reachable {v w : V} (h : g.Adj v w) :
-    g.Reachable v w :=
+lemma to_reachable {v w : V} (h : g..Adj v w) :
+    g..Reachable v w :=
   h.map (·.toPath)
 
 end Adj
 
-@[simp]
-lemma exists_iff_adj {v w : V} :
-    (∃ e, g.IsE e ∧ g.fst e = v ∧ g.snd e = w) ↔ g.Adj v w :=
-  ⟨fun ⟨e, he, h₁, h₂⟩ ↦ ⟨⟨e, he⟩, by simp [*]⟩, fun ⟨e⟩ ↦ ⟨ofHom e, by simp, by simp⟩⟩
-
-@[simp]
-lemma exists_iff_adj' {v w : V} :
-    (∃ e, (g.IsE e ∧ g.fst e = v) ∧ g.snd e = w) ↔ g.Adj v w := by
-  simp [and_assoc]
-
 lemma adj_iff_star {v w : V} :
-    g.Adj v w ↔ ∃ e ∈ g.star[v], g.snd e = w :=
-  ⟨fun ⟨e⟩ ↦ ⟨(ofHom e).val, by simp, by simp⟩, fun ⟨e, he, h⟩ ↦ h ▸ .of_star e he⟩
-
-lemma adj_iff_costar {v w : V} :
-    g.Adj v w ↔ ∃ e ∈ g.costar[w], g.fst e = v :=
-  ⟨fun ⟨e⟩ ↦ ⟨(ofHom e).val, by simp, by simp⟩, fun ⟨e, he, h⟩ ↦ h ▸ .of_costar e he⟩
+    g..Adj v w ↔ ∃ x ∈ g[v], g..snd x = w :=
+  ⟨fun ⟨e⟩ ↦ ⟨(e : g..E).info, coe_info_mem_star _, coe_snd e⟩, fun ⟨e, he, h⟩ ↦ h ▸ .of_star e he⟩
 
 namespace Reachable
 
-lemma rfl {v : V} : g.Reachable v v := ⟨.nil⟩
+lemma rfl {v : V} : g..Reachable v v := ⟨.nil⟩
 
 variable (g) in
 @[refl]
-lemma refl (v : V) : g.Reachable v v := ⟨.nil⟩
+lemma refl (v : V) : g..Reachable v v := ⟨.nil⟩
 
-instance : IsRefl V g.Reachable := ⟨refl g⟩
+instance : IsRefl V g..Reachable := ⟨refl g⟩
 
 @[trans]
-lemma trans {u v w : V} (huv : g.Reachable u v) (hvw : g.Reachable v w) :
-    g.Reachable u w :=
+lemma trans {u v w : V} (huv : g..Reachable u v) (hvw : g..Reachable v w) :
+    g..Reachable u w :=
   Nonempty.map2 .comp huv hvw
 
-instance : IsTrans V g.Reachable := ⟨fun _ _ _ ↦ trans⟩
+instance : IsTrans V g..Reachable := ⟨fun _ _ _ ↦ trans⟩
 
 end Reachable
 
 variable (g) in
-lemma reachable_eq_reflTransGen : g.Reachable = Relation.ReflTransGen g.Adj := by
+lemma reachable_eq_reflTransGen : g..Reachable = Relation.ReflTransGen g..Adj := by
   ext v w
   constructor
   · intro ⟨h⟩
-    rw [← g.val_toQuiver w]
-    generalize g.toQuiver w = w' at *
+    rw [← g..coe_toQuiver w]
+    generalize g..toQuiver w = w' at *
     induction h with
     | nil => rfl
     | cons _ h ih => exact ih.tail ⟨h⟩
@@ -283,32 +240,32 @@ lemma reachable_eq_reflTransGen : g.Reachable = Relation.ReflTransGen g.Adj := b
     | refl => rfl
     | tail _ h ih => exact ih.trans h.to_reachable
 
-lemma Reachable.cases_head {v w : V} (hvw : g.Reachable v w) :
-    v = w ∨ ∃ x, g.Adj v x ∧ g.Reachable x w := by
+lemma Reachable.cases_head {v w : V} (hvw : g..Reachable v w) :
+    v = w ∨ ∃ x, g..Adj v x ∧ g..Reachable x w := by
   rw [reachable_eq_reflTransGen] at hvw ⊢
   exact hvw.cases_head
 
 variable (g) in
 def ReachableWithin (s : Set V) (v w : V) : Prop :=
-  Relation.ReflTransGen (fun v w ↦ g.Adj v w ∧ w ∈ s) v w
+  Relation.ReflTransGen (fun v w ↦ g..Adj v w ∧ w ∈ s) v w
 
-lemma ReachableWithin.mono {s t : Set V} {v w : V} (hst : s ⊆ t) (h : g.ReachableWithin s v w) :
-    g.ReachableWithin t v w :=
+lemma ReachableWithin.mono {s t : Set V} {v w : V} (hst : s ⊆ t) (h : g..ReachableWithin s v w) :
+    g..ReachableWithin t v w :=
   Relation.ReflTransGen.mono (fun _ _ ↦ And.imp_right (hst ·)) h
 
 @[simp]
 lemma reachableWithin_univ {v w : V} :
-    g.ReachableWithin Set.univ v w ↔ g.Reachable v w := by
+    g..ReachableWithin Set.univ v w ↔ g..Reachable v w := by
   rw [reachable_eq_reflTransGen]
   exact ⟨Relation.ReflTransGen.mono (by simp), Relation.ReflTransGen.mono (by simp)⟩
 
-lemma ReachableWithin.cases_head {s : Set V} {v w : V} (h : g.ReachableWithin s v w) :
-    v = w ∨ ∃ x, (g.Adj v x ∧ x ∈ s) ∧ g.ReachableWithin s x w :=
+lemma ReachableWithin.cases_head {s : Set V} {v w : V} (h : g..ReachableWithin s v w) :
+    v = w ∨ ∃ x, (g..Adj v x ∧ x ∈ s) ∧ g..ReachableWithin s x w :=
   Relation.ReflTransGen.cases_head h
 
 lemma ReachableWithin.find {s : Set V} {v w : V}
-    (h : g.ReachableWithin s v w) (t : Set V) :
-    v ∉ s \ t ∧ g.ReachableWithin (s ∩ t) v w ∨ ∃ x ∈ s \ t, g.ReachableWithin (s ∩ t) x w := by
+    (h : g..ReachableWithin s v w) (t : Set V) :
+    v ∉ s \ t ∧ g..ReachableWithin (s ∩ t) v w ∨ ∃ x ∈ s \ t, g..ReachableWithin (s ∩ t) x w := by
   induction h with
   | refl => if hv : v ∈ s \ t then exact .inr <| ⟨v, hv, .refl⟩ else exact .inl <| ⟨hv, .refl⟩
   | tail _p e ih =>
@@ -321,8 +278,8 @@ lemma ReachableWithin.find {s : Set V} {v w : V}
       exact .inr ⟨w, ⟨e.2, hw⟩, .refl⟩
 
 lemma ReachableWithin.inter_compl_singleton_self {s : Set V} {v w : V}
-    (h : g.ReachableWithin s v w) :
-    g.ReachableWithin (s ∩ {v}ᶜ) v w := by
+    (h : g..ReachableWithin s v w) :
+    g..ReachableWithin (s ∩ {v}ᶜ) v w := by
   obtain (⟨-, h⟩ | ⟨x, hx, h⟩) := h.find {v}ᶜ
   · exact h
   · simp only [sdiff_compl, Set.inf_eq_inter, Set.mem_inter_iff, Set.mem_compl_iff,
@@ -330,44 +287,44 @@ lemma ReachableWithin.inter_compl_singleton_self {s : Set V} {v w : V}
     exact hx.2 ▸ h
 
 lemma reachableWithin_iff_inter_compl_singleton_self {s : Set V} {v w : V} :
-    g.ReachableWithin s v w ↔ g.ReachableWithin (s ∩ {v}ᶜ) v w :=
+    g..ReachableWithin s v w ↔ g..ReachableWithin (s ∩ {v}ᶜ) v w :=
   ⟨.inter_compl_singleton_self, .mono (Set.inter_subset_left _ _)⟩
 
 variable (g) in
-def succSet (s : Set V) : Set V := {w | ∃ v ∈ s, g.Adj v w} -- ⋃ v ∈ s, {w | g.Adj v w}
+def succSet (s : Set V) : Set V := {w | ∃ v ∈ s, g..Adj v w} -- ⋃ v ∈ s, {w | g..Adj v w}
 
 section lemmas
 
 @[simp]
 lemma mem_succSet_iff {s : Set V} {w : V} :
-    w ∈ g.succSet s ↔ ∃ v ∈ s, g.Adj v w :=
+    w ∈ g..succSet s ↔ ∃ v ∈ s, g..Adj v w :=
   Iff.rfl
 
 lemma mem_succSet_singleton_iff {v w : V} :
-    w ∈ g.succSet {v} ↔ g.Adj v w := by
+    w ∈ g..succSet {v} ↔ g..Adj v w := by
   simp
 
 @[simp]
 lemma succSet_empty :
-    g.succSet ∅ = ∅ := by
+    g..succSet ∅ = ∅ := by
   simp [succSet]
 
 @[simp]
 lemma succSet_union {s t : Set V} :
-    g.succSet (s ∪ t) = g.succSet s ∪ g.succSet t := by
+    g..succSet (s ∪ t) = g..succSet s ∪ g..succSet t := by
   simp [succSet, or_and_right, exists_or, Set.setOf_or]
 
 variable (g) in
 def traversal (s t : Set V) : Set V :=
-  s ∪ {w | ∃ v ∈ t, g.ReachableWithin sᶜ v w}
+  s ∪ {w | ∃ v ∈ t, g..ReachableWithin sᶜ v w}
 
 @[simp]
-lemma traversal_empty_right (s : Set V) : g.traversal s ∅ = s := by
+lemma traversal_empty_right (s : Set V) : g..traversal s ∅ = s := by
   simp [traversal]
 
 lemma traversal_insert (s t : Set V) (v : V) (hv : v ∈ t) (t' : Set V)
-    (hst : s ∩ t = ∅) (h : t' = (t ∪ g.succSet {v}) \ insert v s) :
-    g.traversal (insert v s) t' = g.traversal s t := by
+    (hst : s ∩ t = ∅) (h : t' = (t ∪ g..succSet {v}) \ insert v s) :
+    g..traversal (insert v s) t' = g..traversal s t := by
   ext w
   subst h
   constructor
@@ -405,23 +362,23 @@ end ToMultiset
 
 section ToList
 variable
-  {V : Type*} {EType : Type*}
-  {EColl : Type*} [ToList EColl EType] [EmptyCollection EColl]
-  [LawfulEmptyCollection EColl EType]
+  {V : Type*} {Info : Type*}
+  {EColl : Type*} [ToList EColl Info] [EmptyCollection EColl]
+  [LawfulEmptyCollection EColl Info]
   {StarColl : Type*} [AssocArray.ReadOnly StarColl V EColl ∅]
-  (g : AdjList V EType EColl StarColl)
+  {G : Type*} [AdjListClass G V Info EColl StarColl] (g : G)
 
-def succList (v : V) : List V := (toList g.star[v]).map g.snd
-
-@[simp]
-lemma mem_succList_iff {v w : V} : w ∈ g.succList v ↔ g.Adj v w := by
-  simp [succList, - mem_star_iff, ← adj_iff_star]
+def succList (v : V) : List V := (toList g[v]).map g..snd
 
 @[simp]
-lemma succSet_singleton (v : V) : g.succSet {v} = {w | g.Adj v w} := by
+lemma mem_succList_iff {v w : V} : w ∈ g..succList v ↔ g..Adj v w := by
+  simp [succList, ← adj_iff_star]
+
+@[simp]
+lemma succSet_singleton (v : V) : g..succSet {v} = {w | g..Adj v w} := by
   ext; simp
 
-lemma succList_eq_succSet (v : V) : {w | w ∈ g.succList v} = g.succSet {v} := by
+lemma succList_eq_succSet (v : V) : {w | w ∈ g..succList v} = g..succSet {v} := by
   simp
 
 -- @[simp]
@@ -437,4 +394,4 @@ lemma succList_eq_succSet (v : V) : {w | w ∈ g.succList v} = g.succSet {v} := 
 
 end ToList
 
-end AdjList
+end AdjListClass
