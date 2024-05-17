@@ -2,7 +2,7 @@ name: Build docs
 on:
   push:
     branches:
-      - "main"
+      - "master"
 jobs:
   build:
     permissions:
@@ -24,7 +24,7 @@ jobs:
           curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s - -y --default-toolchain `cat ./lean-toolchain`
           echo "$HOME/.elan/bin" >> $GITHUB_PATH
       - run: |
-          lake -Kenv=CI_BUILD exe cache get && lake -Kenv=CI_BUILD build && lake -Kenv=CI_BUILD build Convex:docs
+          lake -Kenv=CI_BUILD exe cache get && lake -Kenv=CI_BUILD build && lake -Kenv=CI_BUILD build Algorithm:docs
       - name: Fix permissions
         run: |
           chmod -c -R +rX "./.lake/build/doc/" | while read line; do
