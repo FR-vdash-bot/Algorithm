@@ -8,11 +8,25 @@ package algorithm where
     ⟨`autoImplicit, false⟩,
     ⟨`relaxedAutoImplicit, false⟩
   ]
+  moreLinkArgs := #[
+    "-L./.lake/build/lib"
+  ]
 
 require mathlib from git "https://github.com/leanprover-community/mathlib4.git" @ "master"
 require «doc-gen4» from git "https://github.com/leanprover/doc-gen4.git" @ "main"
 
 @[default_target]
-lean_lib Algorithm {
+lean_lib Algorithm where
   roots := #[`Algorithm]
-}
+  precompileModules := true
+
+target ffi.o pkg : FilePath := do
+  let oFile := pkg.buildDir / "cpp" / "ffi.o"
+  let srcJob ← inputFile <| pkg.dir / "cpp" / "ffi.cpp"
+  let weakArgs := #["-I", (← getLeanIncludeDir).toString]
+  buildO oFile srcJob weakArgs #["-fPIC"] "c++" getLeanTrace
+
+extern_lib libleanffi pkg := do
+  let name := nameToStaticLib "leanffi"
+  let ffiO ← ffi.o.fetch
+  buildStaticLib (pkg.nativeLibDir / name) #[ffiO]
