@@ -15,5 +15,6 @@ import Algorithm.Data.DFinsupp'.Fintype
 import Algorithm.Data.Forest
 import Algorithm.Data.Graph.AdjList
 import Algorithm.Data.Graph.IsDFSForest
+import Algorithm.Data.Mutable
 import Algorithm.Graph.DFS
 import Algorithm.Graph.Dijkstra

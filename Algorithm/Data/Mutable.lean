@@ -31,40 +31,43 @@ structure Mutable (α : Type u) : Type u where
   private __mk__ ::
   private __get__ : α
 
+namespace Mutable
 variable {α : Type u} {β : Type v}
 
 @[extern "lean_mk_Mutable"]
-def Mutable.mk (a : α) : Mutable α := __mk__ a
+def mk (a : α) : Mutable α := __mk__ a
 
 @[match_pattern, extern "lean_Mutable_get"]
-def Mutable.get (a : @& Mutable α) : α := __get__ a
+def get (a : @& Mutable α) : α := __get__ a
 
 set_option linter.unusedVariables false in
 @[extern "lean_Mutable_modify"]
-unsafe def Mutable.modify (x : @& Mutable α) (f : α → α) : α :=
+unsafe def modify (x : @& Mutable α) (f : α → α) : α :=
   x.get
 
 set_option linter.unusedVariables false in
-unsafe def Mutable.getWithImpl (x : Mutable α)
+unsafe def getWithImpl (x : Mutable α)
     (f : α → α) (hf : ∀ a, f a = a) : α :=
   Mutable.modify x f
 
 @[implemented_by Mutable.getWithImpl]
-def Mutable.getWith (x : Mutable α)
+def getWith (x : Mutable α)
     (f : α → α) (hf : ∀ a, f a = a) : α :=
   f x.get
 
 set_option linter.unusedVariables false in
 @[extern "lean_Mutable_modify2"]
-unsafe def Mutable.modify₂ (x : @& Mutable α) (f : α → β) (g : β → α) : β :=
+unsafe def modify₂ (x : @& Mutable α) (f : α → β) (g : β → α) : β :=
   f x.get
 
 set_option linter.unusedVariables false in
-unsafe def Mutable.getWith₂Impl (x : Mutable α)
+unsafe def getWith₂Impl (x : Mutable α)
     (f : α → β) (g : β → α) (hgf : ∀ a, g (f a) = a) : β :=
   Mutable.modify₂ x f g
 
 @[implemented_by Mutable.getWith₂Impl]
-def Mutable.getWith₂ (x : Mutable α)
+def getWith₂ (x : Mutable α)
     (f : α → β) (g : β → α) (hgf : ∀ a, g (f a) = a) : β :=
   f x.get
+
+end Mutable
