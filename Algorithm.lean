@@ -16,5 +16,7 @@ import Algorithm.Data.Forest
 import Algorithm.Data.Graph.AdjList
 import Algorithm.Data.Graph.IsDFSForest
 import Algorithm.Data.Mutable
+import Algorithm.Data.MutableQuotient
+import Algorithm.Data.UnionFind
 import Algorithm.Graph.DFS
 import Algorithm.Graph.Dijkstra

@@ -8,6 +8,8 @@ import Mathlib.Data.Fintype.Basic
 import Mathlib.Data.Setoid.Basic
 import Std.Data.Array.Lemmas
 
+universe u v
+
 namespace Array
 variable {α : Type*} {n : ℕ}
 
@@ -17,24 +19,26 @@ lemma get_fin_set (a : Array α) (i : Fin a.size) (v : α) (j : Fin (set a i v).
 
 end Array
 
-def ArrayVector (α : Type*) (n : ℕ) := {a : Array α // a.size = n}
+namespace Batteries793
 
-namespace ArrayVector
+structure Vector (α : Type u) (n : Nat) where
+  toArray : Array α
+  size_eq : toArray.size = n
+deriving Repr, BEq, DecidableEq
+
+namespace Vector
 variable {α : Type*} {n : ℕ}
 
-def ofFn (f : Fin n → α) : ArrayVector α n :=
+def ofFn (f : Fin n → α) : Vector α n :=
   ⟨.ofFn f, Array.size_ofFn f⟩
 
-instance {α n} [Inhabited α] : Inhabited (ArrayVector α n) where
-  default := .ofFn fun _ ↦ default
-
-def get (a : ArrayVector α n) (i : Fin n) : α :=
+def get (a : Vector α n) (i : Fin n) : α :=
   a.1.get (i.cast a.2.symm)
 
-def set (a : ArrayVector α n) (i : Fin n) (v : α) : ArrayVector α n :=
+def set (a : Vector α n) (i : Fin n) (v : α) : Vector α n :=
   ⟨a.1.set (i.cast a.2.symm) v, (Array.size_set _ _ _).trans a.2⟩
 
-lemma get_set (a : ArrayVector α n) (i : Fin n) (v : α) :
+lemma get_set (a : Vector α n) (i : Fin n) (v : α) :
     (a.set i v).get = Function.update a.get i v := by
   unfold get set
   simp_rw [Array.get_fin_set]
@@ -44,11 +48,18 @@ lemma get_set (a : ArrayVector α n) (i : Fin n) (v : α) :
 lemma get_ofFn (f : Fin n → α) : (ofFn f).get = f := by
   ext; simp [ofFn, get]
 
+set_option linter.unusedVariables false in -- TODO: generalize
+@[nolint unusedArguments]
+protected abbrev WithDefault (α : Type u) (n : Nat) (f : Fin n → α) := Vector α n
+
+instance {α n f} : Inhabited (Vector.WithDefault α n f) where
+  default := .ofFn f
+
 @[simp]
-lemma get_default [Inhabited α] : (default : ArrayVector α n).get = default :=
+lemma get_default {f} : (default : Vector.WithDefault α n f).get = f :=
   get_ofFn _
 
-end ArrayVector
+end Batteries793.Vector
 
 class AssocDArray.ReadOnly (C : Type*) (ι : outParam Type*)
     (α : outParam Type*) (d : outParam <| ι → α) where
@@ -120,10 +131,10 @@ lemma toDFinsupp'_default :
 
 end AssocDArray
 
-namespace ArrayVector
-variable {α : Type*} {n : ℕ}
+namespace Batteries793.Vector
+variable {α : Type*} {n : ℕ} {f : Fin n → α}
 
-instance [Inhabited α] : AssocArray (ArrayVector α n) (Fin n) α default where
+instance : AssocDArray (Vector.WithDefault α n f) (Fin n) α f where
   set := set
   get := get
   get_set a i v := by convert get_set a i v
@@ -131,7 +142,7 @@ instance [Inhabited α] : AssocArray (ArrayVector α n) (Fin n) α default where
   toDFinsupp' a := DFinsupp'.equivFunOnFintype.symm (get a)
   coe_toDFinsupp'_eq_get _ := DFinsupp'.coe_equivFunOnFintype_symm _
 
-end ArrayVector
+end Batteries793.Vector
 
 namespace AssocArray
 
@@ -221,3 +232,16 @@ lemma get_ofFn [DecidableEq ι] [Fintype ι] (f : ι → α) :
   (get_indicator _ _).trans <| funext fun _ ↦ dif_pos <| Finset.mem_univ _
 
 end AssocArray
+
+class HasDefaultAssocDArray (ι : Type u) (α : Type v) (f : ι → α)
+    (DefaultAssocDArray : outParam <| Type max u v) [Inhabited DefaultAssocDArray] where
+  [assocDArray : AssocDArray DefaultAssocDArray ι α f]
+
+@[nolint unusedArguments]
+def DefaultAssocDArray (ι : Type u) (α : Type v) (f : ι → α) {D : Type _} [Inhabited D]
+    [HasDefaultAssocDArray ι α f D] :=
+  D
+
+instance {n α f} : HasDefaultAssocDArray (Fin n) α f (Batteries793.Vector.WithDefault α n f) where
+
+example {n α f}  := DefaultAssocDArray (Fin n) α f

@@ -9,7 +9,8 @@ package algorithm where
     ⟨`relaxedAutoImplicit, false⟩
   ]
   moreLinkArgs := #[
-    "-L./.lake/build/lib"
+    "-L./.lake/build/lib",
+    "-lstdc++"
   ]
 
 require mathlib from git "https://github.com/leanprover-community/mathlib4.git" @ "master"
@@ -24,7 +25,7 @@ target ffi.o pkg : FilePath := do
   let oFile := pkg.buildDir / "cpp" / "ffi.o"
   let srcJob ← inputFile <| pkg.dir / "cpp" / "ffi.cpp"
   let weakArgs := #["-I", (← getLeanIncludeDir).toString]
-  buildO oFile srcJob weakArgs #["-fPIC"] "c++" getLeanTrace
+  buildO oFile srcJob weakArgs #["-fPIC"] "clang++" getLeanTrace
 
 extern_lib libleanffi pkg := do
   let name := nameToStaticLib "leanffi"
