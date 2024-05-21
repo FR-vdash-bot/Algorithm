@@ -1,13 +1,13 @@
 #include <lean/lean.h>
 
 struct Mutable {
-    _Atomic(lean_object *) m_value;
+    std::atomic<lean_object *> m_value;
+    Mutable(lean_object * v) : m_value(v) { }
 };
 
 static void Mutable_finalize(void * o) {
     lean_dec(static_cast<Mutable *>(o)->m_value);
-    // delete static_cast<Mutable *>(o);
-    free(o);
+    delete static_cast<Mutable *>(o);
 }
 
 static void Mutable_foreach(void * o, b_lean_obj_arg f) {
@@ -29,10 +29,7 @@ static inline Mutable * lean_to_Mutable(b_lean_obj_arg o) {
 }
 
 extern "C" LEAN_EXPORT lean_obj_res lean_mk_Mutable(b_lean_obj_arg o) {
-    // return Mutable_to_lean(new Mutable{o});
-    Mutable * p = static_cast<Mutable *>(malloc(sizeof(Mutable)));
-    p->m_value = o;
-    return Mutable_to_lean(p);
+    return Mutable_to_lean(new Mutable(o));
 }
 
 extern "C" LEAN_EXPORT b_lean_obj_res lean_Mutable_get(b_lean_obj_arg x) {
@@ -48,25 +45,23 @@ extern "C" LEAN_EXPORT b_lean_obj_res lean_Mutable_modify(b_lean_obj_arg x, lean
     lean_object * r = lean_apply_1(f, c);
     // lean_assert(r != nullptr); /* Closure must return a valid lean object */
     // lean_assert(lean_to_Mutable(x)->m_value == nullptr);
-    lean_mark_mt(r);
     lean_inc(r);
     lean_to_Mutable(x)->m_value = r;
     return r;
 }
 
-extern "C" LEAN_EXPORT b_lean_obj_res lean_Mutable_modify2(b_lean_obj_arg x, lean_obj_arg f, lean_obj_arg g) {
+extern "C" LEAN_EXPORT b_lean_obj_res lean_Mutable_modify2(b_lean_obj_arg x, lean_obj_arg f) {
     lean_object * c = lean_to_Mutable(x)->m_value.exchange(nullptr);
     while (c == nullptr) {
         // std::this_thread::yield();
         c = lean_to_Mutable(x)->m_value.exchange(nullptr);
     }
-    lean_object * r = lean_apply_1(f, c);
-    // lean_assert(r != nullptr); /* Closure must return a valid lean object */
+    lean_object * p = lean_apply_1(f, c);
+    // lean_assert(p != nullptr); /* Closure must return a valid lean object */
     // lean_assert(lean_to_Mutable(x)->m_value == nullptr);
-    lean_mark_mt(r);
-    lean_inc(r);
-    lean_object * s = lean_apply_1(g, r);
-    lean_mark_mt(s);
-    lean_to_Mutable(x)->m_value = s;
+    lean_object * r = lean_ctor_get(p, 0); lean_inc(r);
+    lean_object * n = lean_ctor_get(p, 1); lean_inc(n);
+    lean_dec_ref(p);
+    lean_to_Mutable(x)->m_value = n;
     return r;
 }

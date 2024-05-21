@@ -37,37 +37,47 @@ variable {α : Type u} {β : Type v}
 @[extern "lean_mk_Mutable"]
 def mk (a : α) : Mutable α := __mk__ a
 
-@[match_pattern, extern "lean_Mutable_get"]
+@[extern "lean_Mutable_get"]
 def get (a : @& Mutable α) : α := __get__ a
+
+theorem ext {x y : Mutable α} (get : x.get = y.get) : x = y :=
+  match x, y, get with | ⟨_⟩, ⟨_⟩, rfl => rfl
+
+theorem ext_iff {x y : Mutable α} : x = y ↔ x.get = y.get :=
+  ⟨congrArg get, ext⟩
+
+@[simp]
+theorem mk_eq_mk {x y : α} : mk x = mk y ↔ x = y :=
+  ext_iff
 
 set_option linter.unusedVariables false in
 @[extern "lean_Mutable_modify"]
-unsafe def modify (x : @& Mutable α) (f : α → α) : α :=
+unsafe def getModifyUnsafe (x : @& Mutable α) (f : α → α) : α :=
   x.get
 
 set_option linter.unusedVariables false in
-unsafe def getWithImpl (x : Mutable α)
+unsafe abbrev getModifyImpl (x : Mutable α)
     (f : α → α) (hf : ∀ a, f a = a) : α :=
-  Mutable.modify x f
+  Mutable.getModifyUnsafe x f
 
-@[implemented_by Mutable.getWithImpl]
-def getWith (x : Mutable α)
+@[implemented_by Mutable.getModifyImpl]
+def getModify (x : Mutable α)
     (f : α → α) (hf : ∀ a, f a = a) : α :=
   f x.get
 
 set_option linter.unusedVariables false in
 @[extern "lean_Mutable_modify2"]
-unsafe def modify₂ (x : @& Mutable α) (f : α → β) (g : β → α) : β :=
-  f x.get
+unsafe def getModify₂Unsafe (x : @& Mutable α) (f : α → β × α) : β :=
+  (f x.get).fst
 
 set_option linter.unusedVariables false in
-unsafe def getWith₂Impl (x : Mutable α)
-    (f : α → β) (g : β → α) (hgf : ∀ a, g (f a) = a) : β :=
-  Mutable.modify₂ x f g
+unsafe abbrev getModify₂Impl (x : Mutable α)
+    (f : α → β × α) (hgf : ∀ a, (f a).snd = a) : β :=
+  Mutable.getModify₂Unsafe x f
 
-@[implemented_by Mutable.getWith₂Impl]
-def getWith₂ (x : Mutable α)
-    (f : α → β) (g : β → α) (hgf : ∀ a, g (f a) = a) : β :=
-  f x.get
+@[implemented_by Mutable.getModify₂Impl]
+def getModify₂ (x : Mutable α)
+    (f : α → β × α) (hgf : ∀ a, (f a).snd = a) : β :=
+  (f x.get).fst
 
 end Mutable
