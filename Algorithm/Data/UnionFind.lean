@@ -296,8 +296,9 @@ def finsetOfRoot (self : UnionFind ι P S) (r : ι) : Finset ι :=
 lemma mem_finsetOfRoot_iff (self : UnionFind ι P S) (r i : ι) :
     i ∈ self.finsetOfRoot r ↔ self.root i = r := by
   simp? [finsetOfRoot] says
-    simp only [finsetOfRoot, id_eq, Finset.mem_insert, Finset.mem_filter,
-      DFinsupp'.mem_support_toFun, coe_toDFinsupp'_eq_get, AssocDArray.get_eq_getElem, ne_eq]
+    simp only [finsetOfRoot, id_eq, Finset.mem_filter, Finset.mem_insert,
+      DFinsupp'.mem_support_toFun, coe_toDFinsupp'_eq_get, AssocDArray.get_eq_getElem, ne_eq,
+      and_iff_right_iff_imp]
   obtain (hr | hr) := decEq self.parent[i] i
   · simp [hr]
   · simp [hr, root, rootCore]
@@ -442,6 +443,9 @@ namespace UnionFind
 variable {ι : Type*} [DecidableEq ι]
     {P : Type*} [Inhabited P] [AssocDArray P ι ι id]
     {S : Type*} [Inhabited S] [AssocArray S ι ℕ 1]
+
+instance : Inhabited (UnionFind ι P S) where
+  default := .mk _ ⟨default, UnionFindImpl.UnionFind.default_wf⟩
 
 @[inline]
 def find (self : UnionFind ι P S) (i : ι) : ι :=

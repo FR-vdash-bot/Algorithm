@@ -49,6 +49,7 @@ lemma get_ofFn (f : Fin n → α) : (ofFn f).get = f := by
   ext; simp [ofFn, get]
 
 set_option linter.unusedVariables false in -- TODO: generalize
+@[nolint unusedArguments]
 protected abbrev WithDefault (α : Type u) (n : Nat) (f : Fin n → α) := Vector α n
 
 instance {α n f} : Inhabited (Vector.WithDefault α n f) where
@@ -236,8 +237,11 @@ class HasDefaultAssocDArray (ι : Type u) (α : Type v) (f : ι → α)
     (DefaultAssocDArray : outParam <| Type max u v) [Inhabited DefaultAssocDArray] where
   [assocDArray : AssocDArray DefaultAssocDArray ι α f]
 
+@[nolint unusedArguments]
 def DefaultAssocDArray (ι : Type u) (α : Type v) (f : ι → α) {D : Type _} [Inhabited D]
     [HasDefaultAssocDArray ι α f D] :=
   D
 
 instance {n α f} : HasDefaultAssocDArray (Fin n) α f (Batteries793.Vector.WithDefault α n f) where
+
+example {n α f}  := DefaultAssocDArray (Fin n) α f

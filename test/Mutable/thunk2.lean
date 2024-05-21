@@ -12,7 +12,7 @@ protected def Thunk'.pure (a : α) : Thunk' α :=
   .mk fun _ ↦ a
 
 protected def Thunk'.get (x : Thunk' α) : α :=
-  Mutable.getWith₂ x (fun f ↦ let a := f (); ⟨a, fun _ ↦ a⟩) (fun _ ↦ rfl)
+  Mutable.getModify₂ x (fun f ↦ let a := f (); ⟨a, fun _ ↦ a⟩) (fun _ ↦ rfl)
 
 /-! lean4/tests/compiler/thunk.lean -/
 

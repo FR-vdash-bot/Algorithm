@@ -57,20 +57,20 @@ lemma decreaseKeysD_getElem [DecidableEq ι] {ια : Type*} [ToList ια (ι × 
 
 end IndexedMinHeap
 
-namespace ArrayVector
+namespace Batteries793.Vector
 variable {α : Type*} [LinearOrder α] {n : ℕ} [NeZero n] {d : Fin n → α}
 
 section ReadOnly
 
-variable [AssocDArray.ReadOnly (ArrayVector α n) (Fin n) α d]
+variable [AssocDArray.ReadOnly (Vector α n) (Fin n) α d]
 
-def minAux (a : ArrayVector α n) : Lex (α × Fin n) :=
+def minAux (a : Vector α n) : Lex (α × Fin n) :=
   (⊤ : Finset (Fin n)).inf' ⟨0, Finset.mem_univ 0⟩ (fun i ↦ toLex (a[i], i))
 
-def minIdx (a : ArrayVector α n) : Fin n :=
+def minIdx (a : Vector α n) : Fin n :=
   a.minAux.2
 
-lemma minIdx_spec (a : ArrayVector α n) (i : Fin n) :
+lemma minIdx_spec (a : Vector α n) (i : Fin n) :
     a[a.minIdx] < a[i] ∨ a[a.minIdx] = a[i] ∧ a.minIdx ≤ i := by
   have : a.minAux.1 = a[a.minIdx] := by
     unfold minIdx minAux
@@ -83,18 +83,18 @@ lemma minIdx_spec (a : ArrayVector α n) (i : Fin n) :
   apply (Prod.Lex.le_iff _ (a[i], i)).mp
   exact Finset.inf'_le _ (Finset.mem_univ _)
 
-lemma minIdx_le (a : ArrayVector α n) (i : Fin n) :
+lemma minIdx_le (a : Vector α n) (i : Fin n) :
     a[a.minIdx] ≤ a[i] :=
   (a.minIdx_spec i).elim LT.lt.le (fun ⟨h, _⟩ ↦ h.le)
 
 end ReadOnly
 
-instance [OrderTop α] [Inhabited (ArrayVector α n)] [AssocArray (ArrayVector α n) (Fin n) α ⊤] :
-    IndexedMinHeap (ArrayVector α n) (Fin n) α where
+instance [OrderTop α] [Inhabited (Vector α n)] [AssocArray (Vector α n) (Fin n) α ⊤] :
+    IndexedMinHeap (Vector α n) (Fin n) α where
   minIdx a := ((⊤ : Finset (Fin n)).inf' ⟨0, Finset.mem_univ 0⟩ (fun i ↦ toLex (a[i], i))).2
   getElem_minIdx_le a i := a.minIdx_le i
 
-end ArrayVector
+end Batteries793.Vector
 
 namespace WithTop
 

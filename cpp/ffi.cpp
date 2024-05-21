@@ -33,6 +33,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_mk_Mutable(b_lean_obj_arg o) {
 }
 
 extern "C" LEAN_EXPORT b_lean_obj_res lean_Mutable_get(b_lean_obj_arg x) {
+    lean_inc(lean_to_Mutable(x)->m_value);
     return lean_to_Mutable(x)->m_value;
 }
 
