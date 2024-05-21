@@ -139,11 +139,14 @@ end LawfulEmptyCollection
 
 variable (c : C)
 
+lemma size_eq_size_toArray : size c = (toArray c).size := by
+  simp [size_eq_length_toList]
+
 lemma length_toList : (toList c).length = size c :=
   (size_eq_length_toList c).symm
 
-lemma size_toArray : (toArray c).size = size c := by
-  simp [size_eq_length_toList]
+lemma size_toArray : (toArray c).size = size c :=
+  (size_eq_size_toArray c).symm
 
 @[simp]
 lemma coe_toList : ↑(toList c) = toMultiset c := rfl
@@ -238,12 +241,22 @@ export LawfulAppend (toList_append)
 
 attribute [simp] toList_append
 
-section ToList
-variable {C α : Type*} [ToList C α] [Append C] [LawfulAppend C α]
+class ToList.RandomAccess (C : Type*) (α : outParam Type*) [ToList C α] where
+  get (c : C) : Fin (size c) → α
+  get_eq_get_toArray c i : get c i = (toArray c).get (i.cast (size_eq_size_toArray c))
+export ToList.RandomAccess (get_eq_get_toArray)
 
-instance (priority := 100) LawfulAppend.toMergeable : Mergeable C α where
+section ToList
+variable {C α : Type*} [ToList C α]
+
+instance (priority := 100) LawfulAppend.toMergeable [Append C] [LawfulAppend C α] :
+    Mergeable C α where
   merge s t := s ++ t
   toMultiset_merge s t := congr_arg Multiset.ofList (toList_append s t)
+
+lemma ToList.RandomAccess.get_toArray [ToList.RandomAccess C α] (c : C) (i) :
+    (toArray c).get i = ToList.RandomAccess.get c (i.cast (size_toArray c)) := by
+  rw [get_eq_get_toArray]; rfl
 
 end ToList
 
@@ -302,5 +315,9 @@ instance : PushBack (Array α) α where
 
 instance : LawfulAppend (Array α) α where
   toList_append := Array.append_data
+
+instance : ToList.RandomAccess (Array α) α where
+  get := Array.get
+  get_eq_get_toArray _ _ := rfl
 
 end
