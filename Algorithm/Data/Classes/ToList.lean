@@ -106,9 +106,11 @@ end Array
 class ToList (C : Type*) (α : outParam Type*) extends Size C α where
   toList : C → List α
   toArray : C → Array α
-  toArray_toList a : (toArray a).toList = toList a
+  toArray_eq_mk_toList a : toArray a = Array.mk (toList a)
   size_eq_length_toList c : size c = (toList c).length
-export ToList (toList toArray toArray_toList size_eq_length_toList)
+export ToList (toList toArray toArray_eq_mk_toList size_eq_length_toList)
+
+attribute [simp] toArray_eq_mk_toList
 
 section ToList
 variable {C α : Type*} [ToList C α]
@@ -137,15 +139,11 @@ end LawfulEmptyCollection
 
 variable (c : C)
 
-@[simp]
-lemma toArray_data : (toArray c).data = toList c := by
-  simp [← toArray_toList]
+lemma length_toList : (toList c).length = size c :=
+  (size_eq_length_toList c).symm
 
-@[simp]
-lemma toArray_size : (toArray c).size = size c := by
-  trans (toArray c).data.length
-  · simp only [Array.data_length]
-  · simp only [toArray_data, size_eq_length_toList]
+lemma size_toArray : (toArray c).size = size c := by
+  simp [size_eq_length_toList]
 
 @[simp]
 lemma coe_toList : ↑(toList c) = toMultiset c := rfl
@@ -234,13 +232,28 @@ export PushBack (pushBack toList_pushBack)
 
 attribute [simp] toList_pushBack
 
+class LawfulAppend (C : Type*) (α : outParam Type*) [ToList C α] [Append C] : Prop where
+  toList_append (s t : C) : toList (s ++ t) = toList s ++ toList t
+export LawfulAppend (toList_append)
+
+attribute [simp] toList_append
+
+section ToList
+variable {C α : Type*} [ToList C α] [Append C] [LawfulAppend C α]
+
+instance (priority := 100) LawfulAppend.toMergeable : Mergeable C α where
+  merge s t := s ++ t
+  toMultiset_merge s t := congr_arg Multiset.ofList (toList_append s t)
+
+end ToList
+
 section
 variable {α : Type*}
 
 instance : ToList (List α) α where
   toList := id
-  toArray := List.toArray
-  toArray_toList _ := by simp
+  toArray := Array.mk
+  toArray_eq_mk_toList _ := rfl
   size_eq_length_toList _ := rfl
 
 instance : Front (List α) α where
@@ -259,29 +272,35 @@ instance : PushFront (List α) α where
   pushFront c a := List.cons a c
   toList_pushFront _ _ := rfl
 
+instance : LawfulAppend (List α) α where
+  toList_append _ _ := rfl
+
 instance : ToList (Array α) α where
-  toList := Array.toList
+  toList := Array.data
   toArray := id
-  toArray_toList _ := rfl
-  size_eq_length_toList _ := by simp [size]
+  toArray_eq_mk_toList _ := rfl
+  size_eq_length_toList _ := rfl
 
 instance : Front (Array α) α where
   front? c := c.get? 0
   front?_def c := by
     dsimp only
-    rw [← Array.get?_toList, List.get?_zero]
+    rw [← Array.get?_data, List.get?_zero]
     rfl
 
 instance : Back (Array α) α where
   back? := Array.back?
-  back?_def c := (Array.getLast?_toList c).symm
+  back?_def c := (Array.getLast?_data c).symm
 
 instance : PopBack (Array α) α where
   popBack := Array.pop
-  toList_popBack s := (Array.dropLast_toList s).symm
+  toList_popBack := Array.pop_data
 
 instance : PushBack (Array α) α where
   pushBack := Array.push
   toList_pushBack := by simp [toList]
+
+instance : LawfulAppend (Array α) α where
+  toList_append := Array.append_data
 
 end

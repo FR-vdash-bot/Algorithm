@@ -8,7 +8,7 @@ import Algorithm.Data.Classes.ToList
 class DynamicArrayLike (A : Type*) (α : outParam Type*) extends
     ToList A α, Back A α, PushBack A α, PopBack A α where
   get a : Fin (size a) → α
-  get_toArray a i : (toArray a).get i = get a (i.cast (toArray_size a))
+  get_toArray a i : (toArray a).get i = get a (i.cast (size_toArray a))
 --TODO: `get` for fixed size Array?
 
 section
