@@ -6,7 +6,7 @@ Authors: Yuyang Zhao
 import Algorithm.Data.Classes.ToMultiset
 import Mathlib.Data.Finset.Card
 
-class ToFinset (C : Type*) (α : outParam Type*) extends Size C α where
+class ToFinset (C : Type*) (α : outParam Type*) extends Size C where
   toFinset : C → Finset α
   size_eq_card_toFinset c : size c = (toFinset c).card
 export ToFinset (toFinset size_eq_card_toFinset)

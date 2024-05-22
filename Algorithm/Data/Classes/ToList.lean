@@ -103,7 +103,7 @@ lemma dropLast_toList (a : Array α) : a.toList.dropLast = a.pop.toList := by
 
 end Array
 
-class ToList (C : Type*) (α : outParam Type*) extends Size C α where
+class ToList (C : Type*) (α : outParam Type*) extends Size C where
   toList : C → List α
   toArray : C → Array α
   toArray_eq_mk_toList a : toArray a = Array.mk (toList a)
@@ -120,18 +120,17 @@ instance (priority := 100) ToList.toMultiset : ToMultiset C α where
   size_eq_card_toMultiset c := size_eq_length_toList c
 
 section LawfulEmptyCollection
-variable [EmptyCollection C] [LawfulEmptyCollection C α]
+variable [EmptyCollection C]
 
-lemma ToList.lawfulEmptyCollection_iff [ToList C α] [EmptyCollection C] :
+lemma ToList.lawfulEmptyCollection_iff :
     LawfulEmptyCollection C α ↔ toList (∅ : C) = [] := by
   rw [ToMultiset.lawfulEmptyCollection_iff]
-  change (toList (∅ : C) : Multiset α) = 0 ↔ _
-  simp
+  simp [toMultiset]
 
 alias ⟨_, LawfulEmptyCollection.ofToList⟩ := ToList.lawfulEmptyCollection_iff
 
 @[simp]
-lemma toList_empty [ToList C α] [EmptyCollection C] [inst : LawfulEmptyCollection C α] :
+lemma toList_empty [inst : LawfulEmptyCollection C α] :
     toList (∅ : C) = [] := by
   rwa [ToList.lawfulEmptyCollection_iff] at inst
 
