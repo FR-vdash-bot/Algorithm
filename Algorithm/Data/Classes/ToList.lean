@@ -5,8 +5,10 @@ Authors: Yuyang Zhao
 -/
 import Algorithm.Data.Classes.ToMultiset
 
+variable {C α : Type*}
+
 namespace List
-variable {α : Type*} (l : List α)
+variable (l : List α)
 
 -- #check isEmpty_iff_eq_nil
 lemma not_isEmpty_iff_ne_nil {l : List α} : ¬l.isEmpty ↔ l ≠ [] :=
@@ -55,33 +57,33 @@ lemma back?_toArray : l.toArray.back? = l.getLast? := by
 end List
 
 namespace Array
-variable {α : Type*} (a : Array α)
+variable (a : Array α)
 
-lemma isEmpty_data {α : Type*} (a : Array α) : a.data.isEmpty = a.isEmpty := by
+lemma isEmpty_data : a.data.isEmpty = a.isEmpty := by
   rw [List.isEmpty_eq_decide_length, isEmpty]
 
-lemma isEmpty_toList {α : Type*} (a : Array α) : a.toList.isEmpty = a.isEmpty := by
+lemma isEmpty_toList : a.toList.isEmpty = a.isEmpty := by
   rw [isEmpty_data, toList_eq]
 
-lemma isEmpty_toListRev {α : Type*} (a : Array α) : a.toListRev.isEmpty = a.isEmpty := by
+lemma isEmpty_toListRev : a.toListRev.isEmpty = a.isEmpty := by
   rw [toListRev_eq, List.isEmpty_reverse, isEmpty_data]
 
-lemma toList_length {α : Type*} (a : Array α) : a.toList.length = a.size := by
+lemma toList_length : a.toList.length = a.size := by
   rw [toList_eq, data_length]
 
 @[simp]
-lemma get?_data {α : Type*} (a : Array α) : a.data.get? = a.get? := by
+lemma get?_data : a.data.get? = a.get? := by
   ext i
   rw [Array.get?_eq_data_get?]
 
-lemma get?_toList {α : Type*} (a : Array α) : a.toList.get? = a.get? := by
+lemma get?_toList : a.toList.get? = a.get? := by
   rw [toList_eq, get?_data]
 
-lemma get?_toListRev {α : Type*} (a : Array α) (i : Nat) (h : i < a.size) :
+lemma get?_toListRev (i : Nat) (h : i < a.size) :
     a.toListRev.get? i = a.get? (a.size - 1 - i) := by
   rw [toListRev_eq, List.get?_reverse _ (by rwa [data_length]), get?_data]
 
-lemma head?_toListRev {α : Type*} (a : Array α) : a.toListRev.head? = a.back? := by
+lemma head?_toListRev : a.toListRev.head? = a.back? := by
   cases a.size.eq_zero_or_pos
   case inl h =>
     rw [toListRev_eq, back?, ← get?_data]
@@ -90,15 +92,15 @@ lemma head?_toListRev {α : Type*} (a : Array α) : a.toListRev.head? = a.back? 
     rw [← List.get?_zero, get?_toListRev _ _ h, Nat.sub_zero]
     rfl
 
-lemma getLast?_toList (a : Array α) : a.toList.getLast? = a.back? := by
+lemma getLast?_toList : a.toList.getLast? = a.back? := by
   rw [back?, get?_eq_data_get?, List.getLast?_eq_get?]
   simp
 
 @[simp]
-lemma getLast?_data (a : Array α) : a.data.getLast? = a.back? := by
+lemma getLast?_data : a.data.getLast? = a.back? := by
   simp [← getLast?_toList]
 
-lemma dropLast_toList (a : Array α) : a.toList.dropLast = a.pop.toList := by
+lemma dropLast_toList : a.toList.dropLast = a.pop.toList := by
   simp
 
 end Array
@@ -113,7 +115,7 @@ export ToList (toList toArray toArray_eq_mk_toList size_eq_length_toList)
 attribute [simp] toArray_eq_mk_toList
 
 section ToList
-variable {C α : Type*} [ToList C α]
+variable [ToList C α]
 
 instance (priority := 100) ToList.toMultiset : ToMultiset C α where
   toMultiset c := ↑(toList c)
@@ -197,12 +199,12 @@ export Back (back? back?_def backD back backD_def back_mem)
 
 attribute [simp] back?_def backD_def
 
-lemma back?_isSome {C α : Type*} [ToList C α] [Back C α] {c : C} (h : ¬isEmpty c) :
+lemma back?_isSome [ToList C α] [Back C α] {c : C} (h : ¬isEmpty c) :
     (back? c).isSome := by
   rwa [back?_def, List.getLast?_isSome, ← List.not_isEmpty_iff_ne_nil, isEmpty_toList]
 
 @[simp]
-lemma back_def {C α : Type*} [ToList C α] [Back C α] (c : C) (h : ¬isEmpty c) :
+lemma back_def [ToList C α] [Back C α] (c : C) (h : ¬isEmpty c) :
     back c h = (back? c).get (back?_isSome h) :=
   Option.some_injective _ (by simpa using (back_mem c h).symm)
 
@@ -259,8 +261,7 @@ lemma ToList.RandomAccess.get_toArray [ToList.RandomAccess C α] (c : C) (i) :
 
 end ToList
 
-section
-variable {α : Type*}
+section List
 
 instance : ToList (List α) α where
   toList := id
@@ -287,6 +288,10 @@ instance : PushFront (List α) α where
 instance : LawfulAppend (List α) α where
   toList_append _ _ := rfl
 
+end List
+
+section Array
+
 instance : ToList (Array α) α where
   toList := Array.data
   toArray := id
@@ -299,6 +304,10 @@ instance : Front (Array α) α where
     dsimp only
     rw [← Array.get?_data, List.get?_zero]
     rfl
+  frontD c := c.getD 0
+  front c h := c.get ⟨0, by simp_rw [isEmpty_iff_size_eq_zero, size] at h; omega⟩
+  frontD_def := by simp
+  front_mem _ := by simp (config := { contextual := true }) [Array.get?, size]
 
 instance : Back (Array α) α where
   back? := Array.back?
@@ -319,4 +328,4 @@ instance : ToList.RandomAccess (Array α) α where
   get := Array.get
   get_eq_get_toArray _ _ := rfl
 
-end
+end Array
