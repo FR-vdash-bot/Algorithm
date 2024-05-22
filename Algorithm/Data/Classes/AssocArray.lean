@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuyang Zhao
 -/
 import Algorithm.Data.DFinsupp'.Defs
+import Batteries.Data.Array.Lemmas
 import Mathlib.Data.Fintype.Basic
 import Mathlib.Data.Setoid.Basic
-import Std.Data.Array.Lemmas
 
 universe u v
 
