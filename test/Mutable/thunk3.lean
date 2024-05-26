@@ -1,4 +1,4 @@
-import Algorithm.Data.Mutable
+import Mutable.Mutable
 
 universe u
 

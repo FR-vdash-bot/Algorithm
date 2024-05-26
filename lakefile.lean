@@ -16,10 +16,13 @@ package algorithm where
 require mathlib from git "https://github.com/leanprover-community/mathlib4.git" @ "master"
 require «doc-gen4» from git "https://github.com/leanprover/doc-gen4.git" @ "main"
 
+lean_lib Mutable where
+  roots := #[`Mutable]
+  precompileModules := true
+
 @[default_target]
 lean_lib Algorithm where
   roots := #[`Algorithm]
-  precompileModules := true
 
 target ffi.o pkg : FilePath := do
   let oFile := pkg.buildDir / "cpp" / "ffi.o"
