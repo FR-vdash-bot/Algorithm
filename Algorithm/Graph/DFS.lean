@@ -99,36 +99,20 @@ lemma isDFSForest_dfsForest' (g : G)
       (toDFinsupp' visited).support
       (toDFinsupp' (g..dfsForest' vs visited).2.val).support
       (g..dfsForest' vs visited).1 := by
-  match vs with
-  | [] => unfold dfsForest'; constructor
-  | v :: vs =>
-    unfold dfsForest'; split; · exact isDFSForest_dfsForest' _ _ _
-    rename_i v vs hv
+  induction vs, visited using dfsForest'.induct g (BoolArray := BoolArray) with
+  | case1 => unfold dfsForest'; constructor
+  | case2 _ _ _ h ih => rwa [dfsForest', if_pos h]
+  | case3 visited v vs hv _ _ _ _ hc _ _ _ hs ih₁ ih₂ =>
+    rw [dfsForest', if_neg hv]
     let rc := g..dfsForest' (g..succList v) (AssocArray.set visited v true)
     dsimp; apply IsDFSForest.node (toDFinsupp' rc.2.val).support
     · simp [hv]
-    · convert isDFSForest_dfsForest' _ _ _
+    · convert ih₁
       simp [DFinsupp'.support_update_ne]
     · exact g..succList_eq_succSet _ ▸ (g..roots_dfsForest'_fst_subset _ _)
     · exact g..succList_eq_succSet _ ▸ (g..subset_support_toDFinsupp'_dfsForest'_snd _ _)
-    · exact g..isDFSForest_dfsForest' _ _
-termination_by ((toDFinsupp' visited).supportᶜ.card, vs)
-decreasing_by
-  all_goals simp_wf
-  · simp [Prod.lex_iff]
-  · apply Prod.Lex.left
-    apply Finset.card_lt_card
-    rw [Finset.ssubset_iff]
-    refine ⟨v, by simp [*], ?_⟩
-    rw [Finset.subset_iff]
-    simp [*, Function.update]
-  · have h : (toDFinsupp' visited).support ⊆
-        (toDFinsupp' (AssocArray.set visited v true)).support := by
-      simp [DFinsupp'.support_update_ne]
-    have : (toDFinsupp' rc.2.val).supportᶜ.card ≤ (toDFinsupp' visited).supportᶜ.card := by
-      apply Finset.card_le_card
-      simpa using h.trans rc.2.prop
-    simpa [Prod.lex_iff, ← le_iff_lt_or_eq]
+    · rw [hs] at ih₂
+      dsimp [rc]; rwa [hc, hs]
 
 def dfsForest (g : G)
     [Fintype V] {BoolArray : Type*} [Inhabited BoolArray]
@@ -310,36 +294,25 @@ lemma dfsTR_spec' (g : G)
     (vs : List V) (visited : BoolArray) :
     g..traversal (toDFinsupp' visited).support {v | v ∈ vs ∧ v ∉ (toDFinsupp' visited).support} =
       g..traversal (toDFinsupp' (g..dfsTR vs visited)).support ∅ := by
-  unfold dfsTR
-  match vs with
-  | [] => simp
-  | v :: vs =>
-    simp only [List.mem_cons]
-    split_ifs with hv <;> rw [← dfsTR_spec']
-    · ext w
-      simp [traversal]
+  induction vs, visited using dfsTR.induct g (BoolArray := BoolArray) with
+  | case1 => simp [dfsTR]
+  | case2 _ v _ hv ih =>
+    simp only [dfsTR, List.mem_cons]
+    rw [if_pos hv, ← ih]
+    ext w
+    simp [traversal]
+    aesop
+  | case3 _ _ _ hv ih =>
+    rw [dfsTR, if_neg hv, ← ih]
+    simp? says
+      simp only [List.mem_cons, DFinsupp'.mem_support_toFun, coe_toDFinsupp'_eq_get,
+        AssocDArray.get_eq_getElem, ne_eq, Bool.not_eq_false, Bool.not_eq_true,
+        AssocDArray.toDFinsupp'_set, List.mem_append, mem_succList_iff, DFinsupp'.coe_update]
+    rw [DFinsupp'.support_update_ne _ _ (by simp), Finset.coe_insert, traversal_insert]
+    · simp [hv]
+    · ext; simp (config := { contextual := true }) [hv]
+    · unfold Function.update
       aesop
-    · simp? says
-        simp only [DFinsupp'.mem_support_toFun, coe_toDFinsupp'_eq_get, AssocDArray.get_eq_getElem,
-          ne_eq, Bool.not_eq_false, Bool.not_eq_true, AssocDArray.toDFinsupp'_set, List.mem_append,
-          mem_succList_iff, DFinsupp'.coe_update]
-      rw [DFinsupp'.support_update_ne _ _ (by simp), Finset.coe_insert, traversal_insert]
-      · simp [hv]
-      · ext; simp (config := { contextual := true }) [hv]
-      · unfold Function.update
-        aesop
-termination_by by classical exact ((toDFinsupp' visited).supportᶜ.card, vs.length)
-decreasing_by
-  all_goals
-    letI : DecidableEq V := by classical infer_instance
-    simp_wf
-  · simp [Prod.lex_iff]
-  · apply Prod.Lex.left
-    apply Finset.card_lt_card
-    rw [Finset.ssubset_iff]
-    refine ⟨v, by simp [*], ?_⟩
-    rw [Finset.subset_iff]
-    simp [*, Function.update]
 
 lemma dfsTR_spec (g : G)
     [Fintype V] (BoolArray : Type*) [Inhabited BoolArray]
