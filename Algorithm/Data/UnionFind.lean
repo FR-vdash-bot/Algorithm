@@ -46,7 +46,7 @@ lemma rootCore_parent (parent : P) (wf : WellFounded fun j k : ι ↦ j ≠ k �
 @[simp]
 lemma parent_rootCore (parent : P) (wf : WellFounded fun j k : ι ↦ j ≠ k ∧ j = parent[k]) (i : ι) :
     parent[rootCore parent wf i] = rootCore parent wf i := by
-  rw [rootCore] -- TODO: use function induct in v4.8
+  rw [rootCore]
   split_ifs with h
   · exact h
   · exact parent_rootCore parent wf parent[i]
@@ -56,7 +56,7 @@ decreasing_by simp_wf; tauto
 lemma transGen_rootCore (parent : P) (wf : WellFounded fun j k : ι ↦ j ≠ k ∧ j = parent[k])
     (i : ι) (hi : parent[i] ≠ i) :
     Relation.TransGen (fun i j ↦ i ≠ j ∧ i = parent[j]) (rootCore parent wf i) i := by
-  rw [rootCore, if_neg hi, rootCore] -- TODO: use function induct in v4.8
+  rw [rootCore, if_neg hi, rootCore]
   split_ifs with h
   · exact .single ⟨hi, rfl⟩
   · rw [rootCore_parent]
@@ -86,7 +86,7 @@ decreasing_by simp_wf; tauto
 @[simp]
 lemma findAux_fst (parent : P) (wf : WellFounded fun j k : ι ↦ j ≠ k ∧ j = parent[k])
     (i : ι) : (findAux parent wf i).fst = rootCore parent wf i := by
-  unfold findAux rootCore; dsimp -- TODO: use function induct in v4.8
+  unfold findAux rootCore; dsimp
   split_ifs with hi
   · rfl
   · exact findAux_fst parent wf _
@@ -96,7 +96,7 @@ decreasing_by simp_wf; tauto
 lemma findAux_snd_getElem (parent : P) (wf : WellFounded fun j k : ι ↦ j ≠ k ∧ j = parent[k])
     (i j : ι) : (findAux parent wf i).snd[j] = parent[j] ∨
       (findAux parent wf i).snd[j] = rootCore parent wf j := by
-  unfold findAux rootCore; dsimp -- TODO: use function induct in v4.8
+  unfold findAux rootCore; dsimp
   split_ifs with hi
   · exact .inl rfl
   · obtain (hj | rfl) := decEq j i
@@ -119,7 +119,7 @@ lemma wellFounded_findAux (parent : P) (wf : WellFounded fun j k : ι ↦ j ≠ 
 lemma rootCore_findAux_snd_apply (parent : P) (wf : WellFounded fun j k : ι ↦ j ≠ k ∧ j = parent[k])
     (i : ι) (h) (j : ι) :
     rootCore (findAux parent wf i).snd h j = rootCore parent wf j := by
-  unfold rootCore; dsimp -- TODO: use function induct in v4.8
+  unfold rootCore; dsimp
   obtain (H | H) := findAux_snd_getElem parent wf i j <;> rw [H]
   · split_ifs with hj
     · rfl
