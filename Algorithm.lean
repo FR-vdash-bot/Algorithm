@@ -14,6 +14,7 @@ import Algorithm.Data.DFinsupp'.Fintype
 import Algorithm.Data.Forest
 import Algorithm.Data.Graph.AdjList
 import Algorithm.Data.Graph.IsDFSForest
+import Algorithm.Data.MutableQuotient
 import Algorithm.Data.PairingHeap
 import Algorithm.Data.UnionFind
 import Algorithm.Graph.DFS
