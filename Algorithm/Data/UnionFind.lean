@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuyang Zhao
 -/
 import Algorithm.Data.Classes.AssocArray
-import Mutable.MutableQuotient
+import Algorithm.Data.MutableQuotient
 import Mathlib.Data.Set.Card
 
 namespace UnionFindImpl
@@ -28,7 +28,7 @@ def rootCore (parent : P) (wf : WellFounded fun j k : ι ↦ j ≠ k ∧ j = par
     i
   else
     rootCore parent wf p
-termination_by WellFounded.wrap wf i
+termination_by wf.wrap i
 decreasing_by simp_wf; tauto
 
 lemma rootCore_of_eq (parent : P) (wf : WellFounded fun j k : ι ↦ j ≠ k ∧ j = parent[k]) (i : ι)
@@ -50,7 +50,7 @@ lemma parent_rootCore (parent : P) (wf : WellFounded fun j k : ι ↦ j ≠ k �
   split_ifs with h
   · exact h
   · exact parent_rootCore parent wf parent[i]
-termination_by WellFounded.wrap wf i
+termination_by wf.wrap i
 decreasing_by simp_wf; tauto
 
 lemma transGen_rootCore (parent : P) (wf : WellFounded fun j k : ι ↦ j ≠ k ∧ j = parent[k])
@@ -61,7 +61,7 @@ lemma transGen_rootCore (parent : P) (wf : WellFounded fun j k : ι ↦ j ≠ k 
   · exact .single ⟨hi, rfl⟩
   · rw [rootCore_parent]
     exact .tail (b := parent[i]) (transGen_rootCore parent wf parent[i] h) ⟨hi, rfl⟩
-termination_by WellFounded.wrap wf i
+termination_by wf.wrap i
 decreasing_by simp_wf; tauto
 
 @[simp]
@@ -80,7 +80,7 @@ def findAux (parent : P) (wf : WellFounded fun j k : ι ↦ j ≠ k ∧ j = pare
   else
     let ⟨r, ps⟩ := findAux parent wf p
     ⟨r, AssocDArray.set ps i r⟩
-termination_by WellFounded.wrap wf i
+termination_by wf.wrap i
 decreasing_by simp_wf; tauto
 
 @[simp]
@@ -90,7 +90,7 @@ lemma findAux_fst (parent : P) (wf : WellFounded fun j k : ι ↦ j ≠ k ∧ j 
   split_ifs with hi
   · rfl
   · exact findAux_fst parent wf _
-termination_by WellFounded.wrap wf i
+termination_by wf.wrap i
 decreasing_by simp_wf; tauto
 
 lemma findAux_snd_getElem (parent : P) (wf : WellFounded fun j k : ι ↦ j ≠ k ∧ j = parent[k])
@@ -104,7 +104,7 @@ lemma findAux_snd_getElem (parent : P) (wf : WellFounded fun j k : ι ↦ j ≠ 
         Function.update_noteq, AssocDArray.get_eq_getElem]
       exact (findAux_snd_getElem parent wf parent[i] j).imp_right (by rw [·, rootCore])
     · simp [hi]
-termination_by WellFounded.wrap wf i
+termination_by wf.wrap i
 decreasing_by simp_wf; tauto
 
 lemma wellFounded_findAux (parent : P) (wf : WellFounded fun j k : ι ↦ j ≠ k ∧ j = parent[k])
@@ -131,7 +131,7 @@ lemma rootCore_findAux_snd_apply (parent : P) (wf : WellFounded fun j k : ι ↦
       obtain (H | H) := findAux_snd_getElem parent wf i (rootCore parent wf j) <;> rw [H]
       · exact parent_rootCore parent wf j
       · rw [rootCore_eq_self, parent_rootCore]
-termination_by WellFounded.wrap wf j
+termination_by wf.wrap j
 decreasing_by simp_wf; tauto
 
 @[simp]
@@ -226,7 +226,7 @@ lemma setParent_root (parent : P) (size : S) (wf : WellFounded fun i j : ι ↦ 
   · simp only [setParent_parent_eq_self, setParent]
     unfold rootCore
     split_ifs <;> aesop
-termination_by WellFounded.wrap wf k
+termination_by wf.wrap k
 decreasing_by simp_wf; tauto
 
 def link (self : UnionFind ι P S) (i j : ι) (hi : self.parent[i] = i) (hj : self.parent[j] = j) :
