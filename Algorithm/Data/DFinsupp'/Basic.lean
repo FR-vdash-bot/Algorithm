@@ -209,7 +209,7 @@ noncomputable def comapDomain (h : κ → ι) (hh : Function.Injective h)
   toFun x := f (h x)
   support' :=
     f.support'.map fun s =>
-      ⟨((Multiset.toFinset s.1).preimage h (hh.injOn _)).val, fun x =>
+      ⟨((Multiset.toFinset s.1).preimage h hh.injOn).val, fun x =>
         (s.prop (h x)).imp_left fun hx => mem_preimage.mpr <| Multiset.mem_toFinset.mpr hx⟩
 
 @[simp]

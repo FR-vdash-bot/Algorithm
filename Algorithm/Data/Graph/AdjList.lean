@@ -42,7 +42,7 @@ class AdjListClass (G : Type*)
 
 namespace AdjListClass
 
--- 一个邪恶的hack，用来假装我还能使用点符号
+-- 一个邪恶的语法，用来假装我还能使用点记号
 scoped syntax:max term noWs ".." noWs ident : term
 macro_rules
   |`($g..$name) => do
@@ -288,7 +288,7 @@ lemma ReachableWithin.inter_compl_singleton_self {s : Set V} {v w : V}
 
 lemma reachableWithin_iff_inter_compl_singleton_self {s : Set V} {v w : V} :
     g..ReachableWithin s v w ↔ g..ReachableWithin (s ∩ {v}ᶜ) v w :=
-  ⟨.inter_compl_singleton_self, .mono (Set.inter_subset_left _ _)⟩
+  ⟨.inter_compl_singleton_self, .mono Set.inter_subset_left⟩
 
 variable (g) in
 def succSet (s : Set V) : Set V := {w | ∃ v ∈ s, g..Adj v w} -- ⋃ v ∈ s, {w | g..Adj v w}
