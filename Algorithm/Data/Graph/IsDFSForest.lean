@@ -47,10 +47,10 @@ lemma union (hf : g..IsDFSForest i o f) : i ∪ f.support = o := by
       ← Set.union_assoc, ihc, ihs]
 
 lemma subset (hf : g..IsDFSForest i o f) : i ⊆ o :=
-  hf.union ▸ Set.subset_union_left _ _
+  hf.union ▸ Set.subset_union_left
 
 lemma support_subset (hf : g..IsDFSForest i o f) : f.support ⊆ o :=
-  hf.union ▸ Set.subset_union_right _ _
+  hf.union ▸ Set.subset_union_right
 
 lemma inter (hf : g..IsDFSForest i o f) : i ∩ f.support = ∅ := by
   induction hf with
