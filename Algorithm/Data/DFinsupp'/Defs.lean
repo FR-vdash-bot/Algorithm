@@ -64,15 +64,7 @@ theorem toFun_eq_coe (f : Π₀' i, [β i, d i]) : f.toFun = f :=
 theorem ext {f g : Π₀' i, [β i, d i]} (h : ∀ i, f i = g i) : f = g :=
   DFunLike.ext _ _ h
 
-@[deprecated DFunLike.ext_iff]
-theorem ext_iff {f g : Π₀' i, [β i, d i]} : f = g ↔ ∀ i, f i = g i :=
-  DFunLike.ext_iff
-
 lemma ne_iff {f g : Π₀' i, [β i, d i]} : f ≠ g ↔ ∃ i, f i ≠ g i := DFunLike.ne_iff
-
-@[deprecated DFunLike.coe_injective]
-theorem coeFn_injective : @Function.Injective (Π₀' i, [β i, d i]) (∀ i, β i) (⇑) :=
-  DFunLike.coe_injective
 
 instance instInhabited : Inhabited (Π₀' i, [β i, d i]) :=
   ⟨⟨d, Trunc.mk <| ⟨∅, fun _ => Or.inr rfl⟩⟩⟩
