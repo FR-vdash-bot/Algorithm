@@ -13,8 +13,8 @@ package algorithm where
     "-lstdc++"
   ]
 
-require mathlib from git "https://github.com/leanprover-community/mathlib4.git" @ "master"
-require «doc-gen4» from git "https://github.com/leanprover/doc-gen4.git" @ "main"
+require "leanprover-community" / "mathlib" @ "git#master"
+require "leanprover" / "doc-gen4" @ "git#main"
 
 lean_lib Mutable where
   roots := #[`Mutable]
@@ -26,7 +26,7 @@ lean_lib Algorithm where
 
 target ffi.o pkg : FilePath := do
   let oFile := pkg.buildDir / "cpp" / "ffi.o"
-  let srcJob ← inputFile <| pkg.dir / "cpp" / "ffi.cpp"
+  let srcJob ← inputBinFile <| pkg.dir / "cpp" / "ffi.cpp"
   let weakArgs := #["-I", (← getLeanIncludeDir).toString]
   buildO oFile srcJob weakArgs #["-fPIC"] "clang++" getLeanTrace
 

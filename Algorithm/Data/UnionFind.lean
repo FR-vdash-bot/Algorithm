@@ -183,7 +183,7 @@ lemma wellFounded_assocArraySet (parent : P) (wf : WellFounded fun j k : ι ↦ 
     split_ifs at h with hx
     · subst hx h
       refine ⟨p, fun f hf ↦ ?_⟩
-      simp only [ne_eq, AssocDArray.getElem_set, Function.update, hpx, ↓reduceDite,
+      simp only [ne_eq, AssocDArray.getElem_set, Function.update, hpx, ↓reduceDIte,
         AssocDArray.get_eq_getElem, hr, not_and_self] at hf
     · exact ih p ⟨hpx, h⟩
 
