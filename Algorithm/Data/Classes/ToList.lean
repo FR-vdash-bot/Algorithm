@@ -79,19 +79,6 @@ lemma get?_data : a.data.get? = a.get? := by
 lemma get?_toList : a.toList.get? = a.get? := by
   rw [toList_eq, get?_data]
 
-lemma get?_toListRev (i : Nat) (h : i < a.size) :
-    a.toListRev.get? i = a.get? (a.size - 1 - i) := by
-  rw [toListRev_eq, List.get?_reverse _ (by rwa [data_length]), get?_data]
-
-lemma head?_toListRev : a.toListRev.head? = a.back? := by
-  cases a.size.eq_zero_or_pos
-  case inl h =>
-    rw [toListRev_eq, back?, ← get?_data]
-    simp [List.length_eq_zero.mp h]
-  case inr h =>
-    rw [← List.get?_zero, get?_toListRev _ _ h, Nat.sub_zero]
-    rfl
-
 lemma getLast?_toList : a.toList.getLast? = a.back? := by
   rw [back?, get?_eq_data_get?, List.getLast?_eq_get?]
   simp

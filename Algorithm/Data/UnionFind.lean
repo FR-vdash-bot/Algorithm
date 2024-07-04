@@ -183,7 +183,7 @@ lemma wellFounded_assocArraySet (parent : P) (wf : WellFounded fun j k : ι ↦ 
     split_ifs at h with hx
     · subst hx h
       refine ⟨p, fun f hf ↦ ?_⟩
-      simp only [ne_eq, AssocDArray.getElem_set, Function.update, hpx, ↓reduceDite,
+      simp only [ne_eq, AssocDArray.getElem_set, Function.update, hpx, ↓reduceDIte,
         AssocDArray.get_eq_getElem, hr, not_and_self] at hf
     · exact ih p ⟨hpx, h⟩
 
@@ -296,9 +296,8 @@ def finsetOfRoot (self : UnionFind ι P S) (r : ι) : Finset ι :=
 lemma mem_finsetOfRoot_iff (self : UnionFind ι P S) (r i : ι) :
     i ∈ self.finsetOfRoot r ↔ self.root i = r := by
   simp? [finsetOfRoot] says
-    simp only [finsetOfRoot, id_eq, Finset.mem_filter, Finset.mem_insert,
-      DFinsupp'.mem_support_toFun, coe_toDFinsupp'_eq_get, AssocDArray.get_eq_getElem, ne_eq,
-      and_iff_right_iff_imp]
+    simp only [finsetOfRoot, Finset.mem_filter, Finset.mem_insert, DFinsupp'.mem_support_toFun,
+      id_eq, coe_toDFinsupp'_eq_get, AssocDArray.get_eq_getElem, ne_eq, and_iff_right_iff_imp]
   obtain (hr | hr) := decEq self.parent[i] i
   · simp [hr]
   · simp [hr, root, rootCore]

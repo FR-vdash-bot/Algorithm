@@ -195,7 +195,7 @@ def mk [DecidableEq α] (assocArray : C) (minHeap : C')
         Multiset.card_erase_lt_of_mem (MinHeap.head_mem_toMultiset _ _)
     mk assocArray (MinHeap.tail minHeap) fun i hi ↦ by
       simp? [ToMultiset.mem_iff, h] says
-        simp only [ToMultiset.mem_iff, MinHeap.toMultiset_tail, h, Bool.false_eq_true, ↓reduceDite,
+        simp only [ToMultiset.mem_iff, MinHeap.toMultiset_tail, h, Bool.false_eq_true, ↓reduceDIte,
           MinHeap.head_def]
       rw [Multiset.mem_erase_of_ne]
       · exact mem_minHeap _ _

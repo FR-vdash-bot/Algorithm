@@ -237,10 +237,10 @@ instance [Preorder α] [IsTotalPreorder α (· ≤ ·)] [DecidableRel (α := α)
       simp? [Size.isEmpty, isEmpty, PairingHeapImp.Heap.isEmpty, tail, PairingHeapImp.Heap.tail,
           toMultiset, toListUnordered, PairingHeapImp.Heap.tail?, PairingHeapImp.Heap.deleteMin,
           - Multiset.coe_eq_coe, - Multiset.coe_erase] says
-        simp only [toMultiset, toListUnordered, tail,
-          PairingHeapImp.Heap.tail, PairingHeapImp.Heap.tail?, PairingHeapImp.Heap.deleteMin,
-          Option.map_some', Option.getD_some, PairingHeapImp.Heap.coe_toListUnordered_combine,
-          Size.isEmpty, isEmpty, PairingHeapImp.Heap.isEmpty, Bool.false_eq_true, ↓reduceDite,
+        simp only [toMultiset, toListUnordered, tail, PairingHeapImp.Heap.tail,
+          PairingHeapImp.Heap.tail?, PairingHeapImp.Heap.deleteMin, Option.map_some',
+          Option.getD_some, PairingHeapImp.Heap.coe_toListUnordered_combine, Size.isEmpty, isEmpty,
+          PairingHeapImp.Heap.isEmpty, Bool.false_eq_true, ↓reduceDIte,
           PairingHeapImp.Heap.toListUnordered_node, PairingHeapImp.Heap.toListUnordered_nil,
           List.append_nil]
       change _ = Multiset.erase _ a
