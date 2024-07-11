@@ -73,7 +73,7 @@ class GetSet (C : Type*) (ι : outParam Type*) (α : outParam Type*) extends Get
   get_set_eq a i v : get (set a i v) i = v
   get_set_ne a i v j : i ≠ j → get (set a i v) j = get a j
 
-class OfFn (C : Type*) {ι : Type*} {α : Type*} [Get C ι α] (f : ι → α) where
+class OfFn (C : Type*) (ι : Type*) (α : Type*) [Get C ι α] (f : ι → α) where
   ofFn : C
   get_ofFn : Get.get ofFn = f
 export OfFn (ofFn get_ofFn)
@@ -123,7 +123,7 @@ end Get
 
 variable [Inhabited C] [AssocDArray C ι α d]
 
-instance : OfFn C d where
+instance : OfFn C ι α d where
   ofFn := default
   get_ofFn := get_default
 
@@ -265,7 +265,7 @@ lemma get_indicator [DecidableEq ι] (s : Finset ι) (f : ∀ i ∈ s, α) :
   rw [get_listIndicator]
   rfl
 
-abbrev toOfFn [Fintype ι] (f : ι → α) : OfFn C f where
+abbrev toOfFn [Fintype ι] (f : ι → α) : OfFn C ι α f where
   ofFn := indicator C Finset.univ (fun i _ ↦ f i)
   get_ofFn := by
     convert (get_indicator _ _).trans <| funext fun _ ↦ dif_pos <| Finset.mem_univ _
