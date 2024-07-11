@@ -100,7 +100,7 @@ lemma findAux_snd_getElem (parent : P) (wf : WellFounded fun j k : ι ↦ j ≠ 
   split_ifs with hi
   · exact .inl rfl
   · obtain (hj | rfl) := decEq j i
-    · simp only [findAux_fst, AssocDArray.getElem_set, ne_eq, hj, not_false_eq_true,
+    · simp only [findAux_fst, AssocDArray.getElem_set_eq_update, ne_eq, hj, not_false_eq_true,
         Function.update_noteq, AssocDArray.get_eq_getElem]
       exact (findAux_snd_getElem parent wf parent[i] j).imp_right (by rw [·, rootCore])
     · simp [hi]
@@ -178,13 +178,11 @@ lemma wellFounded_assocArraySet (parent : P) (wf : WellFounded fun j k : ι ↦ 
   induction x using wf.induction with
   | h x ih =>
     refine ⟨x, fun p ⟨hpx, h⟩ ↦ ?_⟩
-    simp only [AssocDArray.getElem_set, Function.update, eq_rec_constant,
-      AssocDArray.get_eq_getElem, dite_eq_ite] at h
+    simp only [AssocDArray.getElem_set] at h
     split_ifs at h with hx
     · subst hx h
       refine ⟨p, fun f hf ↦ ?_⟩
-      simp only [ne_eq, AssocDArray.getElem_set, Function.update, hpx, ↓reduceDIte,
-        AssocDArray.get_eq_getElem, hr, not_and_self] at hf
+      simp only [ne_eq, AssocDArray.getElem_set, hr, ite_self, not_and_self] at hf
     · exact ih p ⟨hpx, h⟩
 
 set_option linter.unusedVariables false in -- easier to `rw` and `simp`
@@ -198,7 +196,7 @@ def setParent (parent : P) (size : S) (wf : WellFounded fun i j : ι ↦ i ≠ j
 lemma setParent_parent_eq_parent (parent : P) (size : S)
     (wf : WellFounded fun i j : ι ↦ i ≠ j ∧ i = parent[j])
     (i j : ι) (hi : parent[i] = i) (hj : parent[j] = j) (s : ℕ) (k : ι) :
-    (setParent parent size wf i j hi hj s).parent[k] = parent[k] ↔ k = i → j = parent[k] := by
+    (setParent parent size wf i j hi hj s).parent[k] = parent[k] ↔ i = k → j = parent[k] := by
   simp [setParent, Function.update]
 
 @[simp]
@@ -206,8 +204,8 @@ lemma setParent_parent_eq_self (parent : P) (size : S)
     (wf : WellFounded fun i j : ι ↦ i ≠ j ∧ i = parent[j])
     (i j : ι) (hi : parent[i] = i) (hj : parent[j] = j) (s : ℕ) (k : ι) :
     (setParent parent size wf i j hi hj s).parent[k] = k ↔
-      (if k = i then j else parent[k]) = k := by
-  simp [setParent, Function.update]
+      (if i = k then j else parent[k]) = k := by
+  simp [setParent, AssocDArray.getElem_set]
 
 @[simp]
 lemma setParent_root (parent : P) (size : S) (wf : WellFounded fun i j : ι ↦ i ≠ j ∧ i = parent[j])
@@ -216,16 +214,18 @@ lemma setParent_root (parent : P) (size : S) (wf : WellFounded fun i j : ι ↦ 
       if rootCore parent wf k = i then j else rootCore parent wf k := by
   unfold root rootCore; dsimp
   obtain (hk | hk) := decEq parent[k] k <;> simp only [rootCore_parent, hk, ↓reduceIte]
-  · have hki : k ≠ i := by aesop
+  · have hik : i ≠ k := by aesop
     have : (setParent parent size wf i j hi hj s).parent[k] ≠ k := by
-      simp [ite_eq_iff, hki, hk]
+      simp [ite_eq_iff, hik, hk]
     simp only [this, ↓reduceIte]
     convert setParent_root parent size wf i j hi hj s parent[k] using 1
-    · simp [← (setParent_parent_eq_parent parent size wf i j hi hj s k).mpr (absurd · hki)]
+    · simp [← (setParent_parent_eq_parent parent size wf i j hi hj s k).mpr (absurd · hik)]
     · simp
   · simp only [setParent_parent_eq_self, setParent]
     unfold rootCore
+    dsimp
     split_ifs <;> aesop
+
 termination_by wf.wrap k
 decreasing_by simp_wf; tauto
 
@@ -329,10 +329,10 @@ lemma setParent_wf (self : UnionFind ι P S)
     -- simp? [setParent, Function.update] says
     simp only [setParent, AssocDArray.getElem_set, Function.update,
       eq_rec_constant, AssocDArray.get_eq_getElem, dite_eq_ite]
-  split_ifs at hk ⊢ with hkj hki hki
-  · simp [← hki, ← hkj] at hij
-  · subst hkj
-    · conv_lhs => rw [h i hi, h k hk, ← Set.ncard_union_eq (by rw [Set.disjoint_iff]; intro; aesop)]
+  split_ifs at hk ⊢ with hjk hik hij
+  · simp [hik, hjk] at hij
+  · subst hjk
+    · conv_lhs => rw [h i hi, h j hk, ← Set.ncard_union_eq (by rw [Set.disjoint_iff]; intro; aesop)]
       congr
       ext x
       simp? [setParent_root] says
@@ -342,7 +342,7 @@ lemma setParent_wf (self : UnionFind ι P S)
       split_ifs with h
       · rw [root_of_parent_eq _ _ h]; tauto
       · rw [root, rootCore, if_neg h]; tauto
-  · simp [hk] at hkj
+  · simp [hk] at hjk
   · rw [h k hk]
     congr! 3
     aesop
