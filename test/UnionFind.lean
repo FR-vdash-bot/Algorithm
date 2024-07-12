@@ -1,9 +1,7 @@
 import Algorithm.Data.UnionFind
 
-abbrev Vector.WithDefault := Batteries793.Vector.WithDefault
-abbrev UF := UnionFind (Fin 10)
-  (Vector.WithDefault (Fin 10) 10 id)
-  (Vector.WithDefault Nat 10 (fun _ ↦ 1))
+abbrev Vector := Batteries793.Vector
+abbrev UF := UnionFind (Fin 10) (Vector (Fin 10) 10) (Vector Nat 10)
 
 #eval show IO Unit from do
   let mut uf : UF := default
