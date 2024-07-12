@@ -1,6 +1,7 @@
 import Algorithm.Algebra.BigOperators.DFinsupp'
 import Algorithm.Data.Classes.AssocArray
 import Algorithm.Data.Classes.Bag
+import Algorithm.Data.Classes.GetSet
 import Algorithm.Data.Classes.IndexedMinHeap
 import Algorithm.Data.Classes.MinHeap
 import Algorithm.Data.Classes.MultiBag
