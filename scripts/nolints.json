@@ -151,7 +151,6 @@
  ["docBlame", "UnionFindImpl.UnionFind.WF"],
  ["docBlame", "UnionFindImpl.UnionFind.find"],
  ["docBlame", "UnionFindImpl.UnionFind.findAux"],
- ["docBlame", "UnionFindImpl.UnionFind.finsetOfRoot"],
  ["docBlame", "UnionFindImpl.UnionFind.link"],
  ["docBlame", "UnionFindImpl.UnionFind.parent"],
  ["docBlame", "UnionFindImpl.UnionFind.root"],
