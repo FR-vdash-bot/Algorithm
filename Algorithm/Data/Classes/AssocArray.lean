@@ -174,6 +174,16 @@ lemma get_set_eq_update [DecidableEq ι] (a : C) (i : ι) (v : α) :
 
 end GetSet
 
+section OfFn
+
+variable {C ι α : Type*} [Get C ι α] {f : ι → α} [OfFn C ι α f]
+
+@[simp]
+lemma getElem_ofFn {i : ι} : (ofFn f : C)[i] = f i :=
+  congr_fun get_ofFn i
+
+end OfFn
+
 attribute [simp] AssocDArray.get_default coe_toDFinsupp'_eq_get
 
 section AssocDArray
@@ -207,6 +217,16 @@ end AssocDArray
 
 namespace Batteries793.Vector
 variable {α : Type*} {n : ℕ} {f : Fin n → α}
+
+instance : GetSet (Vector α n) (Fin n) α where
+  set := set
+  get := get
+  get_set_eq := get_set_eq
+  get_set_ne := get_set_ne
+
+instance : OfFn (Vector α n) (Fin n) α f where
+  ofFn := ofFn f
+  get_ofFn := get_ofFn f
 
 instance : AssocDArray (Vector.WithDefault α n f) (Fin n) α f where
   set := set
