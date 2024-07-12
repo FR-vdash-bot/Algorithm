@@ -100,7 +100,7 @@ lemma findAux_snd_getElem (parent : P) (wf : WellFounded fun j k : ι ↦ j ≠ 
   split_ifs with hi
   · exact .inl rfl
   · obtain (hj | rfl) := decEq i j
-    · simp? [hj] says
+    · simp? [hj, - rootCore_parent] says
         simp only [findAux_fst, ne_eq, hj, not_false_eq_true, getElem_set_ne]
       exact (findAux_snd_getElem parent wf parent[i] j).imp_right (by rw [·, rootCore])
     · simp [hi]
@@ -220,7 +220,6 @@ lemma setParent_root (parent : P) (size : S) (wf : WellFounded fun i j : ι ↦ 
     simp only [this, ↓reduceIte]
     convert setParent_root parent size wf i j hi hj s parent[k] using 1
     · simp [← (setParent_parent_eq_parent parent size wf i j hi hj s k).mpr (absurd · hik)]
-
     · simp
   · simp only [setParent_parent_eq_self, setParent]
     unfold rootCore
