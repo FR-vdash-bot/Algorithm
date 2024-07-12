@@ -25,7 +25,7 @@ variable {C : Type*} [Inhabited C] {ι : Type*} {α : Type*} [LinearOrder α] [O
   [IndexedMinHeap C ι α]
 
 def decreaseKeyD (c : C) (i : ι) (v : α) : C :=
-  if c[i] ≤ v then c else AssocArray.set c i v
+  if c[i] ≤ v then c else c[i ↦ v]
 
 @[simp]
 lemma decreaseKeyD_getElem [DecidableEq ι]
@@ -33,7 +33,7 @@ lemma decreaseKeyD_getElem [DecidableEq ι]
     (decreaseKeyD c i v)[j] = if i = j then min c[j] v else c[j] := by
   split_ifs with h <;> rw [decreaseKeyD, apply_ite (fun c : C ↦ c[j])]
   · simp [h, min_def]
-  · simp [Ne.symm h]
+  · simp [h]
 
 def decreaseKeysD {ια : Type*} [ToList ια (ι × α)] (c : C) (iv : ια) : C :=
   (toList iv).foldl (fun c ⟨i, v⟩ ↦ decreaseKeyD c i v) c
@@ -162,8 +162,8 @@ variable {C C' : Type*} {ι α : Type*} [Preorder α] [IsTotalPreorder α (· �
 
 instance : AssocArray.ReadOnly (AssocArrayWithHeap C C') ι (WithTop α) ⊤ where
   get c := AssocArray.get c.assocArray
-  toDFinsupp' c := AssocArray.toDFinsupp' c.assocArray
-  coe_toDFinsupp'_eq_get c := AssocArray.coe_toDFinsupp'_eq_get c.assocArray
+  toDFinsupp' c := toDFinsupp' c.assocArray
+  coe_toDFinsupp'_eq_get c := coe_toDFinsupp'_eq_get c.assocArray
 
 @[simp]
 lemma assocArray_getElem (c : AssocArrayWithHeap C C') (i : ι) :
@@ -228,14 +228,13 @@ lemma default_minHeap :
 instance [DecidableEq α] : AssocArray (AssocArrayWithHeap C C') ι (WithTop α) ⊤ where
   set c i x :=
     mk
-      (AssocArray.set c.assocArray i x)
+      c.assocArray[i ↦ x]
       (if hx : x = ⊤ then c.minHeap else insert ⟨x.untop hx, i⟩ c.minHeap)
       fun j hj ↦ by
         haveI : DecidableEq ι := by classical infer_instance
         split_ifs with hx <;>
           simp? [Function.update_apply] at hj ⊢ says
-            simp only [AssocDArray.getElem_set, Function.update_apply, AssocDArray.get_eq_getElem,
-              assocArray_getElem, ne_eq] at hj ⊢
+            simp only [getElem_set, assocArray_getElem, ne_eq] at hj ⊢
         · subst hx
           rw [ite_eq_left_iff, Classical.not_imp] at hj
           simp only [hj.1, ↓reduceIte]
@@ -244,13 +243,14 @@ instance [DecidableEq α] : AssocArray (AssocArrayWithHeap C C') ι (WithTop α)
           split_ifs at hj ⊢ with hji
           · simp [hji]
           · exact .inr <| c.mem_minHeap j hj
-  get_set := by simp [AssocDArray.get]
-  get_default := by simp [AssocDArray.get]
+  get_set_eq _ _ _ := by simp [Get.get]
+  get_set_ne _ _ _ _ _ := by simp [Get.get, *]
+  get_default := by simp [Get.get]
 
 @[simp]
 lemma set_assocArray [DecidableEq α] (c : AssocArrayWithHeap C C') (i x) :
-    (AssocArray.set c i x).assocArray = AssocArray.set c.assocArray i x := by
-  simp [AssocArray.set]
+    c[i ↦ x].assocArray = c.assocArray[i ↦ x] := by
+  unfold_projs; simp
 
 instance [Inhabited ι] [DecidableEq α] :
     IndexedMinHeap (AssocArrayWithHeap C C') ι (WithTop α) where

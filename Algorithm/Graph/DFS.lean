@@ -31,9 +31,9 @@ def dfsForest' (g : G)
       g..dfsForest' vs visited
     else
       have h [DecidableEq V] : (toDFinsupp' visited).support ⊆
-          (toDFinsupp' (AssocArray.set visited v true)).support := by
+          (toDFinsupp' visited[v ↦ true]).support := by
         simp [DFinsupp'.support_update_ne]
-      let (fc, ⟨vis₁, h₁⟩) := g..dfsForest' (g..succList v) (AssocArray.set visited v true)
+      let (fc, ⟨vis₁, h₁⟩) := g..dfsForest' (g..succList v) visited[v ↦ true]
       let (fs, ⟨vis₂, h₂⟩) := g..dfsForest' vs vis₁
       (Forest.node v fc fs, ⟨vis₂, @fun _ ↦ (h.trans h₁).trans h₂⟩)
 termination_by by classical exact ((toDFinsupp' visited).supportᶜ.card, vs)
@@ -104,7 +104,7 @@ lemma isDFSForest_dfsForest' (g : G)
   | case2 _ _ _ h ih => rwa [dfsForest', if_pos h]
   | case3 visited v vs hv _ _ _ _ hc _ _ _ hs ih₁ ih₂ =>
     rw [dfsForest', if_neg hv]
-    let rc := g..dfsForest' (g..succList v) (AssocArray.set visited v true)
+    let rc := g..dfsForest' (g..succList v) visited[v ↦ true]
     dsimp; apply IsDFSForest.node (toDFinsupp' rc.2.val).support
     · simp [hv]
     · convert ih₁
@@ -129,7 +129,7 @@ lemma dfsForest_spec' (g : G)
       ∀ v, v ∈ f.support ↔ ∃ r ∈ vs, g..Reachable r v := by
   letI : DecidableEq V := by classical infer_instance
   have := g..isDFSForest_dfsForest' vs (default : BoolArray)
-  simp only [AssocDArray.toDFinsupp'_default, DFinsupp'.support_default, Finset.coe_empty] at this
+  simp only [toDFinsupp'_default, DFinsupp'.support_default, Finset.coe_empty] at this
   dsimp
   refine ⟨@fun _ ↦ by convert this.spec.1,
     fun v ↦ ⟨fun hv ↦ ?_, fun ⟨r, hr, hrv⟩ ↦ this.complete v r ?_ hrv⟩⟩
@@ -164,9 +164,9 @@ def dfs' (g : G)
       ⟨vis, @fun _ ↦ h, by rw [hvis, dfsForest']; simp [hv]⟩
     else
       have h [DecidableEq V] : (toDFinsupp' visited).support ⊆
-          (toDFinsupp' (AssocArray.set visited v true)).support := by
+          (toDFinsupp' visited[v ↦ true]).support := by
         simp [DFinsupp'.support_update_ne]
-      let ⟨vis₁, h₁, hvis₁⟩ := g..dfs' (g..succList v) (AssocArray.set visited v true)
+      let ⟨vis₁, h₁, hvis₁⟩ := g..dfs' (g..succList v) visited[v ↦ true]
       let ⟨vis₂, h₂, hvis₂⟩ := g..dfs' vs vis₁
       ⟨vis₂, @fun _ ↦ (h.trans h₁).trans h₂, by rw [hvis₂, hvis₁, dfsForest']; simp [hv]⟩
 termination_by by classical exact ((toDFinsupp' visited).supportᶜ.card, vs)
@@ -220,7 +220,7 @@ def dfsForestTR (g : G)
     if visited[v] then
       g..dfsForestTR ((f, vs) :: vss) visited
     else
-      g..dfsForestTR ((.nil, g..succList v) :: (f, vs) :: vss) (AssocArray.set visited v true)
+      g..dfsForestTR ((.nil, g..succList v) :: (f, vs) :: vss) visited[v ↦ true]
 termination_by by classical exact
   ((toDFinsupp' visited).supportᶜ.card, (vs.map (·.snd.length + 1)).sum)
 decreasing_by
@@ -248,7 +248,7 @@ def dfs'TR (g : G)
     if visited[v] then
       g..dfs'TR (vs :: vss) visited
     else
-      g..dfs'TR (g..succList v :: (vs :: vss)) (AssocArray.set visited v true)
+      g..dfs'TR (g..succList v :: (vs :: vss)) visited[v ↦ true]
 termination_by by classical exact
   ((toDFinsupp' visited).supportᶜ.card, (vs.map (·.length + 1)).sum)
 decreasing_by
@@ -274,7 +274,7 @@ def dfsTR (g : G)
     if visited[v] then
       g..dfsTR vs visited
     else
-      g..dfsTR (g..succList v ++ vs) (AssocArray.set visited v true)
+      g..dfsTR (g..succList v ++ vs) visited[v ↦ true]
 termination_by by classical exact ((toDFinsupp' visited).supportᶜ.card, vs.length)
 decreasing_by
   all_goals
@@ -306,8 +306,8 @@ lemma dfsTR_spec' (g : G)
     rw [dfsTR, if_neg hv, ← ih]
     simp? says
       simp only [List.mem_cons, DFinsupp'.mem_support_toFun, coe_toDFinsupp'_eq_get,
-        AssocDArray.get_eq_getElem, ne_eq, Bool.not_eq_false, Bool.not_eq_true,
-        AssocDArray.toDFinsupp'_set, List.mem_append, mem_succList_iff, DFinsupp'.coe_update]
+        Get.get_eq_getElem, ne_eq, Bool.not_eq_false, Bool.not_eq_true, toDFinsupp'_set,
+        List.mem_append, mem_succList_iff, DFinsupp'.coe_update]
     rw [DFinsupp'.support_update_ne _ _ (by simp), Finset.coe_insert, traversal_insert]
     · simp [hv]
     · ext; simp (config := { contextual := true }) [hv]

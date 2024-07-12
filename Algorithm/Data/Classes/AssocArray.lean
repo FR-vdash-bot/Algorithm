@@ -69,9 +69,26 @@ class Get (C : Type*) (ι : outParam Type*) (α : outParam Type*) where
   get : C → ι → α
 
 class GetSet (C : Type*) (ι : outParam Type*) (α : outParam Type*) extends Get C ι α where
-  set : C → ι → α → C
+  protected set : C → ι → α → C
   get_set_eq a i v : get (set a i v) i = v
   get_set_ne a i v j : i ≠ j → get (set a i v) j = get a j
+export GetSet (get_set_eq get_set_ne)
+
+macro:max a:term noWs "[" i:term " => " v:term "]" : term =>
+  `(GetSet.set $a $i $v)
+
+macro:max a:term noWs "[" i:term " ↦ " v:term "]" : term =>
+  `(GetSet.set $a $i $v)
+
+open Lean PrettyPrinter.Delaborator SubExpr in
+/-- Delaborator for `GetSet.set` -/
+@[delab app.GetSet.set]
+def GetSet.delabSet : Delab := do
+  guard <| (← getExpr).isAppOfArity' ``GetSet.set 7
+  let a ← withNaryArg 4 delab
+  let i ← withNaryArg 5 delab
+  let v ← withNaryArg 6 delab
+  `($a[$i ↦ $v])
 
 class OfFn (C : Type*) (ι : Type*) (α : Type*) [Get C ι α] (f : ι → α) where
   ofFn : C
@@ -101,66 +118,84 @@ abbrev AssocArray (C : Type*) [Inhabited C] (ι : outParam Type*)
     (α : outParam Type*) (d : outParam α) :=
   AssocDArray C ι α (fun _ ↦ d)
 
-namespace AssocDArray
+namespace Get
 
-export Get (get)
-export ReadOnly (toDFinsupp' coe_toDFinsupp'_eq_get)
+variable {C ι α : Type*}
 
-attribute [simp] get_default coe_toDFinsupp'_eq_get
-
-variable {C ι α : Type*} {d : ι → α}
-
-section Get
 variable [Get C ι α]
 
 instance : GetElem C ι α fun _ _ ↦ True where
-  getElem a i _ := AssocDArray.get a i
+  getElem a i _ := Get.get a i
 
 @[simp]
 lemma get_eq_getElem (a : C) (i : ι) : get a i = a[i] := rfl
 
 end Get
 
-variable [Inhabited C] [AssocDArray C ι α d]
+namespace GetSet
 
-instance : OfFn C ι α d where
-  ofFn := default
-  get_ofFn := get_default
+export Get (get)
 
+end GetSet
+
+section GetSet
+open GetSet
+
+variable {C ι α : Type*}
+
+variable [GetSet C ι α]
+
+@[simp]
 lemma getElem_set_eq (a : C) (i : ι) (v : α) :
-    (set a i v)[i] = v :=
+    a[i ↦ v][i] = v :=
   get_set_eq a i v
 
+@[simp]
 lemma getElem_set_ne (a : C) (i : ι) (v : α) (j : ι) (h : i ≠ j) :
-    (set a i v)[j] = a[j] :=
+    a[i ↦ v][j] = a[j] :=
   get_set_ne a i v j h
 
 @[simp]
 lemma getElem_set [DecidableEq ι] (a : C) (i : ι) (v : α) (j : ι) :
-    (set a i v)[j] = if i = j then v else a[j] := by
+    a[i ↦ v][j] = if i = j then v else a[j] := by
   split_ifs with h <;> simp [h, getElem_set_eq, getElem_set_ne]
 
 lemma getElem_set_eq_update [DecidableEq ι] (a : C) (i : ι) (v : α) (j : ι) :
-    (set a i v)[j] = Function.update (get a) i v j := by
+    a[i ↦ v][j] = Function.update (get a) i v j := by
   simp [Function.update, eq_comm]
 
 lemma get_set [DecidableEq ι] (a : C) (i : ι) (v : α) (j : ι) :
-    get (set a i v) j = if i = j then v else get a j :=
+    get a[i ↦ v] j = if i = j then v else get a j :=
   getElem_set a i v j
 
 lemma get_set_eq_update [DecidableEq ι] (a : C) (i : ι) (v : α) :
-    get (set a i v) = Function.update (get a) i v :=
+    get a[i ↦ v] = Function.update (get a) i v :=
   funext <| getElem_set_eq_update a i v
+
+end GetSet
+
+attribute [simp] AssocDArray.get_default coe_toDFinsupp'_eq_get
+
+section AssocDArray
+
+variable {C ι α : Type*} {d : ι → α}
+
+variable [Inhabited C] [AssocDArray C ι α d]
+
+instance : OfFn C ι α d where
+  ofFn := default
+  get_ofFn := AssocDArray.get_default
 
 lemma toDFinsupp'_apply_eq_getElem (a : C) (i : ι) : toDFinsupp' a i = a[i] := by simp
 
 @[simp]
-lemma getElem_default (i : ι) :
+lemma AssocDArray.getElem_default (i : ι) :
     (default : C)[i] = d i :=
-  congr_fun get_default i
+  congr_fun AssocDArray.get_default i
 
+@[simp]
 lemma toDFinsupp'_set [DecidableEq ι] (a : C) (i : ι) (v : α) :
-    toDFinsupp' (set a i v) = (toDFinsupp' a).update i v := by
+    toDFinsupp' a[i ↦ v] = (toDFinsupp' a).update i v := by
   ext; simp [getElem_set_eq_update, -getElem_set]
 
 @[simp]
@@ -187,8 +222,7 @@ end Batteries793.Vector
 namespace AssocArray
 
 export Get (get)
-export AssocDArray.ReadOnly (toDFinsupp' coe_toDFinsupp'_eq_get)
-export AssocDArray (set get_set get_default)
+export AssocDArray (get_default)
 
 class Ext (C : Type*) [Inhabited C] (ι : outParam Type*)
     (α : outParam Type*) (d : outParam α) [AssocArray C ι α d] : Prop where
@@ -203,14 +237,12 @@ protected def Quotient := @Quotient C (Setoid.ker get)
 instance : Inhabited (AssocArray.Quotient C) :=
   inferInstanceAs <| Inhabited (@Quotient C (Setoid.ker get))
 
-open AssocDArray
-
 instance : AssocArray (AssocArray.Quotient C) ι α d where
-  set q i v := q.map' (set · i v) (by classical exact
+  set q i v := q.map' (·[i ↦ v]) (by classical exact
     fun _ _ hm ↦ (Eq.congr (get_set_eq_update _ _ _) (get_set_eq_update _ _ _)).mpr (by rw [hm]))
   get := Quotient.lift get (fun _ _ ↦ id)
-  get_set_eq q i v := q.inductionOn (fun _ ↦ get_set_eq _ _ _)
-  get_set_ne q i v j h := q.inductionOn (fun _ ↦ get_set_ne _ _ _ _ h)
+  get_set_eq q i v := q.inductionOn (get_set_eq · _ _)
+  get_set_ne q i v j h := q.inductionOn (get_set_ne · _ _ _ h)
   get_default := get_default
   toDFinsupp' := Quotient.lift toDFinsupp' (fun _ _ ↦ by
     simpa only [DFunLike.ext'_iff, coe_toDFinsupp'_eq_get] using id)
@@ -225,8 +257,8 @@ export Ext (ext)
 def listIndicator (l : List ι) (f : ∀ i ∈ l, α) : C :=
   match l with
   | [] => default
-  | (i :: l) => set (listIndicator l (fun i hi ↦ f i (List.mem_cons_of_mem _ hi)))
-    i (f i (List.mem_cons_self _ _))
+  | (i :: l) => (listIndicator l (fun i hi ↦ f i (List.mem_cons_of_mem _ hi)))[i ↦
+    (f i (List.mem_cons_self _ _))]
 
 variable {C}
 

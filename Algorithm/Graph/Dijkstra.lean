@@ -375,8 +375,8 @@ def dijkstraStep (g : G) (c : Info → CostType)
     DistHeap × DistArray :=
   let v := minIdx heap
   let d := heap[v].untop hMinIdx
-  let r := AssocArray.set res v ↑d
-  (decreaseKeysD (AssocArray.set heap v ⊤) <|
+  let r := res[v ↦ ↑d]
+  (decreaseKeysD heap[v ↦ ⊤] <|
     (toList g[v]).filterMap fun e ↦
       if r[g..snd e] = ⊤ then some (g..snd e, ↑(d + c e)) else none,
     r)
@@ -402,7 +402,7 @@ lemma dijkstraStep_snd_getElem (g : G) (c : Info → CostType)
     (heap : DistHeap) (res : DistArray) (hMinIdx : heap[minIdx heap] ≠ ⊤) (v : V) :
     (dijkstraStep g c heap res hMinIdx).2[v] =
       if v = minIdx heap then heap[minIdx heap] else res[v] := by
-  simp [dijkstraStep, Function.update_apply]
+  simp [dijkstraStep, eq_comm]
 
 lemma dijkstraStep_snd_getElem_eq_top (g : G) (c : Info → CostType)
     [LinearOrderedAddCommMonoid CostType]
@@ -438,23 +438,26 @@ lemma dijkstraStep_fst_getElem' (g : G) (c : Info → CostType)
       if v = minIdx heap ∨ res[v] ≠ ⊤ then ⊤ else min heap[v]
         ((toMultiset g[minIdx heap]).filterMap fun e ↦
           if g..snd e = v then some (heap[minIdx heap] + c e) else none).inf := by
-  simp only [dijkstraStep, WithTop.coe_untop, AssocDArray.getElem_set, WithTop.coe_add,
-    decreaseKeysD_getElem, toMultiset_list, ← Multiset.filterMap_coe, coe_toList]
+  simp? [dijkstraStep, ← Multiset.filterMap_coe, getElem_set_eq_update, - getElem_set] says
+    simp only [dijkstraStep, WithTop.coe_untop, getElem_set_eq_update,
+      WithTop.coe_add, decreaseKeysD_getElem, toMultiset_list, ← Multiset.filterMap_coe, coe_toList,
+      ne_eq]
   split_ifs with h
-  · -- simp? [dijkstraStep, Function.update_apply, h]
-    simp only [Function.update_apply, AssocDArray.get_eq_getElem, min_eq_top, ite_eq_left_iff,
-      Multiset.inf_eq_top, Multiset.mem_filterMap, mem_toMultiset, ite_some_none_eq_some,
-      Prod.exists, Prod.mk.injEq, exists_eq_right_right, exists_eq_right, forall_exists_index,
-      and_imp]
+  · simp? [Function.update_apply] says
+      simp only [Function.update_apply, Get.get_eq_getElem,
+        min_eq_top, ite_eq_left_iff, Multiset.inf_eq_top, Multiset.mem_filterMap,
+        ite_some_none_eq_some, Prod.exists, Prod.mk.injEq, exists_eq_right_right, exists_eq_right,
+        forall_exists_index, and_imp]
     use fun hv ↦ (spec₁ v).resolve_right (h.resolve_left hv)
     rintro - e - h' ⟨rfl⟩ ⟨rfl⟩
     split_ifs at h' with snde
     · simp [h']
     · exact absurd h' (h.resolve_left snde)
   · push_neg at h
-    -- simp? [dijkstraStep, Function.update_apply, h, Multiset.filterMap_filterMap]
-    simp only [ne_eq, h, not_false_eq_true, Function.update_noteq, AssocDArray.get_eq_getElem,
-      Function.update_apply, Multiset.filterMap_filterMap]
+    simp? [Function.update_apply, h, Multiset.filterMap_filterMap] says
+      simp only [ne_eq, h, not_false_eq_true,
+        Function.update_noteq, Get.get_eq_getElem, Function.update_apply,
+        Multiset.filterMap_filterMap]
     congr!
     split; · rename_i snde; simp [snde, Ne.symm h.1]
     split; · simp
@@ -501,10 +504,10 @@ lemma dijkstraStep_fst_getElem_eq_top (g : G) (c : Info → CostType)
   letI : DecidableEq Info := by classical infer_instance
   dsimp
   rw [dijkstraStep_fst_getElem (spec₁ := spec₁)]
-  -- simp? [hMinIdx]
-  simp only [ne_eq, ite_eq_left_iff, min_eq_top, Finset.inf_eq_top_iff, Finset.mem_univ,
-    WithTop.add_eq_top, hMinIdx, WithTop.coe_ne_top, or_self, forall_true_left, mem_succSet_iff,
-    Set.mem_singleton_iff, exists_eq_left]
+  simp? [hMinIdx, - not_or] says
+    simp only [ne_eq, ite_eq_left_iff, min_eq_top, Finset.inf_eq_top_iff,
+      Finset.mem_univ, WithTop.add_eq_top, hMinIdx, WithTop.coe_ne_top, or_self, imp_false,
+      not_true_eq_false, succSet_singleton, Set.mem_setOf_eq]
   rw [← or_iff_not_imp_right]
   congr!
   rw [iff_not_comm]

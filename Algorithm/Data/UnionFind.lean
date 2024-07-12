@@ -79,7 +79,7 @@ def findAux (parent : P) (wf : WellFounded fun j k : ι ↦ j ≠ k ∧ j = pare
     ⟨i, parent⟩
   else
     let ⟨r, ps⟩ := findAux parent wf p
-    ⟨r, AssocDArray.set ps i r⟩
+    ⟨r, ps[i ↦ r]⟩
 termination_by wf.wrap i
 decreasing_by simp_wf; tauto
 
@@ -99,9 +99,9 @@ lemma findAux_snd_getElem (parent : P) (wf : WellFounded fun j k : ι ↦ j ≠ 
   unfold findAux rootCore; dsimp
   split_ifs with hi
   · exact .inl rfl
-  · obtain (hj | rfl) := decEq j i
-    · simp only [findAux_fst, AssocDArray.getElem_set_eq_update, ne_eq, hj, not_false_eq_true,
-        Function.update_noteq, AssocDArray.get_eq_getElem]
+  · obtain (hj | rfl) := decEq i j
+    · simp? [hj] says
+        simp only [findAux_fst, ne_eq, hj, not_false_eq_true, getElem_set_ne]
       exact (findAux_snd_getElem parent wf parent[i] j).imp_right (by rw [·, rootCore])
     · simp [hi]
 termination_by wf.wrap i
@@ -173,16 +173,16 @@ lemma find_snd_root (self : UnionFind ι P S) (i : ι) :
 
 lemma wellFounded_assocArraySet (parent : P) (wf : WellFounded fun j k : ι ↦ j ≠ k ∧ j = parent[k])
     (i r : ι) (hr : parent[r] = r) :
-    WellFounded fun j k : ι ↦ j ≠ k ∧ j = (AssocArray.set parent i r)[k] := by
+    WellFounded fun j k : ι ↦ j ≠ k ∧ j = parent[i ↦ r][k] := by
   refine ⟨fun x ↦ ?_⟩
   induction x using wf.induction with
   | h x ih =>
     refine ⟨x, fun p ⟨hpx, h⟩ ↦ ?_⟩
-    simp only [AssocDArray.getElem_set] at h
+    simp only [getElem_set] at h
     split_ifs at h with hx
     · subst hx h
       refine ⟨p, fun f hf ↦ ?_⟩
-      simp only [ne_eq, AssocDArray.getElem_set, hr, ite_self, not_and_self] at hf
+      simp only [ne_eq, getElem_set, hr, ite_self, not_and_self] at hf
     · exact ih p ⟨hpx, h⟩
 
 set_option linter.unusedVariables false in -- easier to `rw` and `simp`
@@ -190,7 +190,7 @@ set_option linter.unusedVariables false in -- easier to `rw` and `simp`
 def setParent (parent : P) (size : S) (wf : WellFounded fun i j : ι ↦ i ≠ j ∧ i = parent[j])
     (i j : ι) (hi : parent[i] = i) (hj : parent[j] = j) (s : ℕ) :
     UnionFind ι P S :=
-  ⟨AssocDArray.set parent i j, AssocDArray.set size j s, wellFounded_assocArraySet parent wf i j hj⟩
+  ⟨parent[i ↦ j], size[j ↦ s], wellFounded_assocArraySet parent wf i j hj⟩
 
 @[simp]
 lemma setParent_parent_eq_parent (parent : P) (size : S)
@@ -205,7 +205,7 @@ lemma setParent_parent_eq_self (parent : P) (size : S)
     (i j : ι) (hi : parent[i] = i) (hj : parent[j] = j) (s : ℕ) (k : ι) :
     (setParent parent size wf i j hi hj s).parent[k] = k ↔
       (if i = k then j else parent[k]) = k := by
-  simp [setParent, AssocDArray.getElem_set]
+  simp [setParent, getElem_set]
 
 @[simp]
 lemma setParent_root (parent : P) (size : S) (wf : WellFounded fun i j : ι ↦ i ≠ j ∧ i = parent[j])
@@ -220,6 +220,7 @@ lemma setParent_root (parent : P) (size : S) (wf : WellFounded fun i j : ι ↦ 
     simp only [this, ↓reduceIte]
     convert setParent_root parent size wf i j hi hj s parent[k] using 1
     · simp [← (setParent_parent_eq_parent parent size wf i j hi hj s k).mpr (absurd · hik)]
+
     · simp
   · simp only [setParent_parent_eq_self, setParent]
     unfold rootCore
@@ -297,7 +298,7 @@ lemma mem_finsetOfRoot_iff (self : UnionFind ι P S) (r i : ι) :
     i ∈ self.finsetOfRoot r ↔ self.root i = r := by
   simp? [finsetOfRoot] says
     simp only [finsetOfRoot, Finset.mem_filter, Finset.mem_insert, DFinsupp'.mem_support_toFun,
-      id_eq, coe_toDFinsupp'_eq_get, AssocDArray.get_eq_getElem, ne_eq, and_iff_right_iff_imp]
+      id_eq, coe_toDFinsupp'_eq_get, Get.get_eq_getElem, ne_eq, and_iff_right_iff_imp]
   obtain (hr | hr) := decEq self.parent[i] i
   · simp [hr]
   · simp [hr, root, rootCore]
@@ -325,10 +326,7 @@ lemma setParent_wf (self : UnionFind ι P S)
     (setParent self.parent self.size self.wf i j hi hj (self.size[i] + self.size[j])).WF := by
   intro k hk
   rw [setParent_parent_eq_self] at hk
-  conv_lhs =>
-    -- simp? [setParent, Function.update] says
-    simp only [setParent, AssocDArray.getElem_set, Function.update,
-      eq_rec_constant, AssocDArray.get_eq_getElem, dite_eq_ite]
+  conv_lhs => simp only [setParent, getElem_set]
   split_ifs at hk ⊢ with hjk hik hij
   · simp [hik, hjk] at hij
   · subst hjk
