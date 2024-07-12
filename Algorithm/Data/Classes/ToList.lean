@@ -10,11 +10,9 @@ variable {C α : Type*}
 namespace List
 variable (l : List α)
 
--- #check isEmpty_iff_eq_nil
 lemma not_isEmpty_iff_ne_nil {l : List α} : ¬l.isEmpty ↔ l ≠ [] :=
   isEmpty_iff_eq_nil.not
 
--- #check getLast?_isSome
 lemma head?_isSome : (head? l).isSome ↔ l ≠ [] :=
   match l with | [] | _::_ => by simp
 
