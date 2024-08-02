@@ -6,6 +6,7 @@ Authors: Yuyang Zhao
 import Algorithm.Data.Classes.ToList
 import Algorithm.Data.Classes.IndexedMinHeap
 import Algorithm.Data.Graph.AdjList
+import Mathlib.Algebra.Order.Monoid.WithTop
 import Mathlib.Data.Finset.Card
 import Mathlib.Data.Fintype.Basic
 import Mathlib.Algebra.Order.Monoid.Canonical.Defs

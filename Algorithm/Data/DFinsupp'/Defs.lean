@@ -128,9 +128,9 @@ def zipWith (f : ∀ i, β₁ i → β₂ i → β i) (hf : ∀ i, f i (d₁ i) 
     (x : Π₀' i, [β₁ i, d₁ i]) (y : Π₀' i, [β₂ i, d₂ i]) :
     Π₀' i, [β i, d i] :=
   ⟨fun i => f i (x i) (y i), by
-    refine' x.support'.bind fun xs => _
-    refine' y.support'.map fun ys => _
-    refine' ⟨xs + ys, fun i => _⟩
+    refine x.support'.bind fun xs => ?_
+    refine y.support'.map fun ys => ?_
+    refine ⟨xs + ys, fun i => ?_⟩
     obtain h1 | (h1 : x i = d₁ i) := xs.prop i
     · left
       rw [Multiset.mem_add]
@@ -471,7 +471,7 @@ protected theorem induction_on {p : (Π₀' i, [β i, d i]) → Prop} (x : Π₀
   cases' Classical.em (x i = d i) with h h
   · rw [h, single_eq_self, zipWith_default_left]
     exact H2
-  refine' ha _ _ _ _ h H2
+  refine ha _ _ _ ?_ h H2
   rw [erase_same]
 
 theorem induction_on' {p : (Π₀' i, [β i, d i]) → Prop} (x : Π₀' i, [β i, d i])
