@@ -46,13 +46,13 @@ theorem prod_mapRange_index
     {g : Π₀' i, [β₁ i, d₁ i]} {h : ∀ i, β₂ i → γ}
     (h0 : ∀ i, h i (d₂ i) = 1) : (mapRange f hf g).prod h = g.prod fun i b => h i (f i b) := by
   rw [mapRange_def]
-  refine' (Finset.prod_subset support_mk_subset _).trans _
+  refine (Finset.prod_subset support_mk_subset ?_).trans ?_
   · intro i h1 h2
     simp only [mem_support_toFun, ne_eq] at h1
     simp only [Finset.coe_sort_coe, mem_support_toFun, mk_apply, ne_eq, h1, not_false_iff,
       dite_eq_ite, ite_true, not_not] at h2
     simp [h2, h0]
-  · refine' Finset.prod_congr rfl _
+  · refine Finset.prod_congr rfl ?_
     intro i h1
     simp only [mem_support_toFun, ne_eq] at h1
     simp [h1]
