@@ -22,7 +22,7 @@ namespace Batteries793
 structure Vector (α : Type u) (n : Nat) where
   toArray : Array α
   size_eq : toArray.size = n
-deriving Repr, BEq, DecidableEq
+deriving Repr, DecidableEq
 
 namespace Vector
 variable {α : Type*} {n : ℕ}

@@ -49,7 +49,7 @@ lemma reverse_dropLast (l : List α) : l.dropLast.reverse = l.reverse.tail :=
 
 @[simp]
 lemma back?_toArray : l.toArray.back? = l.getLast? := by
-  rw [Array.back?, Array.get?_eq_data_get?, getLast?_eq_get?]
+  rw [Array.back?, Array.get?_eq_data_get?, getLast?_eq_getElem?]
   simp
 
 end List
@@ -78,7 +78,7 @@ lemma get?_toList : a.toList.get? = a.get? := by
   rw [toList_eq, get?_data]
 
 lemma getLast?_toList : a.toList.getLast? = a.back? := by
-  rw [back?, get?_eq_data_get?, List.getLast?_eq_get?]
+  rw [back?, get?_eq_data_get?, List.getLast?_eq_getElem?]
   simp
 
 @[simp]
@@ -260,7 +260,7 @@ instance : Front (List α) α where
   frontD := List.headD
   front l h := l.head <| List.not_isEmpty_iff_ne_nil.mp h
   frontD_def := List.headD_eq_head?
-  front_mem _ _ := List.head?_eq_head _ _
+  front_mem _ _ := List.head?_eq_head _
 
 instance : PopFront (List α) α where
   popFront := List.tail
