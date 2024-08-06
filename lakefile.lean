@@ -13,8 +13,8 @@ package algorithm where
     "-lstdc++"
   ]
 
-require "leanprover-community" / "mathlib" @ "git#master"
-require "leanprover" / "doc-gen4" @ "git#main"
+require "leanprover-community" / "mathlib" @ git "master"
+require "leanprover" / "doc-gen4" @ git "main"
 
 lean_lib Mutable where
   roots := #[`Mutable]

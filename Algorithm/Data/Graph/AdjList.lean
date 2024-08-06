@@ -86,7 +86,7 @@ protected lemma E.eta (e : g..E) (he : e.info ∈ g[e.fst]) :
   rfl
 
 instance E.instDecidableEq [DecidableEq V] [DecidableEq Info] : DecidableEq g..E :=
-  fun x y ↦ decidable_of_iff _ (E.ext_iff x y).symm
+  fun _ _ ↦ decidable_of_iff _ E.ext_iff.symm
 
 protected def E.snd (e : g..E) : V := g..snd e.info
 
