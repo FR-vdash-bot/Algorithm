@@ -203,7 +203,7 @@ instance : Mergeable (PairingHeap α le) α where
   toMultiset_merge a x := by
     simp only [toMultiset, coe_toListUnordered_merge]
 
-instance [Preorder α] [IsTotalPreorder α (· ≤ ·)] [DecidableRel (α := α) (· ≤ ·)] :
+instance [Preorder α] [IsTotal α (· ≤ ·)] [DecidableRel (α := α) (· ≤ ·)] :
     MinHeap (PairingHeap α (· ≤ ·)) α where
   head? x := x.head?.rec ⊤ WithTop.some
   tail := tail

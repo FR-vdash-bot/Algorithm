@@ -29,9 +29,9 @@ instance (priority := 100) ToFinset.toMultiset : ToMultiset C α where
   size_eq_card_toMultiset c := size_eq_card_toFinset c
 
 section LawfulEmptyCollection
-variable [EmptyCollection C] [LawfulEmptyCollection C α]
+variable [EmptyCollection C]
 
-lemma ToFinset.lawfulEmptyCollection_iff [ToFinset C α] [EmptyCollection C] :
+lemma ToFinset.lawfulEmptyCollection_iff :
     LawfulEmptyCollection C α ↔ toFinset (∅ : C) = ∅ := by
   rw [ToMultiset.lawfulEmptyCollection_iff]
   change (toFinset (∅ : C)).val = ∅ ↔ _
@@ -40,7 +40,7 @@ lemma ToFinset.lawfulEmptyCollection_iff [ToFinset C α] [EmptyCollection C] :
 alias ⟨_, LawfulEmptyCollection.ofToFinset⟩ := ToFinset.lawfulEmptyCollection_iff
 
 @[simp]
-lemma toFinset_empty [ToFinset C α] [EmptyCollection C] [inst : LawfulEmptyCollection C α] :
+lemma toFinset_empty [inst : LawfulEmptyCollection C α] :
     toFinset (∅ : C) = ∅ := by
   rwa [ToFinset.lawfulEmptyCollection_iff] at inst
 
@@ -54,7 +54,5 @@ lemma mem_toFinset {c : C} {v : α} : v ∈ toFinset c ↔ v ∈ c := .rfl
 lemma toFinset_val : (toFinset c).val = toMultiset c := rfl
 
 lemma nodup_toMultiset : (toMultiset c).Nodup := (toFinset c).nodup
-
-variable [DecidableEq α]
 
 end ToFinset

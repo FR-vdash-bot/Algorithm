@@ -3,6 +3,7 @@ Copyright (c) 2023 Yuyang Zhao. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuyang Zhao
 -/
+import Batteries.Data.Vector.Basic
 import Mathlib.Data.Fin.Basic
 import Mathlib.Logic.Function.Basic
 
@@ -17,24 +18,10 @@ lemma get_fin_set (a : Array α) (i : Fin a.size) (v : α) (j : Fin (set a i v).
 
 end Array
 
-namespace Batteries793
-
-structure Vector (α : Type u) (n : Nat) where
-  toArray : Array α
-  size_eq : toArray.size = n
-deriving Repr, DecidableEq
+namespace Batteries
 
 namespace Vector
 variable {α : Type*} {n : ℕ}
-
-def ofFn (f : Fin n → α) : Vector α n :=
-  ⟨.ofFn f, Array.size_ofFn f⟩
-
-def get (a : Vector α n) (i : Fin n) : α :=
-  a.1.get (i.cast a.2.symm)
-
-def set (a : Vector α n) (i : Fin n) (v : α) : Vector α n :=
-  ⟨a.1.set (i.cast a.2.symm) v, (Array.size_set _ _ _).trans a.2⟩
 
 lemma get_set_eq (a : Vector α n) (i : Fin n) (v : α) :
     (a.set i v).get i = v := by
@@ -50,7 +37,7 @@ lemma get_set_ne (a : Vector α n) (i : Fin n) (v : α) (j : Fin n) (h : i ≠ j
 lemma get_ofFn (f : Fin n → α) : (ofFn f).get = f := by
   ext; simp [ofFn, get]
 
-end Batteries793.Vector
+end Batteries.Vector
 
 class Get (C : Type*) (ι : outParam Type*) (α : outParam Type*) where
   get : C → ι → α
@@ -148,7 +135,7 @@ lemma getElem_ofFn {i : ι} : (ofFn f : C)[i] = f i :=
 
 end OfFn
 
-namespace Batteries793.Vector
+namespace Batteries.Vector
 variable {α : Type*} {n : ℕ} {f : Fin n → α}
 
 instance : GetSet (Vector α n) (Fin n) α where
@@ -161,4 +148,4 @@ instance : OfFn (Vector α n) (Fin n) α f where
   ofFn := ofFn f
   get_ofFn := get_ofFn f
 
-end Batteries793.Vector
+end Batteries.Vector

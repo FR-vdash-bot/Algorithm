@@ -10,7 +10,7 @@ import Mathlib.Data.Setoid.Basic
 
 universe u v
 
-namespace Batteries793
+namespace Batteries
 
 namespace Vector
 variable {α : Type*} {n : ℕ}
@@ -26,7 +26,7 @@ instance {α n f} : Inhabited (Vector.WithDefault α n f) where
 lemma get_default {f} : (default : Vector.WithDefault α n f).get = f :=
   get_ofFn _
 
-end Batteries793.Vector
+end Batteries.Vector
 
 class AssocDArray.ReadOnly (C : Type*) (ι : outParam Type*)
     (α : outParam Type*) (d : outParam <| ι → α) extends Get C ι α where
@@ -82,7 +82,7 @@ lemma toDFinsupp'_default :
 
 end AssocDArray
 
-namespace Batteries793.Vector
+namespace Batteries.Vector
 variable {α : Type*} {n : ℕ} {f : Fin n → α}
 
 instance : GetSet (Vector α n) (Fin n) α where
@@ -104,7 +104,7 @@ instance : AssocDArray (Vector.WithDefault α n f) (Fin n) α f where
   toDFinsupp' a := DFinsupp'.equivFunOnFintype.symm (get a)
   coe_toDFinsupp'_eq_get _ := DFinsupp'.coe_equivFunOnFintype_symm _
 
-end Batteries793.Vector
+end Batteries.Vector
 
 namespace AssocArray
 
@@ -201,6 +201,6 @@ def DefaultAssocDArray (ι : Type u) (α : Type v) (f : ι → α) {D : Type _} 
     [HasDefaultAssocDArray ι α f D] :=
   D
 
-instance {n α f} : HasDefaultAssocDArray (Fin n) α f (Batteries793.Vector.WithDefault α n f) where
+instance {n α f} : HasDefaultAssocDArray (Fin n) α f (Batteries.Vector.WithDefault α n f) where
 
 example {n α f} := DefaultAssocDArray (Fin n) α f

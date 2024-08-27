@@ -9,7 +9,7 @@ import Algorithm.Data.Classes.ToList
 import Mathlib.Data.Prod.Lex
 
 class IndexedMinHeap (C : Type*) [Inhabited C] (ι : outParam Type*)
-    (α : outParam Type*) [Preorder α] [IsTotalPreorder α (· ≤ ·)] [OrderTop α] extends
+    (α : outParam Type*) [Preorder α] [IsTotal α (· ≤ ·)] [OrderTop α] extends
     AssocDArray C ι α fun _ ↦ ⊤ where
   minIdx : C → ι
   getElem_minIdx_le c (i : ι) : c[minIdx c] ≤ c[i]
@@ -57,16 +57,17 @@ lemma decreaseKeysD_getElem [DecidableEq ι] {ια : Type*} [ToList ια (ι × 
 
 end IndexedMinHeap
 
-namespace Batteries793.Vector
+namespace Batteries.Vector
 variable {α : Type*} [LinearOrder α] {n : ℕ} [NeZero n] {d : Fin n → α}
 
 section ReadOnly
 
 variable [AssocDArray.ReadOnly (Vector α n) (Fin n) α d]
 
-def minAux (a : Vector α n) : Lex (α × Fin n) :=
+abbrev minAux (a : Vector α n) : Lex (α × Fin n) :=
   (⊤ : Finset (Fin n)).inf' ⟨0, Finset.mem_univ 0⟩ (fun i ↦ toLex (a[i], i))
 
+@[inline]
 def minIdx (a : Vector α n) : Fin n :=
   a.minAux.2
 
@@ -89,17 +90,13 @@ lemma minIdx_le (a : Vector α n) (i : Fin n) :
 
 end ReadOnly
 
-instance [OrderTop α] [Inhabited (Vector α n)] [AssocArray (Vector α n) (Fin n) α ⊤] :
-    IndexedMinHeap (Vector α n) (Fin n) α where
-  minIdx a := ((⊤ : Finset (Fin n)).inf' ⟨0, Finset.mem_univ 0⟩ (fun i ↦ toLex (a[i], i))).2
+instance [OrderTop α] : IndexedMinHeap (Vector.WithDefault α n fun _ ↦ ⊤) (Fin n) α where
+  minIdx := minIdx
   getElem_minIdx_le a i := a.minIdx_le i
 
-end Batteries793.Vector
+end Batteries.Vector
 
 namespace WithTop
-
-instance (α) [Preorder α] [IsTotalPreorder α (· ≤ ·)] :
-  IsTotalPreorder (WithTop α) (· ≤ ·) where
 
 instance (α) (x : WithTop α) : Decidable (x = ⊤) :=
   match x with
@@ -140,13 +137,13 @@ instance [Preorder α] : Preorder (AssocArrayWithHeap.WithIdx α ι) where
   le_trans _ _ _ := le_trans
   lt_iff_le_not_le _ _ := lt_iff_le_not_le
 
-instance [Preorder α] [IsTotalPreorder α (· ≤ ·)] :
-    IsTotalPreorder (AssocArrayWithHeap.WithIdx α ι) (· ≤ ·) where
+instance [Preorder α] [IsTotal α (· ≤ ·)] :
+    IsTotal (AssocArrayWithHeap.WithIdx α ι) (· ≤ ·) where
   total _ _ := total_of (α := α) (· ≤ ·) _ _
 
 end AssocArrayWithHeap.WithIdx
 
-structure AssocArrayWithHeap (C C' : Type*) {ι α : Type*} [Preorder α] [IsTotalPreorder α (· ≤ ·)]
+structure AssocArrayWithHeap (C C' : Type*) {ι α : Type*} [Preorder α] [IsTotal α (· ≤ ·)]
     [Inhabited C] [AssocArray C ι (WithTop α) ⊤]
     [MinHeap C' (AssocArrayWithHeap.WithIdx α ι)] where mk' ::
   assocArray : C
@@ -156,7 +153,7 @@ structure AssocArrayWithHeap (C C' : Type*) {ι α : Type*} [Preorder α] [IsTot
     assocArray[(MinHeap.head minHeap h).idx] = (MinHeap.head minHeap h).val
 
 namespace AssocArrayWithHeap
-variable {C C' : Type*} {ι α : Type*} [Preorder α] [IsTotalPreorder α (· ≤ ·)]
+variable {C C' : Type*} {ι α : Type*} [Preorder α] [IsTotal α (· ≤ ·)]
   [Inhabited C] [AssocArray C ι (WithTop α) ⊤]
   [MinHeap C' (AssocArrayWithHeap.WithIdx α ι)]
 

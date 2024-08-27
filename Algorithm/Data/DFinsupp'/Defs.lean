@@ -173,8 +173,6 @@ end zipWith
 
 end Basic
 
-variable [DecidableEq ι]
-
 section Basic
 
 theorem finite_support (f : Π₀' i, [β i, d i]) : Set.Finite { i | f i ≠ d i } :=
@@ -182,6 +180,8 @@ theorem finite_support (f : Π₀' i, [β i, d i]) : Set.Finite { i | f i ≠ d 
     xs.1.finite_toSet.subset fun i H ↦ ((xs.prop i).resolve_right H)
 
 section mk
+
+variable [DecidableEq ι]
 
 variable (d) in
 /-- Create an element of `Π₀' i, [β i, d i]` from a finset `s` and a function `x`
@@ -243,6 +243,8 @@ theorem coe_equivFunOnFintype_symm [Fintype ι] (f : ∀ i, β i) :
 
 
 section single
+
+variable [DecidableEq ι]
 
 variable (d) in
 /-- The function `single i b : Π₀' i, [β i, d i]` sends `i` to `b`
@@ -344,6 +346,8 @@ end single
 
 section update
 
+variable [DecidableEq ι]
+
 variable (f : Π₀' i, [β i, d i]) (i) (b : β i)
 
 /-- Replace the value of a `Π₀' i, [β i, d i]` at a given point `i : ι` by a given value `b : β i`.
@@ -374,6 +378,8 @@ end update
 
 
 section erase
+
+variable [DecidableEq ι]
 
 /-- Redefine `f i` to be `d i`. -/
 def erase (i : ι) (x : Π₀' i, [β i, d i]) : Π₀' i, [β i, d i] :=
@@ -422,6 +428,8 @@ theorem update_eq_erase (f : Π₀' i, [β i, d i]) (i : ι) :
 end erase
 
 end Basic
+
+variable [DecidableEq ι]
 
 theorem single_zipWith_erase (f : ∀ i, β i → β i → β i)
     (hf₁ : ∀ i x, f i (d i) x = x) (hf₂ : ∀ i x, f i x (d i) = x)

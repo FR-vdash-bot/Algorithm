@@ -10,8 +10,8 @@ import Mathlib.Data.Set.Card
 namespace UnionFindImpl
 
 structure UnionFind (ι : Type*) [DecidableEq ι]
-    (P : Type*) [GetSet P ι ι] [OfFn P ι ι id]
-    (S : Type*) [GetSet S ι ℕ] [OfFn S ι ℕ (fun _ ↦ 1)] where
+    (P : Type*) [GetSet P ι ι]
+    (S : Type*) [GetSet S ι ℕ] where
   parent : P
   size : S
   wf : WellFounded fun i j : ι ↦ i ≠ j ∧ i = parent[j]
@@ -19,8 +19,8 @@ structure UnionFind (ι : Type*) [DecidableEq ι]
 namespace UnionFind
 
 variable {ι : Type*} [DecidableEq ι]
-    {P : Type*} [GetSet P ι ι] [OfFn P ι ι id]
-    {S : Type*} [GetSet S ι ℕ] [OfFn S ι ℕ (fun _ ↦ 1)]
+    {P : Type*} [GetSet P ι ι]
+    {S : Type*} [GetSet S ι ℕ]
 
 def rootCore (parent : P) (wf : WellFounded fun j k : ι ↦ j ≠ k ∧ j = parent[k]) (i : ι) : ι :=
   let p := parent[i]
@@ -275,36 +275,6 @@ lemma union_root (self : UnionFind ι P S) (i j : ι) :
         self.root k := by
   simp [union]
 
-instance : Inhabited (UnionFind ι P S) where
-  default := ⟨ofFn id, ofFn (fun _ ↦ 1), ⟨fun i ↦ ⟨i, by simp⟩⟩⟩
-
-@[simp]
-lemma default_parent : (default : UnionFind ι P S).parent = ofFn id :=
-  rfl
-
-@[simp]
-lemma default_size : (default : UnionFind ι P S).size = ofFn (fun _ ↦ 1) :=
-  rfl
-
-@[simp]
-lemma default_root : (default : UnionFind ι P S).root = id := by
-  ext; simp
-
--- def finsetOfRoot (self : UnionFind ι P S) (r : ι) : Finset ι :=
---   ((insert r (toDFinsupp' self.parent).support).filter (self.root · = r))
-
--- lemma mem_finsetOfRoot_iff (self : UnionFind ι P S) (r i : ι) :
---     i ∈ self.finsetOfRoot r ↔ self.root i = r := by
---   simp? [finsetOfRoot] says
---     simp only [finsetOfRoot, Finset.mem_filter, Finset.mem_insert, DFinsupp'.mem_support_toFun,
---       id_eq, coe_toDFinsupp'_eq_get, Get.get_eq_getElem, ne_eq, and_iff_right_iff_imp]
---   obtain (hr | hr) := decEq self.parent[i] i
---   · simp [hr]
---   · simp [hr, root, rootCore]
-
--- instance (self : UnionFind ι P S) (r : ι) : Finite {i | self.root i = r} :=
---   Set.Finite.ofFinset (self.finsetOfRoot r) (self.mem_finsetOfRoot_iff r)
-
 def WF (self : UnionFind ι P S) : Prop :=
   ∀ i : ι, self.parent[i] = i → self.size[i] = {j : ι | self.root j = i}.encard
 
@@ -316,9 +286,6 @@ lemma wf_iff_size_root {self : UnionFind ι P S} :
     self.WF ↔ ∀ i, self.size[self.root i] = {j : ι | self.root j = self.root i}.encard :=
   ⟨fun wf i ↦ wf (self.root i) (self.parent_root i),
     fun h i hi ↦ self.root_of_parent_eq i hi ▸ h i⟩
-
-lemma default_wf : (default : UnionFind ι P S).WF :=
-  fun i ↦ by rw [default_root]; simp
 
 lemma setParent_wf (self : UnionFind ι P S)
     (i j : ι) (hi : self.parent[i] = i) (hj : self.parent[j] = j) (hij : i ≠ j) (h : self.WF) :
@@ -357,18 +324,57 @@ lemma union_wf (self : UnionFind ι P S) (i j : ι) (h : self.WF) : (self.union 
   unfold union; dsimp
   exact self.link_wf _ _ _ _ h
 
+section default
+
+variable [OfFn P ι ι id] [OfFn S ι ℕ (fun _ ↦ 1)]
+
+instance : Inhabited (UnionFind ι P S) where
+  default := ⟨ofFn id, ofFn (fun _ ↦ 1), ⟨fun i ↦ ⟨i, by simp⟩⟩⟩
+
+@[simp]
+lemma default_parent : (default : UnionFind ι P S).parent = ofFn id :=
+  rfl
+
+@[simp]
+lemma default_size : (default : UnionFind ι P S).size = ofFn (fun _ ↦ 1) :=
+  rfl
+
+@[simp]
+lemma default_root : (default : UnionFind ι P S).root = id := by
+  ext; simp
+
+lemma default_wf : (default : UnionFind ι P S).WF :=
+  fun i ↦ by rw [default_root]; simp
+
+end default
+
+-- def finsetOfRoot (self : UnionFind ι P S) (r : ι) : Finset ι :=
+--   ((insert r (toDFinsupp' self.parent).support).filter (self.root · = r))
+
+-- lemma mem_finsetOfRoot_iff (self : UnionFind ι P S) (r i : ι) :
+--     i ∈ self.finsetOfRoot r ↔ self.root i = r := by
+--   simp? [finsetOfRoot] says
+--     simp only [finsetOfRoot, Finset.mem_filter, Finset.mem_insert, DFinsupp'.mem_support_toFun,
+--       id_eq, coe_toDFinsupp'_eq_get, Get.get_eq_getElem, ne_eq, and_iff_right_iff_imp]
+--   obtain (hr | hr) := decEq self.parent[i] i
+--   · simp [hr]
+--   · simp [hr, root, rootCore]
+
+-- instance (self : UnionFind ι P S) (r : ι) : Finite {i | self.root i = r} :=
+--   Set.Finite.ofFinset (self.finsetOfRoot r) (self.mem_finsetOfRoot_iff r)
+
 end UnionFind
 
 def UnionFindWF (ι : Type*) [DecidableEq ι]
-    (P : Type*) [GetSet P ι ι] [OfFn P ι ι id]
-    (S : Type*) [GetSet S ι ℕ] [OfFn S ι ℕ (fun _ ↦ 1)] :=
+    (P : Type*) [GetSet P ι ι]
+    (S : Type*) [GetSet S ι ℕ] :=
   { x : UnionFindImpl.UnionFind ι P S // x.WF }
 
 namespace UnionFindWF
 
 variable {ι : Type*} [DecidableEq ι]
-    {P : Type*} [GetSet P ι ι] [OfFn P ι ι id]
-    {S : Type*} [GetSet S ι ℕ] [OfFn S ι ℕ (fun _ ↦ 1)]
+    {P : Type*} [GetSet P ι ι]
+    {S : Type*} [GetSet S ι ℕ]
 
 def IsRoot (self : UnionFindWF ι P S) (i : ι) : Prop := self.val.parent[i] = i
 
@@ -435,17 +441,17 @@ end UnionFindWF
 end UnionFindImpl
 
 def UnionFind (ι : Type*) [DecidableEq ι]
-    (P : Type*) [GetSet P ι ι] [OfFn P ι ι id]
-    (S : Type*) [GetSet S ι ℕ] [OfFn S ι ℕ (fun _ ↦ 1)] :=
+    (P : Type*) [GetSet P ι ι]
+    (S : Type*) [GetSet S ι ℕ] :=
   MutableQuotient (UnionFindImpl.UnionFindWF ι P S) fun x ↦ x.root
 
 namespace UnionFind
 
 variable {ι : Type*} [DecidableEq ι]
-    {P : Type*} [GetSet P ι ι] [OfFn P ι ι id]
-    {S : Type*} [GetSet S ι ℕ] [OfFn S ι ℕ (fun _ ↦ 1)]
+    {P : Type*} [GetSet P ι ι]
+    {S : Type*} [GetSet S ι ℕ]
 
-instance : Inhabited (UnionFind ι P S) where
+instance [OfFn P ι ι id] [OfFn S ι ℕ (fun _ ↦ 1)] : Inhabited (UnionFind ι P S) where
   default := .mk _ ⟨default, UnionFindImpl.UnionFind.default_wf⟩
 
 @[inline]
