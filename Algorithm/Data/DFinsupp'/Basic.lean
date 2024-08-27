@@ -89,9 +89,9 @@ theorem subtypeDomain_apply {p : ι → Prop} [DecidablePred p] {i : Subtype p}
 
 end FilterAndSubtypeDomain
 
-variable [DecidableEq ι]
-
 section Basic
+
+variable [DecidableEq ι]
 
 variable {s : Finset ι} {x : ∀ i : (↑s : Set ι), β i} {i : ι}
 
@@ -134,6 +134,8 @@ theorem filter_ne_eq_erase' (f : Π₀' i, [β i, d i]) (i : ι) : f.filter (i �
 end Basic
 
 section SupportBasic
+
+variable [DecidableEq ι]
 
 variable [∀ (i) (x : β i), Decidable (x ≠ d i)]
 
@@ -189,7 +191,7 @@ end FilterAndSubtypeDomain
 
 end SupportBasic
 
-instance [∀ i, DecidableEq (β i)] : DecidableEq (Π₀' i, [β i, d i]) := fun f g =>
+instance [DecidableEq ι] [∀ i, DecidableEq (β i)] : DecidableEq (Π₀' i, [β i, d i]) := fun f g =>
   decidable_of_iff (f.support = g.support ∧ ∀ i ∈ f.support, f i = g i)
     ⟨fun ⟨h₁, h₂⟩ => ext fun i => if h : i ∈ f.support then h₂ i h else by
       have hf : f i = d i := by rwa [mem_support_iff, not_not] at h
@@ -204,7 +206,7 @@ open Finset
 variable {κ : Type*}
 
 /-- Reindexing (and possibly removing) terms of a `DFinsupp'`. -/
-noncomputable def comapDomain (h : κ → ι) (hh : Function.Injective h)
+noncomputable def comapDomain [DecidableEq ι] (h : κ → ι) (hh : Function.Injective h)
     (f : Π₀' i, [β i, d i]) : Π₀' k, [β (h k), d (h k)] where
   toFun x := f (h x)
   support' :=
@@ -213,18 +215,19 @@ noncomputable def comapDomain (h : κ → ι) (hh : Function.Injective h)
         (s.prop (h x)).imp_left fun hx => mem_preimage.mpr <| Multiset.mem_toFinset.mpr hx⟩
 
 @[simp]
-theorem comapDomain_apply (h : κ → ι) (hh : Function.Injective h) (f : Π₀' i, [β i, d i])
+theorem comapDomain_apply [DecidableEq ι]
+    (h : κ → ι) (hh : Function.Injective h) (f : Π₀' i, [β i, d i])
     (k : κ) : comapDomain h hh f k = f (h k) :=
   rfl
 
 @[simp]
-theorem comapDomain_default (h : κ → ι) (hh : Function.Injective h) :
+theorem comapDomain_default [DecidableEq ι] (h : κ → ι) (hh : Function.Injective h) :
     comapDomain h hh (default : Π₀' i, [β i, d i]) = default := by
   ext
   rw [default_apply, comapDomain_apply, default_apply]
 
 @[simp]
-theorem comapDomain_single [DecidableEq κ] (h : κ → ι) (hh : Function.Injective h)
+theorem comapDomain_single [DecidableEq ι] [DecidableEq κ] (h : κ → ι) (hh : Function.Injective h)
     (k : κ) (x : β (h k)) : comapDomain h hh (single d (h k) x) = single _ k x := by
   ext i
   rw [comapDomain_apply]
@@ -318,7 +321,7 @@ theorem extendWith_default [DecidableEq ι] (x : α none) :
 
 This is the `DFinsupp'` version of `Equiv.piOptionEquivProd`. -/
 @[simps]
-noncomputable def equivProdDFinsupp' :
+noncomputable def equivProdDFinsupp' [DecidableEq ι] :
     (Π₀' i, [α i, dα i]) ≃ α none × Π₀' i, [α (some i), dα (some i)] where
   toFun f := (f none, comapDomain some (Option.some_injective _) f)
   invFun f := f.2.extendWith f.1

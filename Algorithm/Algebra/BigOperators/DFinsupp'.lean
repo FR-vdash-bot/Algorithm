@@ -146,8 +146,6 @@ end DFinsupp'
 
 section
 
-variable [DecidableEq ι]
-
 namespace MonoidHom
 
 variable {R S : Type*}

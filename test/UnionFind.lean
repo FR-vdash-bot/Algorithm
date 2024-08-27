@@ -1,6 +1,6 @@
 import Algorithm.Data.UnionFind
 
-abbrev Vector := Batteries793.Vector
+abbrev Vector := Batteries.Vector
 abbrev UF := UnionFind (Fin 10) (Vector (Fin 10) 10) (Vector Nat 10)
 
 #eval show IO Unit from do
