@@ -10,8 +10,8 @@ variable {C α : Type*}
 namespace List
 variable (l : List α)
 
-lemma not_isEmpty_iff_ne_nil {l : List α} : ¬l.isEmpty ↔ l ≠ [] :=
-  isEmpty_iff_eq_nil.not
+lemma not_isEmpty_iff {l : List α} : ¬l.isEmpty ↔ l ≠ [] :=
+  isEmpty_iff.not
 
 lemma head?_isSome : (head? l).isSome ↔ l ≠ [] :=
   match l with | [] | _::_ => by simp
@@ -153,7 +153,7 @@ class Front (C : Type*) (α : outParam Type*) [ToList C α] where
   frontD : C → α → α :=
     fun s d ↦ (front? s).getD d
   front (c : C) : ¬isEmpty c → α :=
-    fun h ↦ (front? c).get (by rwa [front?_def, List.head?_isSome, ← List.not_isEmpty_iff_ne_nil,
+    fun h ↦ (front? c).get (by rwa [front?_def, List.head?_isSome, ← List.not_isEmpty_iff,
       isEmpty_toList])
   frontD_def c d : frontD c d = (front? c).getD d := by intros; rfl
   front_mem c h : front c h ∈ front? c := by simp
@@ -163,7 +163,7 @@ attribute [simp] front?_def frontD_def
 
 lemma front?_isSome {C α : Type*} [ToList C α] [Front C α] {c : C} (h : ¬isEmpty c) :
     (front? c).isSome := by
-  rwa [front?_def, List.head?_isSome, ← List.not_isEmpty_iff_ne_nil, isEmpty_toList]
+  rwa [front?_def, List.head?_isSome, ← List.not_isEmpty_iff, isEmpty_toList]
 
 @[simp]
 lemma front_def {C α : Type*} [ToList C α] [Front C α] (c : C) (h : ¬isEmpty c) :
@@ -176,7 +176,7 @@ class Back (C : Type*) (α : outParam Type*) [ToList C α] where
   backD : C → α → α :=
     fun s d ↦ (back? s).getD d
   back (c : C) : ¬isEmpty c → α :=
-    fun h ↦ (back? c).get (by rwa [back?_def, List.getLast?_isSome, ← List.not_isEmpty_iff_ne_nil,
+    fun h ↦ (back? c).get (by rwa [back?_def, List.getLast?_isSome, ← List.not_isEmpty_iff,
       isEmpty_toList])
   backD_def c d : backD c d = (back? c).getD d := by intros; rfl
   back_mem c h : back c h ∈ back? c := by simp
@@ -186,7 +186,7 @@ attribute [simp] back?_def backD_def
 
 lemma back?_isSome [ToList C α] [Back C α] {c : C} (h : ¬isEmpty c) :
     (back? c).isSome := by
-  rwa [back?_def, List.getLast?_isSome, ← List.not_isEmpty_iff_ne_nil, isEmpty_toList]
+  rwa [back?_def, List.getLast?_isSome, ← List.not_isEmpty_iff, isEmpty_toList]
 
 @[simp]
 lemma back_def [ToList C α] [Back C α] (c : C) (h : ¬isEmpty c) :
@@ -258,7 +258,7 @@ instance : Front (List α) α where
   front? := List.head?
   front?_def _ := rfl
   frontD := List.headD
-  front l h := l.head <| List.not_isEmpty_iff_ne_nil.mp h
+  front l h := l.head <| List.not_isEmpty_iff.mp h
   frontD_def := List.headD_eq_head?
   front_mem _ _ := List.head?_eq_head _
 
