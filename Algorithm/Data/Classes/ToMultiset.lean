@@ -41,7 +41,7 @@ section ToMultiset
 variable {C α : Type*} [ToMultiset C α] (c : C)
 
 instance (priority := 100) : Membership α C where
-  mem a c := a ∈ toMultiset c
+  mem c a := a ∈ toMultiset c
 
 lemma ToMultiset.mem_iff {c : C} {v : α} : v ∈ c ↔ v ∈ toMultiset c := .rfl
 
