@@ -97,55 +97,68 @@ attribute [simp] getElem_setElem_self getElem_setElem_of_ne
 
 macro_rules | `(tactic| get_elem_tactic_trivial) => `(tactic| simp [get_elem_simps, *]; done)
 
-class OfFn (C : Type*) (ι : Type*) (α : Type*) (Valid : C → ι → Prop) [GetElem C ι α Valid]
-    (f : ι → α) where
-  ofFn : C
-  valid_ofFn i : Valid ofFn i := by get_elem_tactic
-  getElem_ofFn i (h := valid_ofFn i) : ofFn[i]'h = f i
-export OfFn (ofFn valid_ofFn getElem_ofFn)
+class HasValid (C : Type*) (ι : Type*) where
+  Valid : C → ι → Prop
 
-class AllValid {C : Type*} {ι : Type*} (Valid : C → ι → Prop) : Prop where
+class GetElemAllValid (C : Type*) (ι : Type*) (α : outParam Type*) extends
+    HasValid C ι, GetElem C ι α Valid where
+  Valid := fun _ _ ↦ True
   all_valid (a i) : Valid a i := by get_elem_tactic
-export AllValid (all_valid)
+export GetElemAllValid (all_valid)
 
+attribute [instance] GetElemAllValid.toGetElem
 attribute [simp] all_valid
 
-instance {C ι : Type*} : AllValid (C := C) (ι := ι) (fun _ _ ↦ True) where
+macro_rules | `(tactic| get_elem_tactic_trivial) => `(tactic| exact GetElemAllValid.all_valid _ _)
+
+class GetSetElemAllValid (C : Type*) (ι : Type*) (α : outParam Type*) extends
+    GetElemAllValid C ι α, SetElem C ι α where
+  getElem_setElem_self (c : C) (i : ι) v : c[i ↦ v][i] = v
+  getElem_setElem_of_ne (c : C) {i : ι} v {j} (hij : i ≠ j) : c[i ↦ v][j] = c[j]
+
+instance GetSetElemAllValid.toGetSetElem (C ι α : Type*) [GetSetElemAllValid C ι α] :
+    GetSetElem C ι α HasValid.Valid where
+  getElem_setElem_self := getElem_setElem_self
+  getElem_setElem_of_ne _ _ _ _ hij _ _ := getElem_setElem_of_ne _ _ hij
 
 section GetSetElem
-open GetSetElem
-
-variable {C ι α : Type*} {Valid : C → ι → Prop}
-
-variable [GetSetElem C ι α Valid]
+variable {C ι α : Type*} {Valid : C → ι → Prop} [GetSetElem C ι α Valid]
 
 @[simp]
 lemma getElem_setElem [DecidableEq ι] (a : C) (i : ι) (v : α) (j : ι) (hj : Valid a j) :
     a[i ↦ v][j] = if i = j then v else a[j] := by
   split_ifs with h <;> simp [h, hj]
 
-variable [AllValid Valid]
+end GetSetElem
+
+section GetSetElemAllValid
+variable {C ι α : Type*} [GetSetElemAllValid C ι α]
 
 lemma getElem_setElem_eq_update [DecidableEq ι] (a : C) (i : ι) (v : α) (j : ι) :
     a[i ↦ v][j] = Function.update (a[·]) i v j := by
   simp [Function.update, eq_comm]
 
-end GetSetElem
+class OfFn (C : Type*) (ι : Type*) (α : Type*) [GetElemAllValid C ι α] (f : ι → α) where
+  ofFn : C
+  getElem_ofFn i : ofFn[i] = f i
+export OfFn (ofFn getElem_ofFn)
+
+end GetSetElemAllValid
 
 namespace Batteries.Vector
 variable {α : Type*} {n : ℕ} {f : Fin n → α}
 
--- We had to write `fun _ (i : Fin n) ↦ (i : Nat) < n`, see `Fin.instGetElemFinVal`
-instance : GetSetElem (Vector α n) (Fin n) α (fun _ i ↦ i < n) where
+instance instGetSetElemAllValid : GetSetElemAllValid (Vector α n) (Fin n) α where
+  Valid _ i := (i : ℕ) < n -- `Fin.instGetElemFinVal`
   getElem a i _ := a.get i
   setElem := set
   getElem_setElem_self a i v := a.get_set_self i v
-  getElem_setElem_of_ne a _ v _ hij _ _ := a.get_set_of_ne v hij
+  getElem_setElem_of_ne a _ v _ hij := a.get_set_of_ne v hij
 
-instance : OfFn (Vector α n) (Fin n) α (fun _ i ↦ i < n) f where
+instance : OfFn (Vector α n) (Fin n) α f where
   ofFn := ofFn f
-  getElem_ofFn i _ := getElem_ofFn f i
+  getElem_ofFn := getElem_ofFn f
 
-instance : AllValid (C := Vector α n) (ι := Fin n) (fun _ i ↦ i < n) where
+example : (instGetSetElemAllValid (α := α) (n := n)).toGetElem = Fin.instGetElemFinVal := rfl
 
 end Batteries.Vector

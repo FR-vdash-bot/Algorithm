@@ -9,8 +9,8 @@ import Algorithm.Data.Classes.ToList
 import Mathlib.Data.Prod.Lex
 
 class IndexedMinHeap (C : Type*) [Inhabited C] (ι : outParam Type*)
-    (α : outParam Type*) (Valid : outParam _) [Preorder α] [IsTotal α (· ≤ ·)] [OrderTop α] extends
-    AssocDArray C ι α Valid fun _ ↦ ⊤ where
+    (α : outParam Type*) [Preorder α] [IsTotal α (· ≤ ·)] [OrderTop α] extends
+    AssocDArray C ι α fun _ ↦ ⊤ where
   minIdx : C → ι
   getElem_minIdx_le c (i : ι) : c[minIdx c] ≤ c[i]
   decreaseKey (c : C) (i : ι) : ∀ v < c[i], C := fun v _ ↦ c[i ↦ v]
@@ -21,8 +21,8 @@ export IndexedMinHeap (minIdx getElem_minIdx_le decreaseKey decreaseKey_eq_set)
 attribute [simp] decreaseKey_eq_set
 
 section IndexedMinHeap
-variable {C : Type*} [Inhabited C] {ι : Type*} {α : Type*} {Valid} [LinearOrder α] [OrderTop α]
-  [IndexedMinHeap C ι α Valid]
+variable {C : Type*} [Inhabited C] {ι : Type*} {α : Type*} [LinearOrder α] [OrderTop α]
+  [IndexedMinHeap C ι α]
 
 def decreaseKeyD (c : C) (i : ι) (v : α) : C :=
   if c[i] ≤ v then c else c[i ↦ v]
@@ -58,11 +58,11 @@ lemma decreaseKeysD_getElem [DecidableEq ι] {ια : Type*} [ToList ια (ι × 
 end IndexedMinHeap
 
 namespace Batteries.Vector
-variable {α : Type*} [LinearOrder α] {n : ℕ} [NeZero n] {Valid} {d : Fin n → α}
+variable {α : Type*} [LinearOrder α] {n : ℕ} [NeZero n] {d : Fin n → α}
 
 section ReadOnly
 
-variable [AssocDArray.ReadOnly (Vector α n) (Fin n) α Valid d]
+variable [AssocDArray.ReadOnly (Vector α n) (Fin n) α d]
 
 abbrev minAux (a : Vector α n) : Lex (α × Fin n) :=
   (⊤ : Finset (Fin n)).inf' ⟨0, Finset.mem_univ 0⟩ (fun i ↦ toLex (a[i], i))
@@ -91,8 +91,7 @@ lemma minIdx_le (a : Vector α n) (i : Fin n) :
 end ReadOnly
 
 instance WithDefault.instIndexedMinHeap [OrderTop α] :
-    IndexedMinHeap (Vector.WithDefault α n fun _ ↦ ⊤) (Fin n) α (fun _ i ↦ (i : ℕ) < n) where
-  toAssocDArray := instAssocDArray
+    IndexedMinHeap (Vector.WithDefault α n fun _ ↦ ⊤) (Fin n) α where
   minIdx := minIdx
   getElem_minIdx_le a i := a.minIdx_le i
 
@@ -145,8 +144,8 @@ instance [Preorder α] [IsTotal α (· ≤ ·)] :
 
 end AssocArrayWithHeap.WithIdx
 
-structure AssocArrayWithHeap (C C' : Type*) {ι α : Type*} {Valid} [Preorder α] [IsTotal α (· ≤ ·)]
-    [Inhabited C] [AssocArray C ι (WithTop α) Valid ⊤]
+structure AssocArrayWithHeap (C C' : Type*) {ι α : Type*} [Preorder α] [IsTotal α (· ≤ ·)]
+    [Inhabited C] [AssocArray C ι (WithTop α) ⊤]
     [MinHeap C' (AssocArrayWithHeap.WithIdx α ι)] where mk' ::
   assocArray : C
   minHeap : C'
@@ -155,11 +154,11 @@ structure AssocArrayWithHeap (C C' : Type*) {ι α : Type*} {Valid} [Preorder α
     assocArray[(MinHeap.head minHeap h).idx] = (MinHeap.head minHeap h).val
 
 namespace AssocArrayWithHeap
-variable {C C' : Type*} {ι α : Type*} {Valid} [Preorder α] [IsTotal α (· ≤ ·)]
-  [Inhabited C] [AssocArray C ι (WithTop α) Valid ⊤]
+variable {C C' : Type*} {ι α : Type*} [Preorder α] [IsTotal α (· ≤ ·)]
+  [Inhabited C] [AssocArray C ι (WithTop α) ⊤]
   [MinHeap C' (AssocArrayWithHeap.WithIdx α ι)]
 
-instance : AssocArray.ReadOnly (AssocArrayWithHeap C C') ι (WithTop α) (fun _ _ ↦ True) ⊤ where
+instance : AssocArray.ReadOnly (AssocArrayWithHeap C C') ι (WithTop α) ⊤ where
   getElem c i _ := c.assocArray[i]
   toDFinsupp' c := toDFinsupp' c.assocArray
   coe_toDFinsupp'_eq_getElem c := coe_toDFinsupp'_eq_getElem c.assocArray
@@ -225,7 +224,7 @@ lemma default_minHeap :
   rfl
 
 instance [DecidableEq α] :
-    AssocArray (AssocArrayWithHeap C C') ι (WithTop α) (fun _ _ ↦ True) ⊤ where
+    AssocArray (AssocArrayWithHeap C C') ι (WithTop α) ⊤ where
   setElem c i x :=
     mk
       c.assocArray[i ↦ x]
@@ -244,7 +243,7 @@ instance [DecidableEq α] :
           · simp [hji]
           · exact .inr <| c.mem_minHeap j hj
   getElem_setElem_self _ _ _ := by simp [getElem]
-  getElem_setElem_of_ne _ _ _ _ _ _ _ := by simp only [getElem]; simp [*]
+  getElem_setElem_of_ne _ _ _ _ _ := by simp only [getElem]; simp [*]
   getElem_default := by simp [getElem]
 
 @[simp]
@@ -253,7 +252,7 @@ lemma set_assocArray [DecidableEq α] (c : AssocArrayWithHeap C C') (i : ι) (x)
   unfold_projs; simp
 
 instance [Inhabited ι] [DecidableEq α] :
-    IndexedMinHeap (AssocArrayWithHeap C C') ι (WithTop α) (fun _ _ ↦ True) where
+    IndexedMinHeap (AssocArrayWithHeap C C') ι (WithTop α) where
   minIdx c := if h : isEmpty c.minHeap then default else (MinHeap.head c.minHeap h).idx
   getElem_minIdx_le c i := by
     dsimp; split_ifs with h
