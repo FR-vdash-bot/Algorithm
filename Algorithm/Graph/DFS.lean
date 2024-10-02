@@ -305,9 +305,9 @@ lemma dfsTR_spec' (g : G)
   | case3 _ _ _ hv ih =>
     rw [dfsTR, if_neg hv, ← ih]
     simp? says
-      simp only [List.mem_cons, DFinsupp'.mem_support_toFun, coe_toDFinsupp'_eq_get,
-        Get.get_eq_getElem, ne_eq, Bool.not_eq_false, Bool.not_eq_true, toDFinsupp'_set,
-        List.mem_append, mem_succList_iff, DFinsupp'.coe_update]
+      simp only [List.mem_cons, DFinsupp'.mem_support_toFun, coe_toDFinsupp'_eq_getElem,
+        ne_eq, Bool.not_eq_false, Bool.not_eq_true, toDFinsupp'_setElem, List.mem_append,
+        mem_succList_iff, DFinsupp'.coe_update]
     rw [DFinsupp'.support_update_ne _ _ (by simp), Finset.coe_insert, traversal_insert]
     · simp [hv]
     · ext; simp (config := { contextual := true }) [hv]

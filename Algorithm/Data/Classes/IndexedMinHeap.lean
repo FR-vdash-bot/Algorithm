@@ -13,8 +13,8 @@ class IndexedMinHeap (C : Type*) [Inhabited C] (ι : outParam Type*)
     AssocDArray C ι α fun _ ↦ ⊤ where
   minIdx : C → ι
   getElem_minIdx_le c (i : ι) : c[minIdx c] ≤ c[i]
-  decreaseKey (c : C) (i : ι) : ∀ v < c[i], C := fun v _ ↦ set c i v
-  decreaseKey_eq_set (c : C) (i : ι) v (h : v < c[i]) : decreaseKey c i v h = set c i v := by
+  decreaseKey (c : C) (i : ι) : ∀ v < c[i], C := fun v _ ↦ c[i ↦ v]
+  decreaseKey_eq_set (c : C) (i : ι) v (h : v < c[i]) : decreaseKey c i v h = c[i ↦ v] := by
     intros; rfl
 export IndexedMinHeap (minIdx getElem_minIdx_le decreaseKey decreaseKey_eq_set)
 
@@ -90,7 +90,8 @@ lemma minIdx_le (a : Vector α n) (i : Fin n) :
 
 end ReadOnly
 
-instance [OrderTop α] : IndexedMinHeap (Vector.WithDefault α n fun _ ↦ ⊤) (Fin n) α where
+instance WithDefault.instIndexedMinHeap [OrderTop α] :
+    IndexedMinHeap (Vector.WithDefault α n fun _ ↦ ⊤) (Fin n) α where
   minIdx := minIdx
   getElem_minIdx_le a i := a.minIdx_le i
 
@@ -158,9 +159,9 @@ variable {C C' : Type*} {ι α : Type*} [Preorder α] [IsTotal α (· ≤ ·)]
   [MinHeap C' (AssocArrayWithHeap.WithIdx α ι)]
 
 instance : AssocArray.ReadOnly (AssocArrayWithHeap C C') ι (WithTop α) ⊤ where
-  get c := AssocArray.get c.assocArray
+  getElem c i _ := c.assocArray[i]
   toDFinsupp' c := toDFinsupp' c.assocArray
-  coe_toDFinsupp'_eq_get c := coe_toDFinsupp'_eq_get c.assocArray
+  coe_toDFinsupp'_eq_getElem c := coe_toDFinsupp'_eq_getElem c.assocArray
 
 @[simp]
 lemma assocArray_getElem (c : AssocArrayWithHeap C C') (i : ι) :
@@ -222,8 +223,9 @@ lemma default_minHeap :
     (default : AssocArrayWithHeap C C').minHeap = ∅ :=
   rfl
 
-instance [DecidableEq α] : AssocArray (AssocArrayWithHeap C C') ι (WithTop α) ⊤ where
-  set c i x :=
+instance [DecidableEq α] :
+    AssocArray (AssocArrayWithHeap C C') ι (WithTop α) ⊤ where
+  setElem c i x :=
     mk
       c.assocArray[i ↦ x]
       (if hx : x = ⊤ then c.minHeap else insert ⟨x.untop hx, i⟩ c.minHeap)
@@ -231,7 +233,7 @@ instance [DecidableEq α] : AssocArray (AssocArrayWithHeap C C') ι (WithTop α)
         haveI : DecidableEq ι := by classical infer_instance
         split_ifs with hx <;>
           simp? [Function.update_apply] at hj ⊢ says
-            simp only [getElem_set, assocArray_getElem, ne_eq] at hj ⊢
+            simp only [all_valid, getElem_setElem, assocArray_getElem, ne_eq] at hj ⊢
         · subst hx
           rw [ite_eq_left_iff, Classical.not_imp] at hj
           simp only [hj.1, ↓reduceIte]
@@ -240,12 +242,12 @@ instance [DecidableEq α] : AssocArray (AssocArrayWithHeap C C') ι (WithTop α)
           split_ifs at hj ⊢ with hji
           · simp [hji]
           · exact .inr <| c.mem_minHeap j hj
-  get_set_eq _ _ _ := by simp [Get.get]
-  get_set_ne _ _ _ _ _ := by simp [Get.get, *]
-  get_default := by simp [Get.get]
+  getElem_setElem_self _ _ _ := by simp [getElem]
+  getElem_setElem_of_ne _ _ _ _ _ := by simp only [getElem]; simp [*]
+  getElem_default := by simp [getElem]
 
 @[simp]
-lemma set_assocArray [DecidableEq α] (c : AssocArrayWithHeap C C') (i x) :
+lemma set_assocArray [DecidableEq α] (c : AssocArrayWithHeap C C') (i : ι) (x) :
     c[i ↦ x].assocArray = c.assocArray[i ↦ x] := by
   unfold_projs; simp
 

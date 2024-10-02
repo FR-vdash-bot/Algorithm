@@ -439,16 +439,15 @@ lemma dijkstraStep_fst_getElem' (g : G) (c : Info → CostType)
       if v = minIdx heap ∨ res[v] ≠ ⊤ then ⊤ else min heap[v]
         ((toMultiset g[minIdx heap]).filterMap fun e ↦
           if g..snd e = v then some (heap[minIdx heap] + c e) else none).inf := by
-  simp? [dijkstraStep, ← Multiset.filterMap_coe, getElem_set_eq_update, - getElem_set] says
-    simp only [dijkstraStep, WithTop.coe_untop, getElem_set_eq_update,
+  simp? [dijkstraStep, ← Multiset.filterMap_coe, getElem_setElem_eq_update, - getElem_setElem] says
+    simp only [dijkstraStep, WithTop.coe_untop, getElem_setElem_eq_update,
       WithTop.coe_add, decreaseKeysD_getElem, toMultiset_list, ← Multiset.filterMap_coe, coe_toList,
       ne_eq]
   split_ifs with h
   · simp? [Function.update_apply] says
-      simp only [Function.update_apply, Get.get_eq_getElem,
-        min_eq_top, ite_eq_then, Multiset.inf_eq_top, Multiset.mem_filterMap, ite_some_none_eq_some,
-        Prod.exists, Prod.mk.injEq, exists_eq_right_right, exists_eq_right, forall_exists_index,
-        and_imp]
+      simp only [Function.update_apply, min_eq_top, ite_eq_then,
+        Multiset.inf_eq_top, Multiset.mem_filterMap, ite_some_none_eq_some, Prod.exists,
+        Prod.mk.injEq, exists_eq_right_right, exists_eq_right, forall_exists_index, and_imp]
     use fun hv ↦ (spec₁ v).resolve_right (h.resolve_left hv)
     rintro - e - h' ⟨rfl⟩ ⟨rfl⟩
     split_ifs at h' with snde
@@ -457,8 +456,7 @@ lemma dijkstraStep_fst_getElem' (g : G) (c : Info → CostType)
   · push_neg at h
     simp? [Function.update_apply, h, Multiset.filterMap_filterMap] says
       simp only [ne_eq, h, not_false_eq_true,
-        Function.update_noteq, Get.get_eq_getElem, Function.update_apply,
-        Multiset.filterMap_filterMap]
+        Function.update_noteq, Function.update_apply, Multiset.filterMap_filterMap]
     congr!
     split; · rename_i snde; simp [snde, Ne.symm h.1]
     split; · simp
