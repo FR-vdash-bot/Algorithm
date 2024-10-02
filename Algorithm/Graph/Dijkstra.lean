@@ -102,7 +102,7 @@ namespace AdjListClass
 variable {V : Type*} {Info : Type*}
   {EColl : Type*} [ToList EColl Info] [EmptyCollection EColl]
   [LawfulEmptyCollection EColl Info]
-  {StarColl : Type*} [AssocArray.ReadOnly StarColl V EColl (fun _ _ ↦ True) ∅]
+  {StarColl : Type*} [AssocArray.ReadOnly StarColl V EColl ∅]
   {G : Type*} [AdjListClass G V Info EColl StarColl]
   {CostType : Type*}
 
@@ -369,10 +369,8 @@ lemma isDist_union {g : G}
 
 def dijkstraStep (g : G) (c : Info → CostType)
     [LinearOrderedAddCommMonoid CostType]
-    {DistArray : Type*} [Inhabited DistArray]
-    [AssocArray DistArray V (WithTop CostType) (fun _ _ ↦ True) ⊤]
-    {DistHeap : Type*} [Inhabited DistHeap]
-    [IndexedMinHeap DistHeap V (WithTop CostType) (fun _ _ ↦ True)]
+    {DistArray : Type*} [Inhabited DistArray] [AssocArray DistArray V (WithTop CostType) ⊤]
+    {DistHeap : Type*} [Inhabited DistHeap] [IndexedMinHeap DistHeap V (WithTop CostType)]
     (heap : DistHeap) (res : DistArray)
     (hMinIdx : heap[minIdx heap] ≠ ⊤) :
     DistHeap × DistArray :=
@@ -386,10 +384,8 @@ def dijkstraStep (g : G) (c : Info → CostType)
 
 structure dijkstraStep.Spec (g : G) (c : Info → CostType)
     [AddMonoid CostType] [LinearOrder CostType]
-    {DistArray : Type*} [Inhabited DistArray]
-    [AssocArray DistArray V (WithTop CostType) (fun _ _ ↦ True) ⊤]
-    {DistHeap : Type*} [Inhabited DistHeap]
-    [IndexedMinHeap DistHeap V (WithTop CostType) (fun _ _ ↦ True)]
+    {DistArray : Type*} [Inhabited DistArray] [AssocArray DistArray V (WithTop CostType) ⊤]
+    {DistHeap : Type*} [Inhabited DistHeap] [IndexedMinHeap DistHeap V (WithTop CostType)]
     (init : DistHeap) (heap : DistHeap) (res : DistArray) : Prop :=
   h₁ : ∀ v : V, heap[v] = ⊤ ∨ res[v] = ⊤
   h₂ : ∀ v : V, res[v] = ⊤ → ∃ d, heap[v] = min init[v] d ∧
@@ -402,10 +398,8 @@ structure dijkstraStep.Spec (g : G) (c : Info → CostType)
 
 lemma dijkstraStep_snd_getElem (g : G) (c : Info → CostType)
     [DecidableEq V] [LinearOrderedAddCommMonoid CostType]
-    {DistArray : Type*} [Inhabited DistArray]
-    [AssocArray DistArray V (WithTop CostType) (fun _ _ ↦ True) ⊤]
-    {DistHeap : Type*} [Inhabited DistHeap]
-    [IndexedMinHeap DistHeap V (WithTop CostType) (fun _ _ ↦ True)]
+    {DistArray : Type*} [Inhabited DistArray] [AssocArray DistArray V (WithTop CostType) ⊤]
+    {DistHeap : Type*} [Inhabited DistHeap] [IndexedMinHeap DistHeap V (WithTop CostType)]
     (heap : DistHeap) (res : DistArray) (hMinIdx : heap[minIdx heap] ≠ ⊤) (v : V) :
     (dijkstraStep g c heap res hMinIdx).2[v] =
       if v = minIdx heap then heap[minIdx heap] else res[v] := by
@@ -413,10 +407,8 @@ lemma dijkstraStep_snd_getElem (g : G) (c : Info → CostType)
 
 lemma dijkstraStep_snd_getElem_eq_top (g : G) (c : Info → CostType)
     [LinearOrderedAddCommMonoid CostType]
-    {DistArray : Type*} [Inhabited DistArray]
-    [AssocArray DistArray V (WithTop CostType) (fun _ _ ↦ True) ⊤]
-    {DistHeap : Type*} [Inhabited DistHeap]
-    [IndexedMinHeap DistHeap V (WithTop CostType) (fun _ _ ↦ True)]
+    {DistArray : Type*} [Inhabited DistArray] [AssocArray DistArray V (WithTop CostType) ⊤]
+    {DistHeap : Type*} [Inhabited DistHeap] [IndexedMinHeap DistHeap V (WithTop CostType)]
     (heap : DistHeap) (res : DistArray) (hMinIdx : heap[minIdx heap] ≠ ⊤) (v : V) :
     (dijkstraStep g c heap res hMinIdx).2[v] = ⊤ ↔
       v ≠ minIdx heap ∧ res[v] = ⊤ := by
@@ -428,10 +420,8 @@ lemma dijkstraStep_snd_getElem_eq_top (g : G) (c : Info → CostType)
 
 lemma dijkstraStep_snd_support (g : G) (c : Info → CostType)
     [LinearOrderedAddCommMonoid CostType]
-    {DistArray : Type*} [Inhabited DistArray]
-    [AssocArray DistArray V (WithTop CostType) (fun _ _ ↦ True) ⊤]
-    {DistHeap : Type*} [Inhabited DistHeap]
-    [IndexedMinHeap DistHeap V (WithTop CostType) (fun _ _ ↦ True)]
+    {DistArray : Type*} [Inhabited DistArray] [AssocArray DistArray V (WithTop CostType) ⊤]
+    {DistHeap : Type*} [Inhabited DistHeap] [IndexedMinHeap DistHeap V (WithTop CostType)]
     (heap : DistHeap) (res : DistArray) (hMinIdx : heap[minIdx heap] ≠ ⊤) :
     {v : V | (dijkstraStep g c heap res hMinIdx).2[v] ≠ ⊤} =
       insert (minIdx heap) {v : V | res[v] ≠ ⊤} := by
@@ -441,25 +431,24 @@ lemma dijkstraStep_snd_support (g : G) (c : Info → CostType)
 
 lemma dijkstraStep_fst_getElem' (g : G) (c : Info → CostType)
     [DecidableEq V] [LinearOrderedAddCommMonoid CostType]
-    {DistArray : Type*} [Inhabited DistArray]
-    [AssocArray DistArray V (WithTop CostType) (fun _ _ ↦ True) ⊤]
-    {DistHeap : Type*} [Inhabited DistHeap]
-    [IndexedMinHeap DistHeap V (WithTop CostType) (fun _ _ ↦ True)]
+    {DistArray : Type*} [Inhabited DistArray] [AssocArray DistArray V (WithTop CostType) ⊤]
+    {DistHeap : Type*} [Inhabited DistHeap] [IndexedMinHeap DistHeap V (WithTop CostType)]
     (heap : DistHeap) (res : DistArray) (hMinIdx : heap[minIdx heap] ≠ ⊤)
     (spec₁ : ∀ v : V, heap[v] = ⊤ ∨ res[v] = ⊤) (v : V) :
     (dijkstraStep g c heap res hMinIdx).1[v] =
       if v = minIdx heap ∨ res[v] ≠ ⊤ then ⊤ else min heap[v]
         ((toMultiset g[minIdx heap]).filterMap fun e ↦
           if g..snd e = v then some (heap[minIdx heap] + c e) else none).inf := by
-  simp? [dijkstraStep, ← Multiset.filterMap_coe, getElem_setElem_eq_update, - getElem_setElem] says
-    simp only [dijkstraStep, WithTop.coe_untop, getElem_setElem_eq_update,
+  simp? [dijkstraStep, ← Multiset.filterMap_coe, getElem_set_eq_update, - getElem_set] says
+    simp only [dijkstraStep, WithTop.coe_untop, getElem_set_eq_update,
       WithTop.coe_add, decreaseKeysD_getElem, toMultiset_list, ← Multiset.filterMap_coe, coe_toList,
       ne_eq]
   split_ifs with h
   · simp? [Function.update_apply] says
-      simp only [Function.update_apply, min_eq_top, ite_eq_then,
-        Multiset.inf_eq_top, Multiset.mem_filterMap, ite_some_none_eq_some, Prod.exists,
-        Prod.mk.injEq, exists_eq_right_right, exists_eq_right, forall_exists_index, and_imp]
+      simp only [Function.update_apply, Get.get_eq_getElem,
+        min_eq_top, ite_eq_then, Multiset.inf_eq_top, Multiset.mem_filterMap, ite_some_none_eq_some,
+        Prod.exists, Prod.mk.injEq, exists_eq_right_right, exists_eq_right, forall_exists_index,
+        and_imp]
     use fun hv ↦ (spec₁ v).resolve_right (h.resolve_left hv)
     rintro - e - h' ⟨rfl⟩ ⟨rfl⟩
     split_ifs at h' with snde
@@ -468,7 +457,8 @@ lemma dijkstraStep_fst_getElem' (g : G) (c : Info → CostType)
   · push_neg at h
     simp? [Function.update_apply, h, Multiset.filterMap_filterMap] says
       simp only [ne_eq, h, not_false_eq_true,
-        Function.update_noteq, Function.update_apply, Multiset.filterMap_filterMap]
+        Function.update_noteq, Get.get_eq_getElem, Function.update_apply,
+        Multiset.filterMap_filterMap]
     congr!
     split; · rename_i snde; simp [snde, Ne.symm h.1]
     split; · simp
@@ -481,10 +471,8 @@ lemma dijkstraStep_fst_getElem' (g : G) (c : Info → CostType)
 lemma dijkstraStep_fst_getElem (g : G) (c : Info → CostType)
     [DecidableEq V] [DecidableEq Info]
     [LinearOrderedAddCommMonoid CostType]
-    {DistArray : Type*} [Inhabited DistArray]
-    [AssocArray DistArray V (WithTop CostType) (fun _ _ ↦ True) ⊤]
-    {DistHeap : Type*} [Inhabited DistHeap]
-    [IndexedMinHeap DistHeap V (WithTop CostType) (fun _ _ ↦ True)]
+    {DistArray : Type*} [Inhabited DistArray] [AssocArray DistArray V (WithTop CostType) ⊤]
+    {DistHeap : Type*} [Inhabited DistHeap] [IndexedMinHeap DistHeap V (WithTop CostType)]
     (heap : DistHeap) (res : DistArray) (hMinIdx : heap[minIdx heap] ≠ ⊤)
     (spec₁ : ∀ v : V, heap[v] = ⊤ ∨ res[v] = ⊤) (v : V) :
     (dijkstraStep g c heap res hMinIdx).1[v] =
@@ -507,10 +495,8 @@ lemma dijkstraStep_fst_getElem (g : G) (c : Info → CostType)
 
 lemma dijkstraStep_fst_getElem_eq_top (g : G) (c : Info → CostType)
     [LinearOrderedAddCommMonoid CostType]
-    {DistArray : Type*} [Inhabited DistArray]
-    [AssocArray DistArray V (WithTop CostType) (fun _ _ ↦ True) ⊤]
-    {DistHeap : Type*} [Inhabited DistHeap]
-    [IndexedMinHeap DistHeap V (WithTop CostType) (fun _ _ ↦ True)]
+    {DistArray : Type*} [Inhabited DistArray] [AssocArray DistArray V (WithTop CostType) ⊤]
+    {DistHeap : Type*} [Inhabited DistHeap] [IndexedMinHeap DistHeap V (WithTop CostType)]
     (heap : DistHeap) (res : DistArray) (hMinIdx : heap[minIdx heap] ≠ ⊤)
     (spec₁ : ∀ v : V, heap[v] = ⊤ ∨ res[v] = ⊤) (v : V) :
     (dijkstraStep g c heap res hMinIdx).1[v] = ⊤ ↔
@@ -532,10 +518,8 @@ lemma dijkstraStep_fst_getElem_eq_top (g : G) (c : Info → CostType)
 
 lemma dijkstraStep_fst_support (g : G) (c : Info → CostType)
     [LinearOrderedAddCommMonoid CostType]
-    {DistArray : Type*} [Inhabited DistArray]
-    [AssocArray DistArray V (WithTop CostType) (fun _ _ ↦ True) ⊤]
-    {DistHeap : Type*} [Inhabited DistHeap]
-    [IndexedMinHeap DistHeap V (WithTop CostType) (fun _ _ ↦ True)]
+    {DistArray : Type*} [Inhabited DistArray] [AssocArray DistArray V (WithTop CostType) ⊤]
+    {DistHeap : Type*} [Inhabited DistHeap] [IndexedMinHeap DistHeap V (WithTop CostType)]
     (heap : DistHeap) (res : DistArray) (hMinIdx : heap[minIdx heap] ≠ ⊤)
     (spec₁ : ∀ v : V, heap[v] = ⊤ ∨ res[v] = ⊤) :
     {v : V | (dijkstraStep g c heap res hMinIdx).1[v] ≠ ⊤} =
@@ -549,10 +533,8 @@ lemma dijkstraStep_fst_support (g : G) (c : Info → CostType)
 
 lemma dijkstraStep_spec (g : G) (c : Info → CostType)
     [CanonicallyLinearOrderedAddCommMonoid CostType]
-    {DistArray : Type*} [Inhabited DistArray]
-    [AssocArray DistArray V (WithTop CostType) (fun _ _ ↦ True) ⊤]
-    {DistHeap : Type*} [Inhabited DistHeap]
-    [IndexedMinHeap DistHeap V (WithTop CostType) (fun _ _ ↦ True)]
+    {DistArray : Type*} [Inhabited DistArray] [AssocArray DistArray V (WithTop CostType) ⊤]
+    {DistHeap : Type*} [Inhabited DistHeap] [IndexedMinHeap DistHeap V (WithTop CostType)]
     (init : DistHeap) (heap : DistHeap) (res : DistArray)
     (h : dijkstraStep.Spec g c init heap res) (hMinIdx : heap[minIdx heap] ≠ ⊤) :
     dijkstraStep.Spec g c init (dijkstraStep g c heap res hMinIdx).1
@@ -693,10 +675,8 @@ lemma dijkstraStep_spec (g : G) (c : Info → CostType)
 
 def dijkstra (g : G) (c : Info → CostType)
     [Fintype V] [CanonicallyLinearOrderedAddCommMonoid CostType]
-    (DistArray : Type*) [Inhabited DistArray]
-    [AssocArray DistArray V (WithTop CostType) (fun _ _ ↦ True) ⊤]
-    {DistHeap : Type*} [Inhabited DistHeap]
-    [IndexedMinHeap DistHeap V (WithTop CostType) (fun _ _ ↦ True)]
+    (DistArray : Type*) [Inhabited DistArray] [AssocArray DistArray V (WithTop CostType) ⊤]
+    {DistHeap : Type*} [Inhabited DistHeap] [IndexedMinHeap DistHeap V (WithTop CostType)]
     (init : DistHeap) :
     DistArray :=
   (go init default spec_init).val.2
@@ -728,10 +708,8 @@ termination_by Fintype.card {v : V | res[v] = ⊤}
 
 lemma dijkstra_spec (g : G) (c : Info → CostType)
     [Fintype V] [CanonicallyLinearOrderedAddCommMonoid CostType]
-    (DistArray : Type*) [Inhabited DistArray]
-    [AssocArray DistArray V (WithTop CostType) (fun _ _ ↦ True) ⊤]
-    {DistHeap : Type*} [Inhabited DistHeap]
-    [IndexedMinHeap DistHeap V (WithTop CostType) (fun _ _ ↦ True)]
+    (DistArray : Type*) [Inhabited DistArray] [AssocArray DistArray V (WithTop CostType) ⊤]
+    {DistHeap : Type*} [Inhabited DistHeap] [IndexedMinHeap DistHeap V (WithTop CostType)]
     (init : DistHeap) (v : V) :
     g..IsDist c {s | init[s] ≠ ⊤} (fun s hs ↦ init[s].untop hs) v
       (g..dijkstra c DistArray init)[v] := by
