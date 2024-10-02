@@ -14,8 +14,8 @@ variable
   {V : Type*} {Info : Type*}
   {EColl : Type*} [ToList EColl Info] [EmptyCollection EColl]
   [LawfulEmptyCollection EColl Info]
-  {StarColl : Type*} [AssocArray.ReadOnly StarColl V EColl ∅]
-  {G : Type*} [AdjListClass G V Info EColl StarColl] {g : G}
+  {StarColl : Type*} {Valid} [AssocArray.ReadOnly StarColl V EColl Valid ∅]
+  {G : Type*} [AdjListClass G V Info EColl StarColl Valid] {g : G}
 
 variable (g) in
 inductive IsDFSForest : Set V → Set V → Forest V → Prop

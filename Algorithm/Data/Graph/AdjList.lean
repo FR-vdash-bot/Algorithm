@@ -12,7 +12,8 @@ structure AdjList
     (V : Type*) (Info : Type*)
     (EColl : Type*) [ToMultiset EColl Info] [EmptyCollection EColl]
     [LawfulEmptyCollection EColl Info]
-    (StarColl : Type*) [AssocArray.ReadOnly StarColl V EColl (fun _ _ ↦ True) ∅] where
+    (StarColl : Type*) {Valid}
+    [AssocArray.ReadOnly StarColl V EColl Valid ∅] where
   protected snd : Info → V
   protected star : StarColl
 
@@ -20,7 +21,8 @@ structure AdjList₂
     (V : Type*) (Info : Type*)
     (EColl : Type*) [ToMultiset EColl Info] [EmptyCollection EColl]
     [LawfulEmptyCollection EColl Info]
-    (StarColl : Type*) [AssocArray.ReadOnly StarColl V EColl (fun _ _ ↦ True) ∅] extends
+    (StarColl : Type*) {Valid}
+    [AssocArray.ReadOnly StarColl V EColl Valid ∅] extends
     AdjList V Info EColl StarColl where
   fst : Info → V
   costar : StarColl
@@ -36,7 +38,8 @@ class AdjListClass (G : Type*)
     (V : outParam <| Type*) (Info : outParam <| Type*)
     (EColl : outParam <| Type*) [ToMultiset EColl Info] [EmptyCollection EColl]
     [LawfulEmptyCollection EColl Info]
-    (StarColl : outParam <| Type*) [AssocArray.ReadOnly StarColl V EColl (fun _ _ ↦ True) ∅] where
+    (StarColl : outParam <| Type*) (Valid : outParam _)
+    [AssocArray.ReadOnly StarColl V EColl Valid ∅] where
   snd : G → Info → V
   star : G → StarColl
 
@@ -56,17 +59,18 @@ variable
   {V : Type*} {Info : Type*}
   {EColl : Type*} [ToMultiset EColl Info] [EmptyCollection EColl]
   [LawfulEmptyCollection EColl Info]
-  {StarColl : Type*} [AssocArray.ReadOnly StarColl V EColl (fun _ _ ↦ True) ∅]
+  {StarColl : Type*} {Valid : outParam _}
+  [AssocArray.ReadOnly StarColl V EColl Valid ∅]
 
-instance : AdjListClass (AdjList V Info EColl StarColl) V Info EColl StarColl where
+instance : AdjListClass (AdjList V Info EColl StarColl) V Info EColl StarColl Valid where
   snd := AdjList.snd
   star := AdjList.star
 
-instance : AdjListClass (AdjList₂ V Info EColl StarColl) V Info EColl StarColl where
+instance : AdjListClass (AdjList₂ V Info EColl StarColl) V Info EColl StarColl Valid where
   snd g := g.snd
   star g := g.star
 
-variable {G : Type*} [AdjListClass G V Info EColl StarColl] {g : G}
+variable {G : Type*} [AdjListClass G V Info EColl StarColl Valid] {g : G}
 
 instance : GetElem G V EColl (fun _ _ ↦ True) where
   getElem g v _ := g..star[v]
@@ -103,7 +107,7 @@ lemma E.ofStar_snd (v : V) (x : Info) (hx : x ∈ g[v]) :
     (E.ofStar v x hx).snd = g..snd x :=
   rfl
 
-protected structure Quiver (g : G) [AdjListClass G V Info EColl StarColl] where
+protected structure Quiver (g : G) [AdjListClass G V Info EColl StarColl Valid] where
   _intro ::
   val : V
 
@@ -365,8 +369,8 @@ variable
   {V : Type*} {Info : Type*}
   {EColl : Type*} [ToList EColl Info] [EmptyCollection EColl]
   [LawfulEmptyCollection EColl Info]
-  {StarColl : Type*} [AssocArray.ReadOnly StarColl V EColl (fun _ _ ↦ True) ∅]
-  {G : Type*} [AdjListClass G V Info EColl StarColl] (g : G)
+  {StarColl : Type*} {Valid} [AssocArray.ReadOnly StarColl V EColl Valid ∅]
+  {G : Type*} [AdjListClass G V Info EColl StarColl Valid] (g : G)
 
 def succList (v : V) : List V := (toList g[v]).map g..snd
 

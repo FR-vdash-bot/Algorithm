@@ -9,8 +9,8 @@ import Algorithm.Data.Classes.ToList
 import Mathlib.Data.Prod.Lex
 
 class IndexedMinHeap (C : Type*) [Inhabited C] (ι : outParam Type*)
-    (α : outParam Type*) (V : outParam _) [Preorder α] [IsTotal α (· ≤ ·)] [OrderTop α] extends
-    AssocDArray C ι α V fun _ ↦ ⊤ where
+    (α : outParam Type*) (Valid : outParam _) [Preorder α] [IsTotal α (· ≤ ·)] [OrderTop α] extends
+    AssocDArray C ι α Valid fun _ ↦ ⊤ where
   minIdx : C → ι
   getElem_minIdx_le c (i : ι) : c[minIdx c] ≤ c[i]
   decreaseKey (c : C) (i : ι) : ∀ v < c[i], C := fun v _ ↦ c[i ↦ v]
@@ -21,8 +21,8 @@ export IndexedMinHeap (minIdx getElem_minIdx_le decreaseKey decreaseKey_eq_set)
 attribute [simp] decreaseKey_eq_set
 
 section IndexedMinHeap
-variable {C : Type*} [Inhabited C] {ι : Type*} {α : Type*} {V} [LinearOrder α] [OrderTop α]
-  [IndexedMinHeap C ι α V]
+variable {C : Type*} [Inhabited C] {ι : Type*} {α : Type*} {Valid} [LinearOrder α] [OrderTop α]
+  [IndexedMinHeap C ι α Valid]
 
 def decreaseKeyD (c : C) (i : ι) (v : α) : C :=
   if c[i] ≤ v then c else c[i ↦ v]
@@ -58,11 +58,11 @@ lemma decreaseKeysD_getElem [DecidableEq ι] {ια : Type*} [ToList ια (ι × 
 end IndexedMinHeap
 
 namespace Batteries.Vector
-variable {α : Type*} [LinearOrder α] {n : ℕ} [NeZero n] {V} {d : Fin n → α}
+variable {α : Type*} [LinearOrder α] {n : ℕ} [NeZero n] {Valid} {d : Fin n → α}
 
 section ReadOnly
 
-variable [AssocDArray.ReadOnly (Vector α n) (Fin n) α V d]
+variable [AssocDArray.ReadOnly (Vector α n) (Fin n) α Valid d]
 
 abbrev minAux (a : Vector α n) : Lex (α × Fin n) :=
   (⊤ : Finset (Fin n)).inf' ⟨0, Finset.mem_univ 0⟩ (fun i ↦ toLex (a[i], i))
@@ -145,8 +145,8 @@ instance [Preorder α] [IsTotal α (· ≤ ·)] :
 
 end AssocArrayWithHeap.WithIdx
 
-structure AssocArrayWithHeap (C C' : Type*) {ι α : Type*} {V} [Preorder α] [IsTotal α (· ≤ ·)]
-    [Inhabited C] [AssocArray C ι (WithTop α) V ⊤]
+structure AssocArrayWithHeap (C C' : Type*) {ι α : Type*} {Valid} [Preorder α] [IsTotal α (· ≤ ·)]
+    [Inhabited C] [AssocArray C ι (WithTop α) Valid ⊤]
     [MinHeap C' (AssocArrayWithHeap.WithIdx α ι)] where mk' ::
   assocArray : C
   minHeap : C'
@@ -155,8 +155,8 @@ structure AssocArrayWithHeap (C C' : Type*) {ι α : Type*} {V} [Preorder α] [I
     assocArray[(MinHeap.head minHeap h).idx] = (MinHeap.head minHeap h).val
 
 namespace AssocArrayWithHeap
-variable {C C' : Type*} {ι α : Type*} {V} [Preorder α] [IsTotal α (· ≤ ·)]
-  [Inhabited C] [AssocArray C ι (WithTop α) V ⊤]
+variable {C C' : Type*} {ι α : Type*} {Valid} [Preorder α] [IsTotal α (· ≤ ·)]
+  [Inhabited C] [AssocArray C ι (WithTop α) Valid ⊤]
   [MinHeap C' (AssocArrayWithHeap.WithIdx α ι)]
 
 instance : AssocArray.ReadOnly (AssocArrayWithHeap C C') ι (WithTop α) (fun _ _ ↦ True) ⊤ where

@@ -77,17 +77,17 @@ def EraseElem.delabEraseElem : Delab := do
   `($a[$i ↦ -])
 
 class GetSetElem (C : Type*) (ι : Type*) (α : outParam Type*)
-    (valid : outParam (C → ι → Prop)) extends GetElem C ι α valid, SetElem C ι α where
+    (Valid : outParam (C → ι → Prop)) extends GetElem C ι α Valid, SetElem C ι α where
   valid_setElem_self {a i} v :
-    valid a[i ↦ v] i := by get_elem_tactic
+    Valid a[i ↦ v] i := by get_elem_tactic
   valid_setElem_of_valid {a} (i : ι) v {j} :
-    valid a j → valid a[i ↦ v] j := by get_elem_tactic
+    Valid a j → Valid a[i ↦ v] j := by get_elem_tactic
   valid_of_valid_setElem {a i} v {j} :
-    i ≠ j → valid a[i ↦ v] j → valid a j := by get_elem_tactic
+    i ≠ j → Valid a[i ↦ v] j → Valid a j := by get_elem_tactic
   getElem_setElem_self c i v :
     c[i ↦ v][i]'(valid_setElem_self v) = v
   getElem_setElem_of_ne c {i} v {j} (hij : i ≠ j)
-    (hs : valid c[i ↦ v] j := by get_elem_tactic) (h : valid c j := by get_elem_tactic) :
+    (hs : Valid c[i ↦ v] j := by get_elem_tactic) (h : Valid c j := by get_elem_tactic) :
     c[i ↦ v][j]'hs = c[j]'h
 export GetSetElem (valid_setElem_self valid_setElem_of_valid valid_of_valid_setElem
   getElem_setElem_self getElem_setElem_of_ne)
@@ -97,15 +97,15 @@ attribute [simp] getElem_setElem_self getElem_setElem_of_ne
 
 macro_rules | `(tactic| get_elem_tactic_trivial) => `(tactic| simp [get_elem_simps, *]; done)
 
-class OfFn (C : Type*) (ι : Type*) (α : Type*) (valid : C → ι → Prop) [GetElem C ι α valid]
+class OfFn (C : Type*) (ι : Type*) (α : Type*) (Valid : C → ι → Prop) [GetElem C ι α Valid]
     (f : ι → α) where
   ofFn : C
-  valid_ofFn i : valid ofFn i := by get_elem_tactic
+  valid_ofFn i : Valid ofFn i := by get_elem_tactic
   getElem_ofFn i (h := valid_ofFn i) : ofFn[i]'h = f i
 export OfFn (ofFn valid_ofFn getElem_ofFn)
 
-class AllValid {C : Type*} {ι : Type*} (valid : C → ι → Prop) : Prop where
-  all_valid (a i) : valid a i := by get_elem_tactic
+class AllValid {C : Type*} {ι : Type*} (Valid : C → ι → Prop) : Prop where
+  all_valid (a i) : Valid a i := by get_elem_tactic
 export AllValid (all_valid)
 
 attribute [simp] all_valid
@@ -115,16 +115,16 @@ instance {C ι : Type*} : AllValid (C := C) (ι := ι) (fun _ _ ↦ True) where
 section GetSetElem
 open GetSetElem
 
-variable {C ι α : Type*} {valid : C → ι → Prop}
+variable {C ι α : Type*} {Valid : C → ι → Prop}
 
-variable [GetSetElem C ι α valid]
+variable [GetSetElem C ι α Valid]
 
 @[simp]
-lemma getElem_setElem [DecidableEq ι] (a : C) (i : ι) (v : α) (j : ι) (hj : valid a j) :
+lemma getElem_setElem [DecidableEq ι] (a : C) (i : ι) (v : α) (j : ι) (hj : Valid a j) :
     a[i ↦ v][j] = if i = j then v else a[j] := by
   split_ifs with h <;> simp [h, hj]
 
-variable [AllValid valid]
+variable [AllValid Valid]
 
 lemma getElem_setElem_eq_update [DecidableEq ι] (a : C) (i : ι) (v : α) (j : ι) :
     a[i ↦ v][j] = Function.update (a[·]) i v j := by

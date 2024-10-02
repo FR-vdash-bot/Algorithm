@@ -29,8 +29,8 @@ lemma get_default {f} : (default : Vector.WithDefault α n f).get = f :=
 end Batteries.Vector
 
 class AssocDArray.ReadOnly (C : Type*) (ι : outParam Type*)
-    (α : outParam Type*) (V : outParam _) (d : outParam <| ι → α) extends
-    GetElem C ι α V, AllValid V where
+    (α : outParam Type*) (Valid : outParam _) (d : outParam <| ι → α) extends
+    GetElem C ι α Valid, AllValid Valid where
   toDFinsupp' : C → Π₀' i, [α, d i]
   coe_toDFinsupp'_eq_getElem : ∀ a, ⇑(toDFinsupp' a) = (a[·])
 export AssocDArray.ReadOnly (toDFinsupp' coe_toDFinsupp'_eq_getElem)
@@ -38,29 +38,29 @@ export AssocDArray.ReadOnly (toDFinsupp' coe_toDFinsupp'_eq_getElem)
 /-- `AssocDArray C ι α d` is a data structure that acts like a finitely supported function
   `Π₀' i, [α, d i]` with single point update operation. -/
 class AssocDArray (C : Type*) [Inhabited C] (ι : outParam Type*)
-    (α : outParam Type*) (V : outParam _) (d : outParam <| ι → α) extends
-    AssocDArray.ReadOnly C ι α V d, GetSetElem C ι α V, AllValid V where
+    (α : outParam Type*) (Valid : outParam _) (d : outParam <| ι → α) extends
+    AssocDArray.ReadOnly C ι α Valid d, GetSetElem C ι α Valid, AllValid Valid where
   getElem_default i : (default : C)[i] = d i
 
 abbrev AssocArray.ReadOnly (C : Type*) (ι : outParam Type*)
-    (α : outParam Type*) (V : outParam _) (d : outParam α) :=
-  AssocDArray.ReadOnly C ι α V (fun _ ↦ d)
+    (α : outParam Type*) (Valid : outParam _) (d : outParam α) :=
+  AssocDArray.ReadOnly C ι α Valid (fun _ ↦ d)
 
 /-- `AssocArray C ι α d` is a data structure that acts like a finitely supported function
   `ι →₀' [α, d]` with single point update operation. -/
 abbrev AssocArray (C : Type*) [Inhabited C] (ι : outParam Type*)
-    (α : outParam Type*) (V : outParam _) (d : outParam α) :=
-  AssocDArray C ι α V (fun _ ↦ d)
+    (α : outParam Type*) (Valid : outParam _) (d : outParam α) :=
+  AssocDArray C ι α Valid (fun _ ↦ d)
 
 attribute [simp] AssocDArray.getElem_default coe_toDFinsupp'_eq_getElem
 
 section AssocDArray
 
-variable {C ι α : Type*} {V} {d : ι → α}
+variable {C ι α : Type*} {Valid} {d : ι → α}
 
-variable [Inhabited C] [AssocDArray C ι α V d]
+variable [Inhabited C] [AssocDArray C ι α Valid d]
 
-instance : OfFn C ι α V d where
+instance : OfFn C ι α Valid d where
   ofFn := default
   getElem_ofFn i _ := AssocDArray.getElem_default i
 
@@ -97,12 +97,12 @@ namespace AssocArray
 
 export AssocDArray (getElem_default)
 
-class Ext (C : Type*) [Inhabited C] (ι : outParam Type*)
-    (α : outParam Type*) (V : outParam _) (d : outParam α) [AssocArray C ι α V d] : Prop where
+class Ext (C : Type*) [Inhabited C] (ι : outParam Type*) (α : outParam Type*) (Valid : outParam _)
+    (d : outParam α) [AssocArray C ι α Valid d] : Prop where
   ext : ∀ {m₁ m₂ : C}, (∀ i : ι, m₁[i] = m₂[i]) → m₁ = m₂
 
-variable {C : Type*} [Inhabited C] {ι : Type*} {α : Type*} {V} {d : α}
-  [AssocArray C ι α V d] [AllValid V]
+variable {C : Type*} [Inhabited C] {ι : Type*} {α : Type*} {Valid} {d : α}
+  [AssocArray C ι α Valid d] [AllValid Valid]
 
 variable (C)
 
@@ -148,7 +148,7 @@ lemma getElem_listIndicator [DecidableEq ι] (l : List ι) (f : ∀ i ∈ l, α)
     · simp_rw [getElem_listIndicator, dif_pos (List.mem_of_ne_of_mem h₁ h₂)]
     · simp_rw [getElem_listIndicator, dif_neg (List.not_mem_of_not_mem_cons h₂)]
 
-variable [Ext C ι α V d]
+variable [Ext C ι α Valid d]
 variable (C)
 
 def indicator (s : Finset ι) (f : ∀ i ∈ s, α) : C :=
@@ -169,7 +169,7 @@ lemma getElem_indicator [DecidableEq ι] (s : Finset ι) (f : ∀ i ∈ s, α) (
   rw [getElem_listIndicator]
   rfl
 
-abbrev toOfFn [Fintype ι] (f : ι → α) : OfFn C ι α V f where
+abbrev toOfFn [Fintype ι] (f : ι → α) : OfFn C ι α Valid f where
   ofFn := indicator C Finset.univ (fun i _ ↦ f i)
   getElem_ofFn _ _ := by
     convert (getElem_indicator _ _ _).trans <| dif_pos <| Finset.mem_univ _
@@ -179,12 +179,12 @@ end AssocArray
 
 class HasDefaultAssocDArray (ι : Type u) (α : Type v) (f : ι → α)
     (DefaultAssocDArray : outParam <| Type max u v)
-    (V : outParam _) [Inhabited DefaultAssocDArray] where
-  [toAssocDArray : AssocDArray DefaultAssocDArray ι α V f]
+    (Valid : outParam _) [Inhabited DefaultAssocDArray] where
+  [toAssocDArray : AssocDArray DefaultAssocDArray ι α Valid f]
 
 @[nolint unusedArguments]
-def DefaultAssocDArray (ι : Type u) (α : Type v) (f : ι → α) {D : Type _} {V} [Inhabited D]
-    [HasDefaultAssocDArray ι α f D V] :=
+def DefaultAssocDArray (ι : Type u) (α : Type v) (f : ι → α) {D : Type _} {Valid} [Inhabited D]
+    [HasDefaultAssocDArray ι α f D Valid] :=
   D
 
 instance {n α f} : HasDefaultAssocDArray (Fin n) α f (Batteries.Vector.WithDefault α n f)
