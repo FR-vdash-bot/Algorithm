@@ -38,7 +38,6 @@ lemma get_set_of_ne (a : Vector α n) {i : Fin n} (v : α) {j : Fin n} (h : i �
 lemma get_ofFn (f : Fin n → α) : (ofFn f).get = f := by
   ext; simp [ofFn, get]
 
-@[simp]
 lemma getElem_ofFn (f : Fin n → α) (i : Fin n) : (ofFn f)[i] = f i := by
   change (ofFn f).get i = f i
   simp
@@ -124,7 +123,7 @@ instance GetSetElemAllValid.toGetSetElem (C ι α : Type*) [GetSetElemAllValid C
 section GetSetElem
 variable {C ι α : Type*} {Valid : C → ι → Prop} [GetSetElem C ι α Valid]
 
-@[simp]
+@[simp, nolint simpNF] -- It sometimes does work, see `getElem_setElem'`.
 lemma getElem_setElem [DecidableEq ι] (a : C) (i : ι) (v : α) (j : ι)
     (hj : Valid a j := by get_elem_tactic) :
     a[i ↦ v][j] = if i = j then v else a[j] := by
@@ -134,6 +133,10 @@ end GetSetElem
 
 section GetSetElemAllValid
 variable {C ι α : Type*} [GetSetElemAllValid C ι α]
+
+lemma getElem_setElem' [DecidableEq ι] (a : C) (i : ι) (v : α) (j : ι) :
+    a[i ↦ v][j] = if i = j then v else a[j] := by
+  simp
 
 lemma getElem_setElem_eq_update [DecidableEq ι] (a : C) (i : ι) (v : α) (j : ι) :
     a[i ↦ v][j] = Function.update (a[·]) i v j := by
