@@ -12,7 +12,7 @@ structure AdjList
     (V : Type*) (Info : Type*)
     (EColl : Type*) [ToMultiset EColl Info] [EmptyCollection EColl]
     [LawfulEmptyCollection EColl Info]
-    (StarColl : Type*) [AssocArray.ReadOnly StarColl V EColl ∅] where
+    (StarColl : Type*) [AssocArray.ReadOnly StarColl V EColl (fun _ _ ↦ True) ∅] where
   protected snd : Info → V
   protected star : StarColl
 
@@ -20,7 +20,7 @@ structure AdjList₂
     (V : Type*) (Info : Type*)
     (EColl : Type*) [ToMultiset EColl Info] [EmptyCollection EColl]
     [LawfulEmptyCollection EColl Info]
-    (StarColl : Type*) [AssocArray.ReadOnly StarColl V EColl ∅] extends
+    (StarColl : Type*) [AssocArray.ReadOnly StarColl V EColl (fun _ _ ↦ True) ∅] extends
     AdjList V Info EColl StarColl where
   fst : Info → V
   costar : StarColl
@@ -36,7 +36,7 @@ class AdjListClass (G : Type*)
     (V : outParam <| Type*) (Info : outParam <| Type*)
     (EColl : outParam <| Type*) [ToMultiset EColl Info] [EmptyCollection EColl]
     [LawfulEmptyCollection EColl Info]
-    (StarColl : outParam <| Type*) [AssocArray.ReadOnly StarColl V EColl ∅] where
+    (StarColl : outParam <| Type*) [AssocArray.ReadOnly StarColl V EColl (fun _ _ ↦ True) ∅] where
   snd : G → Info → V
   star : G → StarColl
 
@@ -56,7 +56,7 @@ variable
   {V : Type*} {Info : Type*}
   {EColl : Type*} [ToMultiset EColl Info] [EmptyCollection EColl]
   [LawfulEmptyCollection EColl Info]
-  {StarColl : Type*} [AssocArray.ReadOnly StarColl V EColl ∅]
+  {StarColl : Type*} [AssocArray.ReadOnly StarColl V EColl (fun _ _ ↦ True) ∅]
 
 instance : AdjListClass (AdjList V Info EColl StarColl) V Info EColl StarColl where
   snd := AdjList.snd
@@ -365,7 +365,7 @@ variable
   {V : Type*} {Info : Type*}
   {EColl : Type*} [ToList EColl Info] [EmptyCollection EColl]
   [LawfulEmptyCollection EColl Info]
-  {StarColl : Type*} [AssocArray.ReadOnly StarColl V EColl ∅]
+  {StarColl : Type*} [AssocArray.ReadOnly StarColl V EColl (fun _ _ ↦ True) ∅]
   {G : Type*} [AdjListClass G V Info EColl StarColl] (g : G)
 
 def succList (v : V) : List V := (toList g[v]).map g..snd

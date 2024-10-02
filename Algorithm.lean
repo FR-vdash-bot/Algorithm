@@ -1,7 +1,7 @@
 import Algorithm.Algebra.BigOperators.DFinsupp'
 import Algorithm.Data.Classes.AssocArray
 import Algorithm.Data.Classes.Bag
-import Algorithm.Data.Classes.GetSet
+import Algorithm.Data.Classes.GetElem
 import Algorithm.Data.Classes.IndexedMinHeap
 import Algorithm.Data.Classes.MinHeap
 import Algorithm.Data.Classes.MultiBag
@@ -20,3 +20,4 @@ import Algorithm.Data.PairingHeap
 import Algorithm.Data.UnionFind
 import Algorithm.Graph.DFS
 import Algorithm.Graph.Dijkstra
+import Algorithm.Tactic.Attr.Register
