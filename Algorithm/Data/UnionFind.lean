@@ -10,8 +10,8 @@ import Mathlib.Data.Set.Card
 namespace UnionFindImpl
 
 structure UnionFind (ι : Type*) [DecidableEq ι]
-    (P : Type*) [GetSet P ι ι]
-    (S : Type*) [GetSet S ι ℕ] where
+    (P : Type*) [GetSetElemAllValid P ι ι]
+    (S : Type*) [GetSetElemAllValid S ι ℕ] where
   parent : P
   size : S
   wf : WellFounded fun i j : ι ↦ i ≠ j ∧ i = parent[j]
@@ -19,8 +19,8 @@ structure UnionFind (ι : Type*) [DecidableEq ι]
 namespace UnionFind
 
 variable {ι : Type*} [DecidableEq ι]
-    {P : Type*} [GetSet P ι ι]
-    {S : Type*} [GetSet S ι ℕ]
+    {P : Type*} [GetSetElemAllValid P ι ι]
+    {S : Type*} [GetSetElemAllValid S ι ℕ]
 
 def rootCore (parent : P) (wf : WellFounded fun j k : ι ↦ j ≠ k ∧ j = parent[k]) (i : ι) : ι :=
   let p := parent[i]
@@ -101,7 +101,8 @@ lemma findAux_snd_getElem (parent : P) (wf : WellFounded fun j k : ι ↦ j ≠ 
   · exact .inl rfl
   · obtain (hj | rfl) := decEq i j
     · simp? [hj, - rootCore_parent] says
-        simp only [findAux_fst, ne_eq, hj, not_false_eq_true, getElem_set_ne]
+        simp only [findAux_fst, ne_eq, hj, not_false_eq_true, all_valid,
+          getElem_setElem_of_ne]
       exact (findAux_snd_getElem parent wf parent[i] j).imp_right (by rw [·, rootCore])
     · simp [hi]
 termination_by wf.wrap i
@@ -178,11 +179,11 @@ lemma wellFounded_assocArraySet (parent : P) (wf : WellFounded fun j k : ι ↦ 
   induction x using wf.induction with
   | h x ih =>
     refine ⟨x, fun p ⟨hpx, h⟩ ↦ ?_⟩
-    simp only [getElem_set] at h
+    simp only [all_valid, getElem_setElem] at h
     split_ifs at h with hx
     · subst hx h
       refine ⟨p, fun f hf ↦ ?_⟩
-      simp only [ne_eq, getElem_set, hr, ite_self, not_and_self] at hf
+      simp only [ne_eq, all_valid, getElem_setElem, hr, ite_self, not_and_self] at hf
     · exact ih p ⟨hpx, h⟩
 
 set_option linter.unusedVariables false in -- easier to `rw` and `simp`
@@ -205,7 +206,7 @@ lemma setParent_parent_eq_self (parent : P) (size : S)
     (i j : ι) (hi : parent[i] = i) (hj : parent[j] = j) (s : ℕ) (k : ι) :
     (setParent parent size wf i j hi hj s).parent[k] = k ↔
       (if i = k then j else parent[k]) = k := by
-  simp [setParent, getElem_set]
+  simp [setParent]
 
 @[simp]
 lemma setParent_root (parent : P) (size : S) (wf : WellFounded fun i j : ι ↦ i ≠ j ∧ i = parent[j])
@@ -292,7 +293,7 @@ lemma setParent_wf (self : UnionFind ι P S)
     (setParent self.parent self.size self.wf i j hi hj (self.size[i] + self.size[j])).WF := by
   intro k hk
   rw [setParent_parent_eq_self] at hk
-  conv_lhs => simp only [setParent, getElem_set]
+  conv_lhs => simp only [setParent, all_valid, getElem_setElem]
   split_ifs at hk ⊢ with hjk hik hij
   · simp [hik, hjk] at hij
   · subst hjk
@@ -329,14 +330,14 @@ section default
 variable [OfFn P ι ι id] [OfFn S ι ℕ (fun _ ↦ 1)]
 
 instance : Inhabited (UnionFind ι P S) where
-  default := ⟨ofFn id, ofFn (fun _ ↦ 1), ⟨fun i ↦ ⟨i, by simp⟩⟩⟩
+  default := ⟨ofFn (id : ι → ι), ofFn (fun _ : ι ↦ 1), ⟨fun i ↦ ⟨i, by simp⟩⟩⟩
 
 @[simp]
-lemma default_parent : (default : UnionFind ι P S).parent = ofFn id :=
+lemma default_parent : (default : UnionFind ι P S).parent = ofFn (id : ι → ι) :=
   rfl
 
 @[simp]
-lemma default_size : (default : UnionFind ι P S).size = ofFn (fun _ ↦ 1) :=
+lemma default_size : (default : UnionFind ι P S).size = ofFn (fun _ : ι ↦ 1) :=
   rfl
 
 @[simp]
@@ -366,15 +367,15 @@ end default
 end UnionFind
 
 def UnionFindWF (ι : Type*) [DecidableEq ι]
-    (P : Type*) [GetSet P ι ι]
-    (S : Type*) [GetSet S ι ℕ] :=
+    (P : Type*) [GetSetElemAllValid P ι ι]
+    (S : Type*) [GetSetElemAllValid S ι ℕ] :=
   { x : UnionFindImpl.UnionFind ι P S // x.WF }
 
 namespace UnionFindWF
 
 variable {ι : Type*} [DecidableEq ι]
-    {P : Type*} [GetSet P ι ι]
-    {S : Type*} [GetSet S ι ℕ]
+    {P : Type*} [GetSetElemAllValid P ι ι]
+    {S : Type*} [GetSetElemAllValid S ι ℕ]
 
 def IsRoot (self : UnionFindWF ι P S) (i : ι) : Prop := self.val.parent[i] = i
 
@@ -441,15 +442,15 @@ end UnionFindWF
 end UnionFindImpl
 
 def UnionFind (ι : Type*) [DecidableEq ι]
-    (P : Type*) [GetSet P ι ι]
-    (S : Type*) [GetSet S ι ℕ] :=
+    (P : Type*) [GetSetElemAllValid P ι ι]
+    (S : Type*) [GetSetElemAllValid S ι ℕ] :=
   MutableQuotient (UnionFindImpl.UnionFindWF ι P S) fun x ↦ x.root
 
 namespace UnionFind
 
 variable {ι : Type*} [DecidableEq ι]
-    {P : Type*} [GetSet P ι ι]
-    {S : Type*} [GetSet S ι ℕ]
+    {P : Type*} [GetSetElemAllValid P ι ι]
+    {S : Type*} [GetSetElemAllValid S ι ℕ]
 
 instance [OfFn P ι ι id] [OfFn S ι ℕ (fun _ ↦ 1)] : Inhabited (UnionFind ι P S) where
   default := .mk _ ⟨default, UnionFindImpl.UnionFind.default_wf⟩

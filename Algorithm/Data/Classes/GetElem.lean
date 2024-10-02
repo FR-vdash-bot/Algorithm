@@ -103,13 +103,13 @@ class HasValid (C : Type*) (ι : Type*) where
 class GetElemAllValid (C : Type*) (ι : Type*) (α : outParam Type*) extends
     HasValid C ι, GetElem C ι α Valid where
   Valid := fun _ _ ↦ True
-  all_valid (a i) : Valid a i := by get_elem_tactic
+  all_valid {a i} : Valid a i := by get_elem_tactic
 export GetElemAllValid (all_valid)
 
 attribute [instance] GetElemAllValid.toGetElem
 attribute [simp] all_valid
 
-macro_rules | `(tactic| get_elem_tactic_trivial) => `(tactic| exact GetElemAllValid.all_valid _ _)
+macro_rules | `(tactic| get_elem_tactic_trivial) => `(tactic| exact GetElemAllValid.all_valid)
 
 class GetSetElemAllValid (C : Type*) (ι : Type*) (α : outParam Type*) extends
     GetElemAllValid C ι α, SetElem C ι α where
@@ -125,7 +125,8 @@ section GetSetElem
 variable {C ι α : Type*} {Valid : C → ι → Prop} [GetSetElem C ι α Valid]
 
 @[simp]
-lemma getElem_setElem [DecidableEq ι] (a : C) (i : ι) (v : α) (j : ι) (hj : Valid a j) :
+lemma getElem_setElem [DecidableEq ι] (a : C) (i : ι) (v : α) (j : ι)
+    (hj : Valid a j := by get_elem_tactic) :
     a[i ↦ v][j] = if i = j then v else a[j] := by
   split_ifs with h <;> simp [h, hj]
 
@@ -142,6 +143,8 @@ class OfFn (C : Type*) (ι : Type*) (α : Type*) [GetElemAllValid C ι α] (f : 
   ofFn : C
   getElem_ofFn i : ofFn[i] = f i
 export OfFn (ofFn getElem_ofFn)
+
+attribute [simp] getElem_ofFn
 
 end GetSetElemAllValid
 
