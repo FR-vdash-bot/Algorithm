@@ -26,4 +26,5 @@ def test (t : Thunk' Nat) (n : Nat) : Nat :=
 def main : IO Unit :=
   IO.println (toString (test (compute 1) 100000))
 
-#eval main
+/-- info: 10000000000 -/
+#guard_msgs in #eval main -- TODO: 超时中断
