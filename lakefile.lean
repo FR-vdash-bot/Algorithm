@@ -34,3 +34,7 @@ extern_lib libleanffi pkg := do
   let name := nameToStaticLib "leanffi"
   let ffiO ← ffi.o.fetch
   buildStaticLib (pkg.nativeLibDir / name) #[ffiO]
+
+@[test_driver]
+lean_exe test where
+  srcDir := "scripts"
