@@ -440,13 +440,12 @@ lemma dijkstraStep_fst_getElem' (g : G) (c : Info → CostType)
         ((toMultiset g[minIdx heap]).filterMap fun e ↦
           if g..snd e = v then some (heap[minIdx heap] + c e) else none).inf := by
   simp? [dijkstraStep, ← Multiset.filterMap_coe, getElem_setElem_eq_update, - getElem_setElem] says
-    simp only [dijkstraStep, WithTop.coe_untop, getElem_setElem_eq_update,
-      WithTop.coe_add, decreaseKeysD_getElem, toMultiset_list, ← Multiset.filterMap_coe, coe_toList,
-      ne_eq]
+    simp only [dijkstraStep, WithTop.coe_untop, getElem_setElem_eq_update, WithTop.coe_add,
+      decreaseKeysD_getElem, toMultiset_list, ← Multiset.filterMap_coe, coe_toList, ne_eq]
   split_ifs with h
   · simp? [Function.update_apply] says
-      simp only [Function.update_apply, min_eq_top, ite_eq_then,
-        Multiset.inf_eq_top, Multiset.mem_filterMap, ite_some_none_eq_some, Prod.exists,
+      simp only [Function.update_apply, min_eq_top, ite_eq_left_iff, Multiset.inf_eq_top,
+        Multiset.mem_filterMap, Option.ite_none_right_eq_some, Option.some.injEq, Prod.exists,
         Prod.mk.injEq, exists_eq_right_right, exists_eq_right, forall_exists_index, and_imp]
     use fun hv ↦ (spec₁ v).resolve_right (h.resolve_left hv)
     rintro - e - h' ⟨rfl⟩ ⟨rfl⟩
@@ -482,8 +481,9 @@ lemma dijkstraStep_fst_getElem (g : G) (c : Info → CostType)
   rw [Finset.inf_def]
   apply Multiset.inf_congr
   intro d
-  simp only [Multiset.mem_dedup, Multiset.mem_filterMap, mem_toMultiset,
-    ite_some_none_eq_some, Multiset.mem_map, Finset.mem_val, Finset.mem_univ, true_and]
+  simp? says
+    simp only [Multiset.mem_dedup, Multiset.mem_filterMap, Option.ite_none_right_eq_some,
+      Option.some.injEq, Multiset.mem_map, Finset.mem_val, Finset.mem_univ, true_and]
   constructor
   · rintro ⟨x, hx, rfl, rfl, rfl⟩
     exact ⟨homOfStar x hx, rfl⟩
@@ -504,9 +504,9 @@ lemma dijkstraStep_fst_getElem_eq_top (g : G) (c : Info → CostType)
   dsimp
   rw [dijkstraStep_fst_getElem (spec₁ := spec₁)]
   simp? [hMinIdx, - not_or] says
-    simp only [ne_eq, ite_eq_then, min_eq_top, Finset.inf_eq_top_iff,
-      Finset.mem_univ, WithTop.add_eq_top, hMinIdx, WithTop.coe_ne_top, or_self, imp_false,
-      not_true_eq_false, succSet_singleton, Set.mem_setOf_eq]
+    simp only [ne_eq, ite_eq_left_iff, min_eq_top, Finset.inf_eq_top_iff, Finset.mem_univ,
+      WithTop.add_eq_top, hMinIdx, WithTop.coe_ne_top, or_self, imp_false, not_true_eq_false,
+      succSet_singleton, Set.mem_setOf_eq]
   rw [← or_iff_not_imp_right]
   congr!
   rw [iff_not_comm]

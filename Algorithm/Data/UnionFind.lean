@@ -302,8 +302,7 @@ lemma setParent_wf (self : UnionFind ι P S)
       congr
       ext x
       simp? [setParent_root] says
-        simp only [Set.mem_union, Set.mem_setOf_eq, setParent_root,
-          ite_eq_then]
+        simp only [Set.mem_union, Set.mem_setOf_eq, setParent_root, ite_eq_left_iff]
       rw [rootCore]
       split_ifs with h
       · rw [root_of_parent_eq _ _ h]; tauto

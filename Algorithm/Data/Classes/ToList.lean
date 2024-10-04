@@ -13,9 +13,6 @@ variable (l : List α)
 lemma not_isEmpty_iff {l : List α} : ¬l.isEmpty ↔ l ≠ [] :=
   isEmpty_iff.not
 
-lemma head?_isSome : (head? l).isSome ↔ l ≠ [] :=
-  match l with | [] | _::_ => by simp
-
 lemma tail?_isSome : (tail? l).isSome ↔ l ≠ [] :=
   match l with | [] | _::_ => by simp
 
@@ -49,7 +46,7 @@ lemma reverse_dropLast (l : List α) : l.dropLast.reverse = l.reverse.tail :=
 
 @[simp]
 lemma back?_toArray : l.toArray.back? = l.getLast? := by
-  rw [Array.back?, Array.get?_eq_data_get?, getLast?_eq_getElem?]
+  rw [Array.back?, Array.get?_eq_toList_get?, getLast?_eq_getElem?]
   simp
 
 end List
@@ -57,33 +54,23 @@ end List
 namespace Array
 variable (a : Array α)
 
-lemma isEmpty_data : a.data.isEmpty = a.isEmpty := by
+lemma isEmpty_toList : a.toList.isEmpty = a.isEmpty := by
   rw [List.isEmpty_eq_decide_length, isEmpty]
 
-lemma isEmpty_toList : a.toList.isEmpty = a.isEmpty := by
-  rw [isEmpty_data, toList_eq]
-
 lemma isEmpty_toListRev : a.toListRev.isEmpty = a.isEmpty := by
-  rw [toListRev_eq, List.isEmpty_reverse, isEmpty_data]
+  rw [toListRev_eq, List.isEmpty_reverse, isEmpty_toList]
 
 lemma toList_length : a.toList.length = a.size := by
-  rw [toList_eq, data_length]
+  rw [length_toList]
 
 @[simp]
-lemma get?_data : a.data.get? = a.get? := by
-  ext i
-  rw [Array.get?_eq_data_get?]
-
 lemma get?_toList : a.toList.get? = a.get? := by
-  rw [toList_eq, get?_data]
+  ext i
+  rw [Array.get?_eq_toList_get?]
 
 lemma getLast?_toList : a.toList.getLast? = a.back? := by
-  rw [back?, get?_eq_data_get?, List.getLast?_eq_getElem?]
+  rw [back?, get?_eq_toList_get?, List.getLast?_eq_getElem?]
   simp
-
-@[simp]
-lemma getLast?_data : a.data.getLast? = a.back? := by
-  simp [← getLast?_toList]
 
 lemma dropLast_toList : a.toList.dropLast = a.pop.toList := by
   simp
@@ -278,7 +265,7 @@ end List
 section Array
 
 instance : ToList (Array α) α where
-  toList := Array.data
+  toList := Array.toList
   toArray := id
   toArray_eq_mk_toList _ := rfl
   size_eq_length_toList _ := rfl
@@ -287,7 +274,7 @@ instance : Front (Array α) α where
   front? c := c.get? 0
   front?_def c := by
     dsimp only
-    rw [← Array.get?_data, List.get?_zero]
+    rw [← Array.get?_toList, List.get?_zero]
     rfl
   frontD c := c.getD 0
   front c h := c.get ⟨0, by simp_rw [isEmpty_iff_size_eq_zero, size] at h; omega⟩
@@ -296,18 +283,18 @@ instance : Front (Array α) α where
 
 instance : Back (Array α) α where
   back? := Array.back?
-  back?_def c := (Array.getLast?_data c).symm
+  back?_def c := (Array.getLast?_toList c).symm
 
 instance : PopBack (Array α) α where
   popBack := Array.pop
-  toList_popBack := Array.pop_data
+  toList_popBack := Array.pop_toList
 
 instance : PushBack (Array α) α where
   pushBack := Array.push
   toList_pushBack := by simp [toList]
 
 instance : LawfulAppend (Array α) α where
-  toList_append := Array.append_data
+  toList_append := Array.toList_append
 
 instance : ToList.RandomAccess (Array α) α where
   get := Array.get
