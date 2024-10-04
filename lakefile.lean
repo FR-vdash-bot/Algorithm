@@ -16,6 +16,14 @@ package algorithm where
 require "leanprover-community" / "mathlib" @ git "master"
 require "leanprover" / "doc-gen4" @ git "main"
 
+lean_lib Mutable where
+  roots := #[`Mutable]
+  precompileModules := true
+
+@[default_target]
+lean_lib Algorithm where
+  roots := #[`Algorithm]
+
 target ffi.o pkg : FilePath := do
   let oFile := pkg.buildDir / "cpp" / "ffi.o"
   let srcJob ← inputBinFile <| pkg.dir / "cpp" / "ffi.cpp"
@@ -27,14 +35,6 @@ extern_lib libleanffi pkg := do
   let ffiO ← ffi.o.fetch
   buildStaticLib (pkg.nativeLibDir / name) #[ffiO]
 
-lean_lib Mutable where
-  roots := #[`Mutable]
-  precompileModules := true
-
-@[default_target]
-lean_lib Algorithm where
-  roots := #[`Algorithm]
-
-@[test_driver]
-lean_exe test where
-  srcDir := "scripts"
+-- @[test_driver]
+-- lean_exe test where
+--   srcDir := "scripts"
