@@ -74,7 +74,6 @@ jobs:
         run: |
           rm -rf .lake/build/lib/Mutable/
           rm -rf .lake/build/lib/Algorithm/
-          lake exe cache get Mutable
           lake exe cache get Algorithm
 
       - name: update {Mutable, Algorithm}.lean
