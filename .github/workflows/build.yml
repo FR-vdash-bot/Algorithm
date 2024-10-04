@@ -112,7 +112,7 @@ jobs:
           buildMsgs="$(
             ##  we exploit `lake`s replay feature: since the cache is present, running
             ##  `lake build` will reproduce all the outputs without having to recompute
-            lake build Mathlib Archive Counterexamples |
+            lake build Mutable Algorithm |
             ##  we filter out the output lines that begin with `✔ [xx/yy]`, where xx, yy
             ##  are either numbers or ?, and the "Build completed successfully." message.
             ##  We keep the rest, which are actual outputs of the files
