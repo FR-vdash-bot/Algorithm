@@ -74,6 +74,8 @@ jobs:
         run: |
           rm -rf .lake/build/lib/Mutable/
           rm -rf .lake/build/lib/Algorithm/
+          # Fail quickly if the cache is completely cold, by checking for Mathlib.Init
+          lake exe cache get Mathlib.Init
           lake build --no-build Mathlib.Init && lake exe cache get || echo "No cache for 'Mathlib.Init' available"
 
       - name: update {Mutable, Algorithm}.lean
