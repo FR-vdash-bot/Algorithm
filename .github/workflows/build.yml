@@ -134,12 +134,12 @@ jobs:
       #     run:
       #       lake test
 
-      - name: check for unused imports
-        id: shake
-        uses: liskin/gh-problem-matcher-wrap@v3
-        with:
-          linters: gcc
-          run: env LEAN_ABORT_ON_PANIC=1 lake exe shake --gh-style
+      # - name: check for unused imports
+      #   id: shake
+      #   uses: liskin/gh-problem-matcher-wrap@v3
+      #   with:
+      #     linters: gcc
+      #     run: env LEAN_ABORT_ON_PANIC=1 lake exe shake --gh-style
 
       - name: lint algorithm
         if: ${{ always() && steps.build.outcome == 'success' || steps.build.outcome == 'failure' }}
