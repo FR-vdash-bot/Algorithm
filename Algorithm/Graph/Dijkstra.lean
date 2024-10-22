@@ -445,8 +445,9 @@ lemma dijkstraStep_fst_getElem' (g : G) (c : Info → CostType)
   split_ifs with h
   · simp? [Function.update_apply] says
       simp only [Function.update_apply, min_eq_top, ite_eq_left_iff, Multiset.inf_eq_top,
-        Multiset.mem_filterMap, Option.ite_none_right_eq_some, Option.some.injEq, Prod.exists,
-        Prod.mk.injEq, exists_eq_right_right, exists_eq_right, forall_exists_index, and_imp]
+        Multiset.mem_filterMap, mem_toMultiset, Option.ite_none_right_eq_some, Option.some.injEq,
+        Prod.exists, Prod.mk.injEq, exists_eq_right_right, exists_eq_right, forall_exists_index,
+        and_imp]
     use fun hv ↦ (spec₁ v).resolve_right (h.resolve_left hv)
     rintro - e - h' ⟨rfl⟩ ⟨rfl⟩
     split_ifs at h' with snde
