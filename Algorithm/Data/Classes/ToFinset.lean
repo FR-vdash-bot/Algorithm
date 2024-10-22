@@ -6,10 +6,16 @@ Authors: Yuyang Zhao
 import Algorithm.Data.Classes.ToMultiset
 import Mathlib.Data.Finset.Card
 
-class ToFinset (C : Type*) (α : outParam Type*) extends Size C where
+variable {C α : Type*}
+
+class ToFinset (C : Type*) (α : outParam Type*) extends Membership α C, Size C where
   toFinset : C → Finset α
+  mem c a := a ∈ toFinset c
+  mem_toFinset {x c} : x ∈ toFinset c ↔ x ∈ c := by rfl
   size_eq_card_toFinset c : size c = (toFinset c).card
-export ToFinset (toFinset size_eq_card_toFinset)
+export ToFinset (toFinset mem_toFinset size_eq_card_toFinset)
+
+attribute [simp] mem_toFinset
 
 class ToFinset.LawfulInsert (C : Type*) (α : outParam Type*)
     [ToFinset C α] [Insert α C] : Prop where
@@ -18,37 +24,30 @@ export ToFinset.LawfulInsert (toFinset_insert)
 
 attribute [simp] toFinset_insert
 
-section
-variable {α : Type*}
-
 section ToFinset
-variable {C α : Type*} [ToFinset C α] (c : C)
 
-instance (priority := 100) ToFinset.toMultiset : ToMultiset C α where
+variable [ToFinset C α] (c : C)
+
+instance (priority := 100) ToFinset.toToMultiset : ToMultiset C α where
   toMultiset c := (toFinset c).val
+  mem_toMultiset := mem_toFinset
   size_eq_card_toMultiset c := size_eq_card_toFinset c
 
 section LawfulEmptyCollection
 variable [EmptyCollection C]
 
-lemma ToFinset.lawfulEmptyCollection_iff :
+lemma lawfulEmptyCollection_iff_toFinset :
     LawfulEmptyCollection C α ↔ toFinset (∅ : C) = ∅ := by
-  rw [ToMultiset.lawfulEmptyCollection_iff]
-  change (toFinset (∅ : C)).val = ∅ ↔ _
-  simp
+  simp_rw [lawfulEmptyCollection_iff, Finset.eq_empty_iff_forall_not_mem, mem_toFinset]
 
-alias ⟨_, LawfulEmptyCollection.ofToFinset⟩ := ToFinset.lawfulEmptyCollection_iff
+alias ⟨_, LawfulEmptyCollection.of_toFinset⟩ := lawfulEmptyCollection_iff_toFinset
 
 @[simp]
-lemma toFinset_empty [inst : LawfulEmptyCollection C α] :
+lemma toFinset_empty [LawfulEmptyCollection C α] :
     toFinset (∅ : C) = ∅ := by
-  rwa [ToFinset.lawfulEmptyCollection_iff] at inst
+  rwa [← lawfulEmptyCollection_iff_toFinset]
 
 end LawfulEmptyCollection
-
-lemma ToFinset.mem_iff {c : C} {v : α} : v ∈ c ↔ v ∈ toFinset c := .rfl
-
-lemma mem_toFinset {c : C} {v : α} : v ∈ toFinset c ↔ v ∈ c := .rfl
 
 @[simp]
 lemma toFinset_val : (toFinset c).val = toMultiset c := rfl

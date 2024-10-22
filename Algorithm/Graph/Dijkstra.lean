@@ -482,8 +482,9 @@ lemma dijkstraStep_fst_getElem (g : G) (c : Info → CostType)
   apply Multiset.inf_congr
   intro d
   simp? says
-    simp only [Multiset.mem_dedup, Multiset.mem_filterMap, Option.ite_none_right_eq_some,
-      Option.some.injEq, Multiset.mem_map, Finset.mem_val, Finset.mem_univ, true_and]
+    simp only [Multiset.mem_dedup, Multiset.mem_filterMap, mem_toMultiset,
+      Option.ite_none_right_eq_some, Option.some.injEq, Multiset.mem_map, Finset.mem_val,
+      Finset.mem_univ, true_and]
   constructor
   · rintro ⟨x, hx, rfl, rfl, rfl⟩
     exact ⟨homOfStar x hx, rfl⟩

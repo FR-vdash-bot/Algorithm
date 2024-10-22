@@ -180,8 +180,8 @@ instance : ToMultiset (PairingHeap α le) α where
 instance : EmptyCollection (PairingHeap α le) where
   emptyCollection := empty
 
-instance : LawfulEmptyCollection (PairingHeap α le) α where
-  toMultiset_empty := rfl
+instance : LawfulEmptyCollection (PairingHeap α le) α :=
+  .of_toMultiset rfl
 
 @[simp]
 lemma size_eq_zero_iff (x : PairingHeap α le) : x.size = 0 ↔ x = ∅ := by
@@ -213,12 +213,12 @@ instance [Preorder α] [IsTotal α (· ≤ ·)] [DecidableRel (α := α) (· ≤
     simp only [isEmpty_iff_size_eq_zero] at hx
     match x, hx with
     | ⟨.node a c .nil, _⟩, _ =>
-      simpa using ⟨a, by
+      simpa [- mem_toMultiset] using ⟨a, by
         simp [toMultiset, toListUnordered, PairingHeapImp.Heap.toListUnordered_node], rfl⟩
   head?_le x b hb := by
     match x with
     | ⟨.node a c .nil, hwf⟩ =>
-      simp_rw [ToMultiset.mem_iff, toMultiset, toListUnordered,
+      simp_rw [← mem_toMultiset, toMultiset, toListUnordered,
         PairingHeapImp.Heap.toListUnordered_node, PairingHeapImp.Heap.toListUnordered_nil,
         List.append_nil, ← Multiset.cons_coe, Multiset.mem_cons] at hb
       obtain (rfl | hb) := hb; · rfl
