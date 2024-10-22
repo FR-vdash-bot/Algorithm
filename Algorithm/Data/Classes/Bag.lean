@@ -21,6 +21,7 @@ variable {C α : Type*} [Bag.ReadOnly C α] (c : C)
 attribute [local instance] Bag.ReadOnly.decidableMem in
 instance : MultiBag.ReadOnly C α where
   count a c := if a ∈ c then 1 else 0
-  count_eq_count_toMultiset a c := by symm; convert Multiset.count_eq_of_nodup (nodup_toMultiset c)
+  count_eq_count_toMultiset a c := by
+    simp [Multiset.count_eq_of_nodup (nodup_toMultiset c)]
 
 end Bag.ReadOnly

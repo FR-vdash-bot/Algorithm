@@ -192,10 +192,9 @@ def mk [DecidableEq α] (assocArray : C) (minHeap : C')
       simpa [h, size_eq_card_toMultiset, Multiset.card_erase_lt_of_mem, - MinHeap.head_def] using
         Multiset.card_erase_lt_of_mem (MinHeap.head_mem_toMultiset _ _)
     mk assocArray (MinHeap.tail minHeap) fun i hi ↦ by
-      simp? [ToMultiset.mem_iff, h] says
-        simp only [ToMultiset.mem_iff, MinHeap.toMultiset_tail, h, Bool.false_eq_true, ↓reduceDIte,
-          MinHeap.head_def]
-      rw [Multiset.mem_erase_of_ne]
+      simp only [← mem_toMultiset, MinHeap.toMultiset_tail, h, Bool.false_eq_true, ↓reduceDIte,
+        MinHeap.head_def]
+      rw [Multiset.mem_erase_of_ne, mem_toMultiset]
       · exact mem_minHeap _ _
       · intro h''
         apply h'
@@ -238,7 +237,8 @@ instance [DecidableEq α] :
           rw [ite_eq_left_iff, Classical.not_imp] at hj
           simp only [hj.1, ↓reduceIte]
           exact c.mem_minHeap j hj.2
-        · rw [ToMultiset.mem_iff, toMultiset_insert, Multiset.mem_cons]
+        · -- TODO: `mem_insert`
+          rw [← mem_toMultiset, toMultiset_insert, Multiset.mem_cons, mem_toMultiset]
           split_ifs at hj ⊢ with hji
           · simp [hji]
           · exact .inr <| c.mem_minHeap j hj

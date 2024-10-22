@@ -77,36 +77,52 @@ lemma dropLast_toList : a.toList.dropLast = a.pop.toList := by
 
 end Array
 
-class ToList (C : Type*) (α : outParam Type*) extends Size C where
+class ToList (C : Type*) (α : outParam Type*) extends Membership α C, Size C where
   toList : C → List α
   toArray : C → Array α
   toArray_eq_mk_toList a : toArray a = Array.mk (toList a)
+  mem c a := a ∈ toList c
+  mem_toList {x c} : x ∈ toList c ↔ x ∈ c := by rfl
   size_eq_length_toList c : size c = (toList c).length
-export ToList (toList toArray toArray_eq_mk_toList size_eq_length_toList)
+export ToList (toList toArray toArray_eq_mk_toList mem_toList size_eq_length_toList)
 
-attribute [simp] toArray_eq_mk_toList
+attribute [simp] toArray_eq_mk_toList mem_toList
 
 section ToList
+
+instance : ToList (List α) α where
+  toList := id
+  toArray := Array.mk
+  toArray_eq_mk_toList _ := rfl
+  size_eq_length_toList _ := rfl
+
+instance : ToList (Array α) α where
+  toList := Array.toList
+  toArray := id
+  toArray_eq_mk_toList _ := rfl
+  mem_toList := Array.mem_def.symm
+  size_eq_length_toList _ := rfl
+
 variable [ToList C α]
 
-instance (priority := 100) ToList.toMultiset : ToMultiset C α where
+instance (priority := 100) ToList.toToMultiset : ToMultiset C α where
   toMultiset c := ↑(toList c)
+  mem_toMultiset := mem_toList
   size_eq_card_toMultiset c := size_eq_length_toList c
 
 section LawfulEmptyCollection
 variable [EmptyCollection C]
 
-lemma ToList.lawfulEmptyCollection_iff :
+lemma lawfulEmptyCollection_iff_toList :
     LawfulEmptyCollection C α ↔ toList (∅ : C) = [] := by
-  rw [ToMultiset.lawfulEmptyCollection_iff]
-  simp [toMultiset]
+  simp_rw [lawfulEmptyCollection_iff, List.eq_nil_iff_forall_not_mem, mem_toList]
 
-alias ⟨_, LawfulEmptyCollection.ofToList⟩ := ToList.lawfulEmptyCollection_iff
+alias ⟨_, LawfulEmptyCollection.of_toList⟩ := lawfulEmptyCollection_iff_toList
 
 @[simp]
-lemma toList_empty [inst : LawfulEmptyCollection C α] :
+lemma toList_empty [LawfulEmptyCollection C α] :
     toList (∅ : C) = [] := by
-  rwa [ToList.lawfulEmptyCollection_iff] at inst
+  rwa [← lawfulEmptyCollection_iff_toList]
 
 end LawfulEmptyCollection
 
@@ -126,11 +142,6 @@ lemma coe_toList : ↑(toList c) = toMultiset c := rfl
 
 lemma isEmpty_toList : (toList c).isEmpty = isEmpty c := by
   rw [isEmpty_eq_decide_size, List.isEmpty_eq_decide_length, size_eq_length_toList]
-
-lemma ToList.mem_iff {c : C} {v : α} : v ∈ c ↔ v ∈ toList c := .rfl
-
-@[simp]
-lemma mem_toList {c : C} {v : α} : v ∈ toList c ↔ v ∈ c := .rfl
 
 end ToList
 
@@ -235,12 +246,6 @@ end ToList
 
 section List
 
-instance : ToList (List α) α where
-  toList := id
-  toArray := Array.mk
-  toArray_eq_mk_toList _ := rfl
-  size_eq_length_toList _ := rfl
-
 instance : Front (List α) α where
   front? := List.head?
   front?_def _ := rfl
@@ -263,12 +268,6 @@ instance : LawfulAppend (List α) α where
 end List
 
 section Array
-
-instance : ToList (Array α) α where
-  toList := Array.toList
-  toArray := id
-  toArray_eq_mk_toList _ := rfl
-  size_eq_length_toList _ := rfl
 
 instance : Front (Array α) α where
   front? c := c.get? 0
