@@ -8,13 +8,13 @@ import Batteries.Data.Vector.Basic
 import Mathlib.Data.Fin.Basic
 import Mathlib.Logic.Function.Basic
 
-universe u v
+variable {C ι α : Type*} {Valid : C → ι → Prop}
 
 namespace Array
 variable {α : Type*} {n : ℕ}
 
-lemma get_fin_set (a : Array α) (i : Fin a.size) (v : α) (j : Fin (set a i v).size) :
-    (a.set i v).get j = if i.1 = j.1 then v else a[j.1] := by
+lemma get_fin_set (c : Array α) (i : Fin c.size) (v : α) (j : Fin (set c i v).size) :
+    (c.set i v).get j = if i.1 = j.1 then v else c[j.1] := by
   rw [get_eq_getElem, get_set]
 
 end Array
@@ -24,13 +24,13 @@ namespace Batteries
 namespace Vector
 variable {α : Type*} {n : ℕ}
 
-lemma get_set_self (a : Vector α n) (i : Fin n) (v : α) :
-    (a.set i v).get i = v := by
+lemma get_set_self (c : Vector α n) (i : Fin n) (v : α) :
+    (c.set i v).get i = v := by
   unfold get set
   simp [Array.get_fin_set]
 
-lemma get_set_of_ne (a : Vector α n) {i : Fin n} (v : α) {j : Fin n} (h : i ≠ j) :
-    (a.set i v).get j = a.get j := by
+lemma get_set_of_ne (c : Vector α n) {i : Fin n} (v : α) {j : Fin n} (h : i ≠ j) :
+    (c.set i v).get j = c.get j := by
   unfold get set
   simp [Array.get_fin_set, Fin.val_eq_val, h]
 
@@ -47,54 +47,127 @@ end Batteries.Vector
 class SetElem (C : Type*) (ι : Type*) (α : outParam Type*) where
   protected setElem : C → ι → α → C
 
-macro:max a:term noWs "[" i:term " => " v:term "]" : term => `(SetElem.setElem $a $i $v)
-macro:max a:term noWs "[" i:term " ↦ " v:term "]" : term => `(SetElem.setElem $a $i $v)
+macro:max c:term noWs "[" i:term " => " v:term "]" : term => `(SetElem.setElem $c $i $v)
+macro:max c:term noWs "[" i:term " ↦ " v:term "]" : term => `(SetElem.setElem $c $i $v)
 
 open Lean PrettyPrinter.Delaborator SubExpr in
 /-- Delaborator for `SetElem.setElem` -/
 @[app_delab SetElem.setElem]
 def SetElem.delabSetElem : Delab := do
   guard <| (← getExpr).isAppOfArity' ``SetElem.setElem 7
-  let a ← withNaryArg 4 delab
+  let c ← withNaryArg 4 delab
   let i ← withNaryArg 5 delab
   let v ← withNaryArg 6 delab
-  `($a[$i ↦ $v])
-
-class EraseElem (C : Type*) (ι : Type*) (α : outParam Type*) where
-  protected eraseElem : C → ι → C
-
-macro:max a:term noWs "[" i:term " => " "-" "]" : term => `(EraseElem.eraseElem $a $i)
-macro:max a:term noWs "[" i:term " ↦ " "-" "]" : term => `(EraseElem.eraseElem $a $i)
-
-open Lean PrettyPrinter.Delaborator SubExpr in
-/-- Delaborator for `EraseElem.eraseElem` -/
-@[app_delab EraseElem.eraseElem]
-def EraseElem.delabEraseElem : Delab := do
-  guard <| (← getExpr).isAppOfArity' ``EraseElem.eraseElem 6
-  let a ← withNaryArg 4 delab
-  let i ← withNaryArg 5 delab
-  `($a[$i ↦ -])
+  `($c[$i ↦ $v])
 
 class GetSetElem (C : Type*) (ι : Type*) (α : outParam Type*)
     (Valid : outParam (C → ι → Prop)) extends GetElem C ι α Valid, SetElem C ι α where
-  valid_setElem_self {a i} v :
-    Valid a[i ↦ v] i := by get_elem_tactic
-  valid_setElem_of_valid {a} (i : ι) v {j} :
-    Valid a j → Valid a[i ↦ v] j := by get_elem_tactic
-  valid_of_valid_setElem {a i} v {j} :
-    i ≠ j → Valid a[i ↦ v] j → Valid a j := by get_elem_tactic
-  getElem_setElem_self c i v :
-    c[i ↦ v][i]'(valid_setElem_self v) = v
-  getElem_setElem_of_ne c {i} v {j} (hij : i ≠ j)
-    (hs : Valid c[i ↦ v] j := by get_elem_tactic) (h : Valid c j := by get_elem_tactic) :
-    c[i ↦ v][j]'hs = c[j]'h
-export GetSetElem (valid_setElem_self valid_setElem_of_valid valid_of_valid_setElem
+  valid_setElem_self {c i x} :
+    Valid c[i ↦ x] i := by get_elem_tactic
+  valid_setElem_of_ne {c i} x {j} :
+    i ≠ j → (Valid c[i ↦ x] j ↔ Valid c j) := by get_elem_tactic
+  getElem_setElem_self c i x :
+    c[i ↦ x][i]'valid_setElem_self = x
+  getElem_setElem_of_ne c {i} x {j} (hij : i ≠ j)
+    (hs : Valid c[i ↦ x] j := by get_elem_tactic) (h : Valid c j := by get_elem_tactic) :
+    c[i ↦ x][j]'hs = c[j]'h
+export GetSetElem (valid_setElem_self valid_setElem_of_ne
   getElem_setElem_self getElem_setElem_of_ne)
 
-attribute [get_elem_simps] valid_setElem_self valid_setElem_of_valid valid_of_valid_setElem
+attribute [getElem_simps] valid_setElem_self valid_setElem_of_ne
+
+@[getElem_simps]
+lemma valid_setElem_of_valid [GetSetElem C ι α Valid] {c : C} (i : ι) x {j} :
+    Valid c j → Valid c[i ↦ x] j := by
+  intro; by_cases hij : i = j <;> simp [*, getElem_simps]
+
 attribute [simp] getElem_setElem_self getElem_setElem_of_ne
 
-macro_rules | `(tactic| get_elem_tactic_trivial) => `(tactic| simp [get_elem_simps, *]; done)
+macro_rules | `(tactic| get_elem_tactic_trivial) => `(tactic| simp [getElem_simps, *]; done)
+
+-- TODO: should be c field of c typeclass
+def modifyElem [GetSetElem C ι α Valid] (c i) [dec : Decidable (Valid c i)] (f : α → α) : C :=
+  match dec with
+  | .isFalse _ => c
+  | .isTrue _ => c[i ↦ f c[i]]
+
+-- TODO: move to c better place
+class Erase (C : Type*) (ι : Type*) where
+  erase : C → ι → C
+export Erase (erase)
+
+class GetSetEraseElem (C : Type*) (ι : Type*) (α : outParam Type*)
+    (Valid : outParam (C → ι → Prop)) extends GetSetElem C ι α Valid, Erase C ι where
+  not_valid_erase_self {c i} :
+    ¬ Valid (erase c i) i
+  valid_erase_of_ne {c i j} :
+    i ≠ j → (Valid (erase c i) j ↔ Valid c j) := by get_elem_tactic
+  getElem_erase_of_ne c {i j} (hij : i ≠ j)
+    (hs : Valid (erase c i) j := by get_elem_tactic) (h : Valid c j := by get_elem_tactic) :
+    (erase c i)[j]'hs = c[j]'h
+export GetSetEraseElem (not_valid_erase_self valid_erase_of_ne getElem_erase_of_ne)
+
+attribute [getElem_simps] valid_erase_of_ne
+attribute [simp] getElem_erase_of_ne
+
+class GetSetEraseElem? (C : Type*) (ι : Type*) (α : outParam Type*)
+    (Valid : outParam (C → ι → Prop)) extends
+    GetElem? C ι α Valid, GetSetEraseElem C ι α Valid, LawfulGetElem C ι α Valid where
+
+section GetSetEraseElem?
+variable [GetSetEraseElem? C ι α Valid]
+
+@[simp]
+lemma getElem?_setElem_self (c : C) (i : ι) (x : α) :
+    c[i ↦ x][i]? = x := by
+  classical rw [getElem?_pos, getElem_setElem_self] -- TODO: lean4#5812
+
+@[simp]
+lemma getElem?_setElem_of_ne (c : C) {i : ι} (x : α) {j : ι} (hij : i ≠ j) :
+    c[i ↦ x][j]? = c[j]? := by
+  classical -- TODO: lean4#5812
+    rw [getElem?_def c]
+    split_ifs with h
+    · rw [getElem?_pos, getElem_setElem_of_ne c x hij]
+    · simp [getElem?_neg, valid_setElem_of_ne, h, hij]
+
+@[simp]
+lemma getElem?_erase_self (c : C) (i : ι) :
+    (erase c i)[i]? = none := by
+  classical exact getElem?_neg _ i not_valid_erase_self -- TODO: lean4#5812
+
+@[simp]
+lemma getElem?_erase_of_ne (c : C) {i j : ι} (hij : i ≠ j) :
+    (erase c i)[j]? = c[j]? := by
+  classical
+    rw [getElem?_def]
+    split_ifs with h
+    · rw [getElem?_pos, getElem_erase_of_ne _ hij h ((valid_erase_of_ne hij).mp h)]
+    · simp [getElem?_neg, (valid_erase_of_ne hij).symm.not, h]
+
+-- TODO: should be a field of a typeclass
+def alterElem (c : C) (i : ι) (f : Option α → Option α) : C :=
+  match f c[i]? with
+  | none => erase c i
+  | some x => c[i ↦ x]
+
+@[simp]
+lemma getElem?_alterElem_self (c : C) (i : ι) (f : Option α → Option α) :
+    (alterElem c i f)[i]? = f c[i]? := by
+  rw [alterElem]
+  split
+  · simp [*]
+  · classical simp [getElem?_pos _ _ valid_setElem_self, *] -- TODO: lean4#5812
+
+@[simp]
+lemma getElem?_alterElem_of_ne (c : C) {i : ι} (f : Option α → Option α) {j : ι} (hij : i ≠ j) :
+    (alterElem c i f)[j]? = c[j]? := by
+  rw [alterElem]
+  split
+  · simp [*]
+  · rw [getElem?_setElem_of_ne c _ hij]
+
+end GetSetEraseElem?
 
 class HasValid (C : Type*) (ι : Type*) where
   Valid : C → ι → Prop
@@ -102,10 +175,9 @@ class HasValid (C : Type*) (ι : Type*) where
 class GetElemAllValid (C : Type*) (ι : Type*) (α : outParam Type*) extends
     HasValid C ι, GetElem C ι α Valid where
   Valid := fun _ _ ↦ True
-  all_valid {a i} : Valid a i := by get_elem_tactic
+  all_valid {c i} : Valid c i := by get_elem_tactic
 export GetElemAllValid (all_valid)
 
-attribute [instance] GetElemAllValid.toGetElem
 attribute [simp] all_valid
 
 macro_rules | `(tactic| get_elem_tactic_trivial) => `(tactic| exact GetElemAllValid.all_valid)
@@ -121,25 +193,25 @@ instance GetSetElemAllValid.toGetSetElem (C ι α : Type*) [GetSetElemAllValid C
   getElem_setElem_of_ne _ _ _ _ hij _ _ := getElem_setElem_of_ne _ _ hij
 
 section GetSetElem
-variable {C ι α : Type*} {Valid : C → ι → Prop} [GetSetElem C ι α Valid]
+variable [GetSetElem C ι α Valid]
 
 @[simp, nolint simpNF] -- It sometimes does work, see `getElem_setElem'`.
-lemma getElem_setElem [DecidableEq ι] (a : C) (i : ι) (v : α) (j : ι)
-    (hj : Valid a j := by get_elem_tactic) :
-    a[i ↦ v][j] = if i = j then v else a[j] := by
+lemma getElem_setElem [DecidableEq ι] (c : C) (i : ι) (v : α) (j : ι)
+    (hj : Valid c j := by get_elem_tactic) :
+    c[i ↦ v][j] = if i = j then v else c[j] := by
   split_ifs with h <;> simp [h, hj]
 
 end GetSetElem
 
 section GetSetElemAllValid
-variable {C ι α : Type*} [GetSetElemAllValid C ι α]
+variable [GetSetElemAllValid C ι α]
 
-lemma getElem_setElem' [DecidableEq ι] (a : C) (i : ι) (v : α) (j : ι) :
-    a[i ↦ v][j] = if i = j then v else a[j] := by
+lemma getElem_setElem' [DecidableEq ι] (c : C) (i : ι) (v : α) (j : ι) :
+    c[i ↦ v][j] = if i = j then v else c[j] := by
   simp
 
-lemma getElem_setElem_eq_update [DecidableEq ι] (a : C) (i : ι) (v : α) (j : ι) :
-    a[i ↦ v][j] = Function.update (a[·]) i v j := by
+lemma getElem_setElem_eq_update [DecidableEq ι] (c : C) (i : ι) (v : α) (j : ι) :
+    c[i ↦ v][j] = Function.update (c[·]) i v j := by
   simp [Function.update, eq_comm]
 
 class OfFn (C : Type*) (ι : Type*) (α : Type*) [GetElemAllValid C ι α] (f : ι → α) where
@@ -156,10 +228,10 @@ variable {α : Type*} {n : ℕ} {f : Fin n → α}
 
 instance instGetSetElemAllValid : GetSetElemAllValid (Vector α n) (Fin n) α where
   Valid _ i := (i : ℕ) < n -- `Fin.instGetElemFinVal`
-  getElem a i _ := a.get i
+  getElem c i _ := c.get i
   setElem := set
-  getElem_setElem_self a i v := a.get_set_self i v
-  getElem_setElem_of_ne a _ v _ hij := a.get_set_of_ne v hij
+  getElem_setElem_self c i v := c.get_set_self i v
+  getElem_setElem_of_ne c _ v _ hij := c.get_set_of_ne v hij
 
 instance : OfFn (Vector α n) (Fin n) α f where
   ofFn := ofFn f

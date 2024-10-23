@@ -5,5 +5,5 @@ Authors: Yuyang Zhao
 -/
 import Lean.Meta.Tactic.Simp.RegisterCommand
 
-/-- The simpset `get_elem_simps` is used by the tactic `get_elem_tactic_trivial`. -/
-register_simp_attr get_elem_simps
+/-- The simpset `getElem_simps` is used by the tactic `get_elem_tactic_trivial`. -/
+register_simp_attr getElem_simps
