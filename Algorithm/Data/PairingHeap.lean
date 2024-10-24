@@ -170,7 +170,7 @@ lemma coe_toListUnordered_singleton (a : α) :
 instance : ToMultiset (PairingHeap α le) α where
   size x := x.size
   isEmpty x := x.isEmpty
-  isEmpty_iff_size_eq_zero x :=
+  isEmpty_iff_size_eq_zero {x} :=
     match x with
     | ⟨.nil, _⟩ | ⟨.node _ _ _, _⟩ => by
       simp [isEmpty, size, PairingHeapImp.Heap.isEmpty, PairingHeapImp.Heap.size]
