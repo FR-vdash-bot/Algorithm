@@ -44,6 +44,8 @@ lemma getElem_ofFn (f : Fin n → α) (i : Fin n) : (ofFn f)[i] = f i := by
 
 end Batteries.Vector
 
+macro_rules | `(tactic| get_elem_tactic_trivial) => `(tactic| simp_all [getElem_simps]; done)
+
 class SetElem (C : Type*) (ι : Type*) (α : outParam Type*) where
   protected setElem : C → ι → α → C
 
@@ -62,28 +64,32 @@ def SetElem.delabSetElem : Delab := do
 
 class GetSetElem (C : Type*) (ι : Type*) (α : outParam Type*)
     (Valid : outParam (C → ι → Prop)) extends GetElem C ι α Valid, SetElem C ι α where
-  valid_setElem_self {c i x} :
-    Valid c[i ↦ x] i := by get_elem_tactic
-  valid_setElem_of_ne {c i} x {j} :
-    i ≠ j → (Valid c[i ↦ x] j ↔ Valid c j) := by get_elem_tactic
+  valid_setElem {c} {i : ι} {x j} : Valid c[i ↦ x] j ↔ i = j ∨ Valid c j := by get_elem_tactic
   getElem_setElem_self c i x :
-    c[i ↦ x][i]'valid_setElem_self = x
+    c[i ↦ x][i]'(valid_setElem.mpr <| .inl rfl) = x
   getElem_setElem_of_ne c {i} x {j} (hij : i ≠ j)
     (hs : Valid c[i ↦ x] j := by get_elem_tactic) (h : Valid c j := by get_elem_tactic) :
     c[i ↦ x][j]'hs = c[j]'h
-export GetSetElem (valid_setElem_self valid_setElem_of_ne
-  getElem_setElem_self getElem_setElem_of_ne)
+export GetSetElem (valid_setElem getElem_setElem_self getElem_setElem_of_ne)
 
-attribute [getElem_simps] valid_setElem_self valid_setElem_of_ne
-
-@[getElem_simps]
-lemma valid_setElem_of_valid [GetSetElem C ι α Valid] {c : C} (i : ι) x {j} :
-    Valid c j → Valid c[i ↦ x] j := by
-  intro; by_cases hij : i = j <;> simp [*, getElem_simps]
-
+attribute [getElem_simps] valid_setElem
 attribute [simp] getElem_setElem_self getElem_setElem_of_ne
 
-macro_rules | `(tactic| get_elem_tactic_trivial) => `(tactic| simp [getElem_simps, *]; done)
+lemma valid_setElem_self [GetSetElem C ι α Valid] {c : C} {i : ι} {x} :
+    Valid c[i ↦ x] i := by
+  get_elem_tactic
+
+lemma valid_setElem_of_ne [GetSetElem C ι α Valid] {c : C} {i : ι} x {j : ι} :
+    i ≠ j → (Valid c[i ↦ x] j ↔ Valid c j) := by
+  get_elem_tactic
+
+lemma valid_of_valid_setElem [GetSetElem C ι α Valid] {c : C} {i : ι} x {j : ι} :
+    i ≠ j → Valid c[i ↦ x] j → Valid c j := by
+  get_elem_tactic
+
+lemma valid_setElem_of_valid [GetSetElem C ι α Valid] {c : C} (i : ι) x {j} :
+    Valid c j → Valid c[i ↦ x] j := by
+  get_elem_tactic
 
 -- TODO: should be c field of c typeclass
 def modifyElem [GetSetElem C ι α Valid] (c i) [dec : Decidable (Valid c i)] (f : α → α) : C :=
@@ -98,17 +104,30 @@ export Erase (erase)
 
 class GetSetEraseElem (C : Type*) (ι : Type*) (α : outParam Type*)
     (Valid : outParam (C → ι → Prop)) extends GetSetElem C ι α Valid, Erase C ι where
-  not_valid_erase_self {c i} :
-    ¬ Valid (erase c i) i
-  valid_erase_of_ne {c i j} :
-    i ≠ j → (Valid (erase c i) j ↔ Valid c j) := by get_elem_tactic
+  valid_erase {c i j} : Valid (erase c i) j ↔ i ≠ j ∧ Valid c j := by get_elem_tactic
   getElem_erase_of_ne c {i j} (hij : i ≠ j)
     (hs : Valid (erase c i) j := by get_elem_tactic) (h : Valid c j := by get_elem_tactic) :
     (erase c i)[j]'hs = c[j]'h
-export GetSetEraseElem (not_valid_erase_self valid_erase_of_ne getElem_erase_of_ne)
+export GetSetEraseElem (valid_erase getElem_erase_of_ne)
 
-attribute [getElem_simps] valid_erase_of_ne
+attribute [getElem_simps] valid_erase
 attribute [simp] getElem_erase_of_ne
+
+lemma not_valid_erase_self [GetSetEraseElem C ι α Valid] {c : C} {i : ι} :
+    ¬Valid (erase c i) i := by
+  get_elem_tactic
+
+lemma valid_erase_of_ne [GetSetEraseElem C ι α Valid] {c : C} {i j : ι} :
+    i ≠ j → (Valid (erase c i) j ↔ Valid c j) := by
+  get_elem_tactic
+
+lemma valid_of_valid_erase [GetSetEraseElem C ι α Valid] {c : C} {i j : ι} :
+    Valid (erase c i) j → Valid c j := by
+  get_elem_tactic
+
+lemma valid_erase_of_valid [GetSetEraseElem C ι α Valid] {c : C} {i j : ι} :
+    i ≠ j → Valid c j → Valid (erase c i) j := by
+  get_elem_tactic
 
 class GetSetEraseElem? (C : Type*) (ι : Type*) (α : outParam Type*)
     (Valid : outParam (C → ι → Prop)) extends
@@ -125,11 +144,8 @@ lemma getElem?_setElem_self (c : C) (i : ι) (x : α) :
 @[simp]
 lemma getElem?_setElem_of_ne (c : C) {i : ι} (x : α) {j : ι} (hij : i ≠ j) :
     c[i ↦ x][j]? = c[j]? := by
-  classical -- TODO: lean4#5812
-    rw [getElem?_def c]
-    split_ifs with h
-    · rw [getElem?_pos, getElem_setElem_of_ne c x hij]
-    · simp [getElem?_neg, valid_setElem_of_ne, h, hij]
+  classical rw [getElem?_def, getElem?_def]
+  split_ifs with h <;> get_elem_tactic
 
 @[simp]
 lemma getElem?_erase_self (c : C) (i : ι) :
@@ -139,11 +155,8 @@ lemma getElem?_erase_self (c : C) (i : ι) :
 @[simp]
 lemma getElem?_erase_of_ne (c : C) {i j : ι} (hij : i ≠ j) :
     (erase c i)[j]? = c[j]? := by
-  classical
-    rw [getElem?_def]
-    split_ifs with h
-    · rw [getElem?_pos, getElem_erase_of_ne _ hij h ((valid_erase_of_ne hij).mp h)]
-    · simp [getElem?_neg, (valid_erase_of_ne hij).symm.not, h]
+  classical rw [getElem?_def, getElem?_def]
+  split_ifs with h <;> get_elem_tactic
 
 -- TODO: should be a field of a typeclass
 def alterElem (c : C) (i : ι) (f : Option α → Option α) : C :=
