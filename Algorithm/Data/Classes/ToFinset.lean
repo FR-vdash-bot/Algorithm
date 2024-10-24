@@ -33,6 +33,11 @@ instance (priority := 100) ToFinset.toToMultiset : ToMultiset C α where
   mem_toMultiset := mem_toFinset
   size_eq_card_toMultiset c := size_eq_card_toFinset c
 
+@[simp]
+lemma toFinset_val : (toFinset c).val = toMultiset c := rfl
+
+lemma nodup_toMultiset : (toMultiset c).Nodup := (toFinset c).nodup
+
 section LawfulEmptyCollection
 variable [EmptyCollection C]
 
@@ -49,9 +54,13 @@ lemma toFinset_empty [LawfulEmptyCollection C α] :
 
 end LawfulEmptyCollection
 
-@[simp]
-lemma toFinset_val : (toFinset c).val = toMultiset c := rfl
+section LawfulErase
 
-lemma nodup_toMultiset : (toMultiset c).Nodup := (toFinset c).nodup
+@[simp]
+lemma toFinset_erase [Erase C α] [LawfulErase C α] [DecidableEq α] a (c : C) :
+    toFinset (erase c a) = (toFinset c).erase a := by
+  simp [← Finset.val_inj, toFinset_val]
+
+end LawfulErase
 
 end ToFinset

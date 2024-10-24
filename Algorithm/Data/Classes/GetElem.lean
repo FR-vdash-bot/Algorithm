@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuyang Zhao
 -/
 import Algorithm.Tactic.Attr.Register
+import Algorithm.Data.Classes.Erase
 import Batteries.Data.Vector.Basic
 import Mathlib.Data.Fin.Basic
 import Mathlib.Logic.Function.Basic
@@ -91,16 +92,11 @@ lemma valid_setElem_of_valid [GetSetElem C ι α Valid] {c : C} (i : ι) x {j} :
     Valid c j → Valid c[i ↦ x] j := by
   get_elem_tactic
 
--- TODO: should be c field of c typeclass
+-- TODO: should be a field of a typeclass
 def modifyElem [GetSetElem C ι α Valid] (c i) [dec : Decidable (Valid c i)] (f : α → α) : C :=
   match dec with
   | .isFalse _ => c
   | .isTrue _ => c[i ↦ f c[i]]
-
--- TODO: move to c better place
-class Erase (C : Type*) (ι : Type*) where
-  erase : C → ι → C
-export Erase (erase)
 
 class GetSetEraseElem (C : Type*) (ι : Type*) (α : outParam Type*)
     (Valid : outParam (C → ι → Prop)) extends GetSetElem C ι α Valid, Erase C ι where
