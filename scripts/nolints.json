@@ -20,6 +20,7 @@
  ["docBlame", "IndexedMinHeap"],
  ["docBlame", "LawfulAppend"],
  ["docBlame", "LawfulEmptyCollection"],
+ ["docBlame", "LawfulErase"],
  ["docBlame", "Mergeable"],
  ["docBlame", "MinHeap"],
  ["docBlame", "MultiBag"],

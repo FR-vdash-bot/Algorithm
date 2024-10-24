@@ -13,7 +13,8 @@ class Bag.ReadOnly (C : Type*) (α : outParam Type*) extends
 class Bag (C : Type*) (α : outParam Type*) extends
     Bag.ReadOnly C α,
     EmptyCollection C, LawfulEmptyCollection C α,
-    Insert α C, ToFinset.LawfulInsert C α
+    Insert α C, ToFinset.LawfulInsert C α,
+    Erase C α, LawfulErase C α
 
 section Bag.ReadOnly
 variable {C α : Type*} [Bag.ReadOnly C α] (c : C)

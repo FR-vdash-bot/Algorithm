@@ -22,8 +22,12 @@ section Dict
 variable [Dict C ι α]
 
 instance : Dict.ReadOnly C ι α where
+
 instance : Inhabited C where
   default := ∅
+
+instance : LawfulErase C ι := lawfulErase_iff_toFinset.mpr fun c i ↦ by
+  ext; simp [valid_erase, eq_comm]
 
 def Dict.AssocArray (C : Type*) := C
 

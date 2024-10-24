@@ -3,6 +3,7 @@ Copyright (c) 2023 Yuyang Zhao. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuyang Zhao
 -/
+import Algorithm.Data.Classes.Erase
 import Algorithm.Data.Classes.Size
 import Mathlib.Data.Multiset.Basic
 
@@ -29,6 +30,14 @@ class ToMultiset.LawfulInsert (C : Type*) (α : outParam Type*)
 export ToMultiset.LawfulInsert (toMultiset_insert)
 
 attribute [simp] toMultiset_insert
+
+@[mk_iff lawfulErase_iff_toMultiset]
+class LawfulErase (C : Type*) (α : outParam Type*)
+    [ToMultiset C α] [Erase C α] : Prop where
+  toMultiset_erase [DecidableEq α] (c : C) a : toMultiset (erase c a) = (toMultiset c).erase a
+export LawfulErase (toMultiset_erase)
+
+attribute [simp] toMultiset_erase
 
 section ToMultiset
 
