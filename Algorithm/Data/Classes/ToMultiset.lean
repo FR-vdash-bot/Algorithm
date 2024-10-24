@@ -31,9 +31,10 @@ export ToMultiset.LawfulInsert (toMultiset_insert)
 
 attribute [simp] toMultiset_insert
 
+@[mk_iff lawfulErase_iff_toMultiset]
 class LawfulErase (C : Type*) (α : outParam Type*)
     [ToMultiset C α] [Erase C α] : Prop where
-  toMultiset_erase [DecidableEq α] a (c : C) : toMultiset (erase c a) = (toMultiset c).erase a
+  toMultiset_erase [DecidableEq α] (c : C) a : toMultiset (erase c a) = (toMultiset c).erase a
 export LawfulErase (toMultiset_erase)
 
 attribute [simp] toMultiset_erase

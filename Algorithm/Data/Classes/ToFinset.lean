@@ -55,11 +55,16 @@ lemma toFinset_empty [LawfulEmptyCollection C α] :
 end LawfulEmptyCollection
 
 section LawfulErase
+variable [Erase C α]
+
+lemma lawfulErase_iff_toFinset :
+    LawfulErase C α ↔ ∀ [DecidableEq α] (c : C) a, toFinset (erase c a) = (toFinset c).erase a := by
+  simp [lawfulErase_iff_toMultiset, ← Finset.val_inj]
 
 @[simp]
-lemma toFinset_erase [Erase C α] [LawfulErase C α] [DecidableEq α] a (c : C) :
+lemma toFinset_erase [LawfulErase C α] [DecidableEq α] (c : C) a :
     toFinset (erase c a) = (toFinset c).erase a := by
-  simp [← Finset.val_inj, toFinset_val]
+  exact lawfulErase_iff_toFinset.mp inferInstance c a
 
 end LawfulErase
 
