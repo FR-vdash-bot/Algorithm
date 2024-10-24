@@ -72,7 +72,8 @@ class GetSetElem (C : Type*) (ι : Type*) (α : outParam Type*)
     c[i ↦ x][j]'hs = c[j]'h
 export GetSetElem (valid_setElem getElem_setElem_self getElem_setElem_of_ne)
 
-attribute [simp] valid_setElem getElem_setElem_self getElem_setElem_of_ne
+attribute [getElem_simps] valid_setElem
+attribute [simp] getElem_setElem_self getElem_setElem_of_ne
 
 lemma valid_setElem_self [GetSetElem C ι α Valid] {c : C} {i : ι} {x} :
     Valid c[i ↦ x] i := by
@@ -109,7 +110,8 @@ class GetSetEraseElem (C : Type*) (ι : Type*) (α : outParam Type*)
     (erase c i)[j]'hs = c[j]'h
 export GetSetEraseElem (valid_erase getElem_erase_of_ne)
 
-attribute [simp] valid_erase getElem_erase_of_ne
+attribute [getElem_simps] valid_erase
+attribute [simp] getElem_erase_of_ne
 
 lemma not_valid_erase_self [GetSetEraseElem C ι α Valid] {c : C} {i : ι} :
     ¬Valid (erase c i) i := by
@@ -142,11 +144,8 @@ lemma getElem?_setElem_self (c : C) (i : ι) (x : α) :
 @[simp]
 lemma getElem?_setElem_of_ne (c : C) {i : ι} (x : α) {j : ι} (hij : i ≠ j) :
     c[i ↦ x][j]? = c[j]? := by
-  classical -- TODO: lean4#5812
-    rw [getElem?_def c]
-    split_ifs with h
-    · rw [getElem?_pos, getElem_setElem_of_ne c x hij]
-    · simp [getElem?_neg, valid_of_valid_setElem, h, hij]
+  classical rw [getElem?_def, getElem?_def]
+  split_ifs with h <;> get_elem_tactic
 
 @[simp]
 lemma getElem?_erase_self (c : C) (i : ι) :
@@ -156,11 +155,8 @@ lemma getElem?_erase_self (c : C) (i : ι) :
 @[simp]
 lemma getElem?_erase_of_ne (c : C) {i j : ι} (hij : i ≠ j) :
     (erase c i)[j]? = c[j]? := by
-  classical
-    rw [getElem?_def c]
-    split_ifs with h
-    · rw [getElem?_pos, getElem_erase_of_ne _ hij]
-    · simp [getElem?_neg, h]
+  classical rw [getElem?_def, getElem?_def]
+  split_ifs with h <;> get_elem_tactic
 
 -- TODO: should be a field of a typeclass
 def alterElem (c : C) (i : ι) (f : Option α → Option α) : C :=
