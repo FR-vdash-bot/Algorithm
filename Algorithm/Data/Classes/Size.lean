@@ -11,7 +11,7 @@ variable {C α : Type _}
 class Size (C : Type _) where
   size : C → Nat
   isEmpty : C → Bool
-  isEmpty_iff_size_eq_zero c : isEmpty c ↔ size c = 0
+  isEmpty_iff_size_eq_zero {c} : isEmpty c ↔ size c = 0
 export Size (size isEmpty isEmpty_iff_size_eq_zero)
 
 attribute [simp] isEmpty_iff_size_eq_zero
@@ -19,12 +19,12 @@ attribute [simp] isEmpty_iff_size_eq_zero
 instance : Size (List α) where
   size := List.length
   isEmpty := List.isEmpty
-  isEmpty_iff_size_eq_zero l := by cases l <;> simp
+  isEmpty_iff_size_eq_zero := by simp
 
 instance : Size (Array α) where
   size := Array.size
   isEmpty := Array.isEmpty
-  isEmpty_iff_size_eq_zero l := by simp
+  isEmpty_iff_size_eq_zero := by simp
 
 variable [Size C] (c : C)
 
