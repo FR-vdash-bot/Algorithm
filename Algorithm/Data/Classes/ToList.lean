@@ -46,16 +46,13 @@ lemma reverse_dropLast (l : List α) : l.dropLast.reverse = l.reverse.tail :=
 
 @[simp]
 lemma back?_toArray : l.toArray.back? = l.getLast? := by
-  rw [Array.back?, Array.get?_eq_toList_get?, getLast?_eq_getElem?]
+  rw [Array.back?, Array.get?_eq_get?_toList, getLast?_eq_getElem?]
   simp
 
 end List
 
 namespace Array
 variable (a : Array α)
-
-lemma isEmpty_toList : a.toList.isEmpty = a.isEmpty := by
-  rw [List.isEmpty_eq_decide_length, isEmpty]
 
 lemma isEmpty_toListRev : a.toListRev.isEmpty = a.isEmpty := by
   rw [toListRev_eq, List.isEmpty_reverse, isEmpty_toList]
@@ -66,10 +63,10 @@ lemma toList_length : a.toList.length = a.size := by
 @[simp]
 lemma get?_toList : a.toList.get? = a.get? := by
   ext i
-  rw [Array.get?_eq_toList_get?]
+  rw [get?_eq_get?_toList]
 
 lemma getLast?_toList : a.toList.getLast? = a.back? := by
-  rw [back?, get?_eq_toList_get?, List.getLast?_eq_getElem?]
+  rw [back?, get?_eq_get?_toList, List.getLast?_eq_getElem?]
   simp
 
 lemma dropLast_toList : a.toList.dropLast = a.pop.toList := by

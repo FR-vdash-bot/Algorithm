@@ -24,7 +24,7 @@ lean_lib Mutable where
 lean_lib Algorithm where
   roots := #[`Algorithm]
 
-target ffi.o pkg : FilePath := do
+target ffi.o pkg : System.FilePath := do
   let oFile := pkg.buildDir / "cpp" / "ffi.o"
   let srcJob ← inputBinFile <| pkg.dir / "cpp" / "ffi.cpp"
   let weakArgs := #["-I", (← getLeanIncludeDir).toString]
