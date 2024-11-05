@@ -386,7 +386,7 @@ structure dijkstraStep.Spec (g : G) (c : Info → CostType)
     [AddMonoid CostType] [LinearOrder CostType]
     {DistArray : Type*} [Inhabited DistArray] [AssocArray DistArray V (WithTop CostType) ⊤]
     {DistHeap : Type*} [Inhabited DistHeap] [IndexedMinHeap DistHeap V (WithTop CostType)]
-    (init : DistHeap) (heap : DistHeap) (res : DistArray) : Prop :=
+    (init : DistHeap) (heap : DistHeap) (res : DistArray) : Prop where
   h₁ : ∀ v : V, heap[v] = ⊤ ∨ res[v] = ⊤
   h₂ : ∀ v : V, res[v] = ⊤ → ∃ d, heap[v] = min init[v] d ∧
     ((d = ⊤ ∧ ∀ s : V, res[s] ≠ ⊤ → IsEmpty (g..toQuiver s ⟶ g..toQuiver v)) ∨

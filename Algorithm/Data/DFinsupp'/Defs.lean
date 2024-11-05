@@ -96,7 +96,7 @@ theorem mapRange_apply (f : ∀ i, β₁ i → β₂ i) (hf : ∀ i, f i (d₁ i
   rfl
 
 @[simp]
-theorem mapRange_id (h : ∀ i, id (d₁ i) = d₁ i := fun i => rfl)
+theorem mapRange_id (h : ∀ i, id (d₁ i) = d₁ i := fun _ => rfl)
     (g : Π₀' i : ι, [β₁ i, d₁ i]) : mapRange (fun i => (id : β₁ i → β₁ i)) h g = g := by
   ext
   rfl
@@ -152,14 +152,14 @@ theorem zipWith_apply (f : ∀ i, β₁ i → β₂ i → β i) (hf : ∀ i, f i
 @[simp]
 theorem zipWith_default_left (f : ∀ i, β i → β i → β i)
     (hf : ∀ i x, f i (d i) x = x) (x : Π₀' i, [β i, d i]) :
-    zipWith f (fun i ↦ hf _ _) default x = x := by
+    zipWith f (fun _ ↦ hf _ _) default x = x := by
   ext
   simp [hf]
 
 @[simp]
 theorem zipWith_default_right (f : ∀ i, β i → β i → β i)
     (hf : ∀ i x, f i x (d i) = x) (x : Π₀' i, [β i, d i]) :
-    zipWith f (fun i ↦ hf _ _) x default = x := by
+    zipWith f (fun _ ↦ hf _ _) x default = x := by
   ext
   simp [hf]
 
@@ -434,7 +434,7 @@ variable [DecidableEq ι]
 theorem single_zipWith_erase (f : ∀ i, β i → β i → β i)
     (hf₁ : ∀ i x, f i (d i) x = x) (hf₂ : ∀ i x, f i x (d i) = x)
     (i : ι) (x : Π₀' i, [β i, d i]) :
-    zipWith f (fun i ↦ hf₁ _ _) (single d i (x i)) (x.erase i) = x :=
+    zipWith f (fun _ ↦ hf₁ _ _) (single d i (x i)) (x.erase i) = x :=
   ext fun i' =>
     if h : i = i' then by
       subst h; simp only [zipWith_apply, single_apply, erase_apply, hf₂, dite_eq_ite, if_true]
@@ -445,7 +445,7 @@ protected theorem induction_on {p : (Π₀' i, [β i, d i]) → Prop} (x : Π₀
     (f : ∀ i, β i → β i → β i) (hf₁ : ∀ i x, f i (d i) x = x) (hf₂ : ∀ i x, f i x (d i) = x)
     (h0 : p default)
     (ha : ∀ (i b) (x : Π₀' i, [β i, d i]), x i = d i → b ≠ d i → p x →
-      p (zipWith f (fun i ↦ hf₁ _ _) (single d i b) x)) :
+      p (zipWith f (fun _ ↦ hf₁ _ _) (single d i b) x)) :
     p x := by
   cases' x with x s
   induction' s using Trunc.induction_on with s
@@ -486,7 +486,7 @@ theorem induction_on' {p : (Π₀' i, [β i, d i]) → Prop} (x : Π₀' i, [β 
     (f : ∀ i, β i → β i → β i) (hf₁ : ∀ i x, f i (d i) x = x) (hf₂ : ∀ i x, f i x (d i) = x)
     (h0 : p default)
     (ha : ∀ (i b) (x : Π₀' i, [β i, d i]), x i = d i → b ≠ d i → p x →
-      p (zipWith f (fun i ↦ hf₁ _ _) x (single d i b))) : p x :=
+      p (zipWith f (fun _ ↦ hf₁ _ _) x (single d i b))) : p x :=
   DFinsupp'.induction_on x (fun i x y ↦ f i y x) hf₂ hf₁ h0 <| by simpa only [zipWith_swap] using ha
 
 section SupportBasic
