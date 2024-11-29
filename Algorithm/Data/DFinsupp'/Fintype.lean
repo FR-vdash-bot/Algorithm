@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuyang Zhao
 -/
 import Algorithm.Data.DFinsupp'.Defs
-import Mathlib.Data.Fintype.Basic
+import Mathlib.Data.Fintype.Pi
 
 /-!
 Modified from `Mathlib.Data.DFinsupp.Basic`

@@ -4,7 +4,7 @@ Copyright (c) 2024 Yuyang Zhao. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuyang Zhao
 -/
-import Mathlib.Data.Set.Finite
+import Mathlib.Data.Set.Finite.Basic
 
 /-!
 Modified from `Mathlib.Data.DFinsupp.Basic`
@@ -276,9 +276,8 @@ theorem single_eq_of_ne {i i' b} (h : i ≠ i') : single d i b i' = d i' := by
 theorem single_injective {i} : Function.Injective (single d i) := fun _ _ H =>
   Function.update_injective _ i <| DFunLike.coe_injective.eq_iff.mpr H
 
-/-- Like `Finsupp'.single_eq_single_iff`, but with a `HEq` due to dependent types -/
 theorem single_eq_single_iff (i j : ι) (xi : β i) (xj : β j) :
-    DFinsupp'.single d i xi = DFinsupp'.single d j xj ↔ i = j ∧ HEq xi xj ∨ xi = d i ∧ xj = d j := by
+    single d i xi = single d j xj ↔ i = j ∧ HEq xi xj ∨ xi = d i ∧ xj = d j := by
   constructor
   · intro h
     by_cases hij : i = j
@@ -314,14 +313,14 @@ theorem single_eq_of_sigma_eq {i j} {xi : β i} {xj : β j} (h : (⟨i, xi⟩ : 
 
 @[simp]
 theorem equivFunOnFintype_single [Fintype ι] (i : ι) (m : β i) :
-    (@DFinsupp'.equivFunOnFintype ι β _ _) (DFinsupp'.single d i m) = Function.update d i m := by
+    DFinsupp'.equivFunOnFintype (DFinsupp'.single d i m) = Function.update d i m := by
   ext x
   dsimp [Pi.single, Function.update]
   simp [DFinsupp'.single_eq_functionUpdate, @eq_comm _ i]
 
 @[simp]
 theorem equivFunOnFintype_symm_single [Fintype ι] (i : ι) (m : β i) :
-    (@DFinsupp'.equivFunOnFintype ι β _ _).symm (Function.update d i m) = DFinsupp'.single d i m := by
+    DFinsupp'.equivFunOnFintype.symm (Function.update d i m) = DFinsupp'.single d i m := by
   ext i'
   simp only [← single_eq_functionUpdate, equivFunOnFintype_symm_coe]
 
@@ -605,9 +604,9 @@ theorem support_erase (i : ι) (f : Π₀' i, [β i, d i]) :
     (f.erase i).support = f.support.erase i := by
   ext j
   by_cases h1 : j = i
-  simp only [h1, mem_support_toFun, erase_apply, ite_true, ne_eq, not_true, not_not,
+  · simp only [h1, mem_support_toFun, erase_apply, ite_true, ne_eq, not_true, not_not,
     Finset.mem_erase, false_and]
-  by_cases h2 : f j ≠ d j <;> simp at h2 <;> simp [h1, h2]
+  · by_cases h2 : f j ≠ d j <;> simp at h2 <;> simp [h1, h2]
 
 theorem support_update_ne (f : Π₀' i, [β i, d i]) (i : ι) {b : β i} (h : b ≠ d i) :
     support (f.update i b) = insert i f.support := by

@@ -245,13 +245,14 @@ def comapDomain' (h : κ → ι) {h' : ι → κ} (hh' : Function.LeftInverse h'
         (s.prop (h x)).imp_left fun hx => Multiset.mem_map.mpr ⟨_, hx, hh' _⟩⟩
 
 @[simp]
-theorem comapDomain'_apply (h : κ → ι) {h' : ι → κ}
-    (hh' : Function.LeftInverse h' h) (f : Π₀' i, [β i, d i]) (k : κ) : comapDomain' h hh' f k = f (h k) :=
+theorem comapDomain'_apply (h : κ → ι) {h' : ι → κ} (hh' : Function.LeftInverse h' h)
+    (f : Π₀' i, [β i, d i]) (k : κ) :
+    comapDomain' h hh' f k = f (h k) :=
   rfl
 
 @[simp]
-theorem comapDomain'_default (h : κ → ι) {h' : ι → κ}
-    (hh' : Function.LeftInverse h' h) : comapDomain' h hh' (default : Π₀' i, [β i, d i]) = default := by
+theorem comapDomain'_default (h : κ → ι) {h' : ι → κ} (hh' : Function.LeftInverse h' h) :
+    comapDomain' h hh' (default : Π₀' i, [β i, d i]) = default := by
   ext
   rw [default_apply, comapDomain'_apply, default_apply]
 

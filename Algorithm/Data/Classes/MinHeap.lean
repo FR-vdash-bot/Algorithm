@@ -77,8 +77,8 @@ lemma coe_eq_head?_of_forall_le (p : α → Prop) (hc : ¬isEmpty c) (pc : p (he
     (x : α) (hx : x ∈ c) (h : ∀ y ∈ c, p y → y ≠ x → x < y) :
     x = head? c := by
   contrapose! h
-  exact ⟨head c (ToMultiset.not_isEmpty_of_mem hx), MinHeap.head_mem _ _, pc, by intro h'; simp [← h'] at h,
-    fun h' ↦ (h'.trans_le (head_le c _ hx)).ne rfl⟩
+  exact ⟨head c (ToMultiset.not_isEmpty_of_mem hx), MinHeap.head_mem _ _, pc,
+    by intro h'; simp [← h'] at h, fun h' ↦ (h'.trans_le (head_le c _ hx)).ne rfl⟩
 
 lemma eq_head_of_forall_le (p : α → Prop) (hc : ¬isEmpty c) (pc : p (head c hc))
     (x : α) (hx : x ∈ c) (h : ∀ y ∈ c, p y → y ≠ x → x < y) :

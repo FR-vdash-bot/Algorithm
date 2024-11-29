@@ -6,6 +6,7 @@ Authors: Yuyang Zhao
 import Algorithm.Data.Classes.AssocArray
 import Algorithm.Data.Classes.MinHeap
 import Algorithm.Data.Classes.ToList
+import Mathlib.Data.Finset.Lattice.Fold
 import Mathlib.Data.Prod.Lex
 
 class IndexedMinHeap (C : Type*) [Inhabited C] (ι : outParam Type*)

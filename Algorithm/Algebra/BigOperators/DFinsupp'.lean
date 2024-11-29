@@ -152,13 +152,15 @@ variable {R S : Type*}
 variable [∀ (i) (x : β i), Decidable (x ≠ d i)]
 
 @[to_additive (attr := simp, norm_cast)]
-theorem coe_dfinsupp'_prod [Monoid R] [CommMonoid S] (f : Π₀' i, [β i, d i]) (g : ∀ i, β i → R →* S) :
+theorem coe_dfinsupp'_prod [Monoid R] [CommMonoid S]
+    (f : Π₀' i, [β i, d i]) (g : ∀ i, β i → R →* S) :
     ⇑(f.prod g) = f.prod fun a b => ⇑(g a b) :=
   coe_finset_prod _ _
 
 @[to_additive]
-theorem dfinsupp'_prod_apply [Monoid R] [CommMonoid S] (f : Π₀' i, [β i, d i]) (g : ∀ i, β i → R →* S)
-    (r : R) : (f.prod g) r = f.prod fun a b => (g a b) r :=
+theorem dfinsupp'_prod_apply [Monoid R] [CommMonoid S]
+    (f : Π₀' i, [β i, d i]) (g : ∀ i, β i → R →* S) (r : R) :
+    (f.prod g) r = f.prod fun a b => (g a b) r :=
   finset_prod_apply _ _ _
 
 end MonoidHom
