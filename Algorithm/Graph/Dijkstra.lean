@@ -444,7 +444,7 @@ lemma dijkstraStep_fst_getElem' (g : G) (c : Info → CostType)
       decreaseKeysD_getElem, toMultiset_list, ← Multiset.filterMap_coe, coe_toList, ne_eq]
   split_ifs with h
   · simp? [Function.update_apply] says
-      simp only [Function.update_apply, min_eq_top, ite_eq_left_iff, Multiset.inf_eq_top,
+      simp only [Function.update_apply, inf_eq_top_iff, ite_eq_left_iff, Multiset.inf_eq_top,
         Multiset.mem_filterMap, mem_toMultiset, Option.ite_none_right_eq_some, Option.some.injEq,
         Prod.exists, Prod.mk.injEq, exists_eq_right_right, exists_eq_right, forall_exists_index,
         and_imp]
@@ -506,7 +506,7 @@ lemma dijkstraStep_fst_getElem_eq_top (g : G) (c : Info → CostType)
   dsimp
   rw [dijkstraStep_fst_getElem (spec₁ := spec₁)]
   simp? [hMinIdx, - not_or] says
-    simp only [ne_eq, ite_eq_left_iff, min_eq_top, Finset.inf_eq_top_iff, Finset.mem_univ,
+    simp only [ne_eq, ite_eq_left_iff, inf_eq_top_iff, Finset.inf_eq_top_iff, Finset.mem_univ,
       WithTop.add_eq_top, hMinIdx, WithTop.coe_ne_top, or_self, imp_false, not_true_eq_false,
       succSet_singleton, Set.mem_setOf_eq]
   rw [← or_iff_not_imp_right]
