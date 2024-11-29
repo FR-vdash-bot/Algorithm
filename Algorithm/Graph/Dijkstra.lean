@@ -682,7 +682,8 @@ def dijkstra (g : G) (c : Info → CostType)
   (go init default spec_init).val.2
 where
   go (heap : DistHeap) (res : DistArray) (spec : dijkstraStep.Spec g c init heap res) :
-      { hr : DistHeap × DistArray // dijkstraStep.Spec g c init hr.1 hr.2 ∧ hr.1[minIdx hr.1] = ⊤ } :=
+      { hr : DistHeap × DistArray //
+        dijkstraStep.Spec g c init hr.1 hr.2 ∧ hr.1[minIdx hr.1] = ⊤ } :=
     if hh : heap[minIdx heap] = ⊤ then
       ⟨(heap, res), spec, hh⟩
     else
@@ -691,7 +692,8 @@ where
         letI : DecidableEq V := by classical infer_instance
         simp only [dijkstraStep_snd_getElem_eq_top, ne_eq, Set.coe_setOf, Set.mem_setOf_eq, hr]
         exact Fintype.card_lt_of_injective_of_not_mem (fun ⟨v, hv⟩ ↦ ⟨v, hv.2⟩)
-          (by intro ⟨v, hv⟩ ⟨w, hw⟩; simp) (b := ⟨minIdx heap, (spec.1 _).resolve_left hh⟩) (by simp)
+          (by intro ⟨v, hv⟩ ⟨w, hw⟩; simp)
+          (b := ⟨minIdx heap, (spec.1 _).resolve_left hh⟩) (by simp)
       go hr.1 hr.2 (g..dijkstraStep_spec c init heap res spec hh)
 termination_by Fintype.card {v : V | res[v] = ⊤}
   spec_init : dijkstraStep.Spec g c init init default := by

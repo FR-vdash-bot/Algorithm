@@ -323,3 +323,5 @@ lemma dfsTR_spec (g : G)
   trans g..traversal {v | (g..dfsTR vs (default : BoolArray))[v]} ∅
   · convert g..dfsTR_spec' vs (default : BoolArray) <;> aesop
   · simp
+
+end AdjListClass

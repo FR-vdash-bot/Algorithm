@@ -1,17 +1,29 @@
 import Lake
 open Lake DSL
 
-package algorithm where
-  leanOptions := #[
+abbrev algorithmOnlyLinters : Array LeanOption := #[
+  ⟨`linter.hashCommand, true⟩,
+  ⟨`linter.oldObtain, true,⟩,
+  ⟨`linter.refine, true⟩,
+  ⟨`linter.style.cdot, true⟩,
+  ⟨`linter.style.dollarSyntax, true⟩,
+  ⟨`linter.style.header, true⟩,
+  ⟨`linter.style.lambdaSyntax, true⟩,
+  ⟨`linter.style.longLine, true⟩,
+  ⟨`linter.style.longFile, .ofNat 1500⟩,
+  -- `latest_import.yml` uses this comment: if you edit it, make sure that the workflow still works
+  ⟨`linter.style.missingEnd, true⟩,
+  ⟨`linter.style.multiGoal, true⟩,
+  ⟨`linter.style.setOption, true⟩
+]
+
+abbrev algorithmLeanOptions := #[
     ⟨`pp.unicode.fun, true⟩, -- pretty-prints `fun a ↦ b`
-    ⟨`pp.proofs.withType, false⟩,
-    ⟨`autoImplicit, false⟩,
-    ⟨`relaxedAutoImplicit, false⟩
-  ]
-  moreLinkArgs := #[
-    "-L./.lake/build/lib",
-    "-lstdc++"
-  ]
+    ⟨`autoImplicit, false⟩
+  ] ++ -- options that are used in `lake build`
+    algorithmOnlyLinters.map fun s ↦ { s with name := `weak ++ s.name }
+
+package algorithm where
 
 require "leanprover-community" / "mathlib" @ git "master"
 require "leanprover" / "doc-gen4" @ git "main"
@@ -22,7 +34,13 @@ lean_lib Mutable where
 
 @[default_target]
 lean_lib Algorithm where
-  roots := #[`Algorithm]
+  leanOptions := algorithmLeanOptions
+  -- Mathlib also enforces these linter options, which are not active by default.
+  moreServerOptions := algorithmOnlyLinters
+  moreLinkArgs := #[
+    "-L./.lake/build/lib",
+    "-lstdc++"
+  ]
 
 target ffi.o pkg : System.FilePath := do
   let oFile := pkg.buildDir / "cpp" / "ffi.o"

@@ -73,7 +73,8 @@ lemma sound (hf : g..IsDFSForest i o f) :
     rintro w (rfl | hw | hw)
     · exact ⟨w, .inl rfl, .refl _ _⟩
     · obtain ⟨r, hr, hrw⟩ := ihc w hw
-      exact ⟨_, .inl rfl, (mem_succSet_singleton_iff.mp (roots_subset_succ hr)).to_reachable.trans hrw⟩
+      exact ⟨_, .inl rfl,
+        (mem_succSet_singleton_iff.mp (roots_subset_succ hr)).to_reachable.trans hrw⟩
     · obtain ⟨r, hr, hrw⟩ := ihs w hw
       exact ⟨r, .inr hr, hrw⟩
 
