@@ -225,7 +225,7 @@ class ToList.RandomAccess (C : Type*) (α : outParam Type*) (Valid : C → ℕ �
     (((valid_iff_lt_size.mp h).trans_eq (size_eq_size_toArray c)))
 export ToList.RandomAccess (valid_iff_lt_size getElem_eq_getElem_toArray)
 
-attribute [simp] valid_iff_lt_size
+attribute [getElem_simps] valid_iff_lt_size
 
 section ToList
 variable {C α : Type*} {Valid : C → ℕ → Prop} [ToList C α]

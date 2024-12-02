@@ -55,7 +55,6 @@ lemma head?_ne_top (h : ¬isEmpty c) :
   have := hc ▸ (head?_mem_toMultiset_map c h)
   simp at this
 
-@[simp]
 lemma head_def (h : ¬isEmpty c) :
     MinHeap.head c h = (head? c).untop (head?_ne_top c h) :=
   WithTop.coe_injective (by simpa using MinHeap.coe_head_eq_head? c h)
@@ -63,7 +62,7 @@ lemma head_def (h : ¬isEmpty c) :
 lemma head_mem_toMultiset (h : ¬isEmpty c) :
     head c h ∈ toMultiset c := by
   obtain ⟨x, hx₁, hx₂⟩ := Multiset.mem_map.mp (head?_mem_toMultiset_map c h)
-  simp [hx₁, ← hx₂]
+  simp [hx₁, ← hx₂, head_def]
 
 lemma head_mem (h : ¬isEmpty c) :
     head c h ∈ c := by
@@ -71,20 +70,20 @@ lemma head_mem (h : ¬isEmpty c) :
 
 lemma head_le (x) (hx : x ∈ c) :
     head c (ToMultiset.not_isEmpty_of_mem hx) ≤ x := by
-  simpa [WithTop.untop_le_iff] using head?_le c x hx
+  simpa [WithTop.untop_le_iff, head_def] using head?_le c x hx
 
 lemma coe_eq_head?_of_forall_le (p : α → Prop) (hc : ¬isEmpty c) (pc : p (head c hc))
     (x : α) (hx : x ∈ c) (h : ∀ y ∈ c, p y → y ≠ x → x < y) :
     x = head? c := by
   contrapose! h
   exact ⟨head c (ToMultiset.not_isEmpty_of_mem hx), MinHeap.head_mem _ _, pc,
-    by intro h'; simp [← h'] at h, fun h' ↦ (h'.trans_le (head_le c _ hx)).ne rfl⟩
+    by intro h'; simp [← h', head_def] at h, fun h' ↦ (h'.trans_le (head_le c _ hx)).ne rfl⟩
 
 lemma eq_head_of_forall_le (p : α → Prop) (hc : ¬isEmpty c) (pc : p (head c hc))
     (x : α) (hx : x ∈ c) (h : ∀ y ∈ c, p y → y ≠ x → x < y) :
     x = head c hc := by
   apply WithTop.coe_injective
-  simpa using coe_eq_head?_of_forall_le c p hc pc x hx h
+  simpa [head_def] using coe_eq_head?_of_forall_le c p hc pc x hx h
 
 end
 
