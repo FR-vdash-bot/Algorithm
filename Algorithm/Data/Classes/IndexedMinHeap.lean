@@ -58,7 +58,7 @@ lemma decreaseKeysD_getElem [DecidableEq ι] {ια : Type*} [ToList ια (ι × 
 
 end IndexedMinHeap
 
-namespace Batteries.Vector
+namespace Vector
 variable {α : Type*} [LinearOrder α] {n : ℕ} [NeZero n] {d : Fin n → α}
 
 section ReadOnly
@@ -96,7 +96,7 @@ instance WithDefault.instIndexedMinHeap [OrderTop α] :
   minIdx := minIdx
   getElem_minIdx_le a i := a.minIdx_le i
 
-end Batteries.Vector
+end Vector
 
 namespace WithTop
 
@@ -190,7 +190,7 @@ def mk [DecidableEq α] (assocArray : C) (minHeap : C')
   else
     haveI : DecidableEq (WithIdx α ι) := by classical infer_instance
     have : size (MinHeap.tail minHeap) < size minHeap := by
-      simpa [h, size_eq_card_toMultiset, Multiset.card_erase_lt_of_mem, - MinHeap.head_def] using
+      simpa [h, size_eq_card_toMultiset, Multiset.card_erase_lt_of_mem] using
         Multiset.card_erase_lt_of_mem (MinHeap.head_mem_toMultiset _ _)
     mk assocArray (MinHeap.tail minHeap) fun i hi ↦ by
       simp only [← mem_toMultiset, MinHeap.toMultiset_tail, h, Bool.false_eq_true, ↓reduceDIte,
@@ -199,19 +199,15 @@ def mk [DecidableEq α] (assocArray : C) (minHeap : C')
       · exact mem_minHeap _ _
       · intro h''
         apply h'
-        simp [← h'']
+        simp [← h'', MinHeap.head_def]
 termination_by size minHeap
 
-@[simp]
+@[simp, nolint unusedHavesSuffices] -- false positive
 lemma mk_assocArray [DecidableEq α] (assocArray : C) (minHeap : C')
     (mem_minHeap : ∀ i : ι, (hi : assocArray[i] ≠ ⊤) → ⟨(assocArray[i]).untop hi, i⟩ ∈ minHeap) :
     (mk assocArray minHeap mem_minHeap).assocArray = assocArray := by
-  unfold mk
-  split_ifs
-  · rfl
-  · rfl
-  · generalize_proofs; exact mk_assocArray _ _ _
-termination_by size minHeap
+  induction minHeap, mem_minHeap using mk.induct
+  all_goals unfold mk; simp [*]
 
 @[simp]
 lemma default_assocArray :

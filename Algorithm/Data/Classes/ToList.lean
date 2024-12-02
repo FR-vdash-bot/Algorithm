@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuyang Zhao
 -/
 import Algorithm.Data.Classes.ToMultiset
+import Algorithm.Tactic.Attr.Register
 
 variable {C α : Type*}
 
@@ -44,11 +45,6 @@ lemma reverse_dropLast (l : List α) : l.dropLast.reverse = l.reverse.tail :=
     rw [dropLast, reverse_cons x, reverse_cons x, reverse_dropLast (_::_),
       tail_append_of_ne_nil] <;> simp
 
-@[simp]
-lemma back?_toArray : l.toArray.back? = l.getLast? := by
-  rw [Array.back?, Array.get?_eq_get?_toList, getLast?_eq_getElem?]
-  simp
-
 end List
 
 namespace Array
@@ -66,8 +62,7 @@ lemma get?_toList : a.toList.get? = a.get? := by
   rw [get?_eq_get?_toList]
 
 lemma getLast?_toList : a.toList.getLast? = a.back? := by
-  rw [back?, get?_eq_get?_toList, List.getLast?_eq_getElem?]
-  simp
+  rw [back?, getElem?_eq_getElem?_toList, List.getLast?_eq_getElem?]
 
 lemma dropLast_toList : a.toList.dropLast = a.pop.toList := by
   simp
@@ -128,6 +123,7 @@ variable (c : C)
 lemma size_eq_size_toArray : size c = (toArray c).size := by
   simp [size_eq_length_toList]
 
+@[simp]
 lemma length_toList : (toList c).length = size c :=
   (size_eq_length_toList c).symm
 
@@ -222,22 +218,27 @@ export LawfulAppend (toList_append)
 
 attribute [simp] toList_append
 
-class ToList.RandomAccess (C : Type*) (α : outParam Type*) [ToList C α] where
-  get (c : C) : Fin (size c) → α
-  get_eq_get_toArray c i : get c i = (toArray c).get (i.cast (size_eq_size_toArray c))
-export ToList.RandomAccess (get_eq_get_toArray)
+class ToList.RandomAccess (C : Type*) (α : outParam Type*) (Valid : C → ℕ → Prop)
+    [ToList C α] [GetElem C ℕ α Valid] where
+  valid_iff_lt_size {c : C} {i : ℕ} : Valid c i ↔ i < size c
+  getElem_eq_getElem_toArray c i (h : Valid c i := by get_elem_tactic) : c[i]'h = (toArray c)[i]'
+    (((valid_iff_lt_size.mp h).trans_eq (size_eq_size_toArray c)))
+export ToList.RandomAccess (valid_iff_lt_size getElem_eq_getElem_toArray)
+
+attribute [getElem_simps] valid_iff_lt_size
 
 section ToList
-variable {C α : Type*} [ToList C α]
+variable {C α : Type*} {Valid : C → ℕ → Prop} [ToList C α]
 
 instance (priority := 100) LawfulAppend.toMergeable [Append C] [LawfulAppend C α] :
     Mergeable C α where
   merge s t := s ++ t
   toMultiset_merge s t := congr_arg Multiset.ofList (toList_append s t)
 
-lemma ToList.RandomAccess.get_toArray [ToList.RandomAccess C α] (c : C) (i) :
-    (toArray c).get i = ToList.RandomAccess.get c (i.cast (size_toArray c)) := by
-  rw [get_eq_get_toArray]; rfl
+lemma ToList.RandomAccess.getElem_toArray [GetElem C ℕ α Valid] [ToList.RandomAccess C α Valid]
+    (c : C) (i : ℕ) (hi : i < (toArray c).size) :
+    (toArray c)[i] = c[i] :=
+  (getElem_eq_getElem_toArray c _ _).symm
 
 end ToList
 
@@ -273,7 +274,7 @@ instance : Front (Array α) α where
     rw [← Array.get?_toList, List.get?_zero]
     rfl
   frontD c := c.getD 0
-  front c h := c.get ⟨0, by simp_rw [isEmpty_iff_size_eq_zero, size] at h; omega⟩
+  front c h := c.get 0 (by simp_rw [isEmpty_iff_size_eq_zero, size] at h; omega)
   frontD_def := by simp
   front_mem _ := by simp [Array.get?, size, ← ne_eq, ← List.length_pos_iff_ne_nil]
 
@@ -292,8 +293,8 @@ instance : PushBack (Array α) α where
 instance : LawfulAppend (Array α) α where
   toList_append := Array.toList_append
 
-instance : ToList.RandomAccess (Array α) α where
-  get := Array.get
-  get_eq_get_toArray _ _ := rfl
+instance : ToList.RandomAccess (Array α) α _ where
+  valid_iff_lt_size := .rfl
+  getElem_eq_getElem_toArray _ _ _ := rfl
 
 end Array

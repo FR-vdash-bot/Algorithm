@@ -10,8 +10,6 @@ import Mathlib.Data.Setoid.Basic
 
 universe u v
 
-namespace Batteries
-
 namespace Vector
 variable {α : Type*} {n : ℕ}
 
@@ -23,10 +21,11 @@ instance {α n f} : Inhabited (Vector.WithDefault α n f) where
   default := .ofFn f
 
 @[simp]
-lemma get_default {f} : (default : Vector.WithDefault α n f).get = f :=
-  get_ofFn _
+lemma get_default {f} : (default : Vector.WithDefault α n f).get = f := by
+  ext i
+  exact getElem_ofFn _ i i.2
 
-end Batteries.Vector
+end Vector
 
 class AssocDArray.ReadOnly (C : Type*) (ι : outParam Type*)
     (α : outParam Type*) (d : outParam <| ι → α) extends
@@ -78,19 +77,19 @@ lemma toDFinsupp'_default :
 
 end AssocDArray
 
-namespace Batteries.Vector.WithDefault
+namespace Vector.WithDefault
 variable {α : Type*} {n : ℕ} {f : Fin n → α}
 
 instance : AssocDArray (Vector.WithDefault α n f) (Fin n) α f where
   getElem a i _ := a.get i
-  setElem := set
-  getElem_setElem_self a i v := a.get_set_self i v
-  getElem_setElem_of_ne a _ v _ hij := a.get_set_of_ne v hij
+  setElem a i := a.set i
+  getElem_setElem_self a i v := a.getElem_set_eq i v
+  getElem_setElem_of_ne a _ v _ hij := a.getElem_set_ne v hij
   getElem_default i := congrFun get_default i
   toDFinsupp' a := DFinsupp'.equivFunOnFintype.symm (get a)
   coe_toDFinsupp'_eq_getElem _ := DFinsupp'.coe_equivFunOnFintype_symm _
 
-end Batteries.Vector.WithDefault
+end Vector.WithDefault
 
 namespace AssocArray
 
@@ -185,6 +184,6 @@ def DefaultAssocDArray (ι : Type u) (α : Type v) (f : ι → α) {D : Type _} 
     [HasDefaultAssocDArray ι α f D] :=
   D
 
-instance {n α f} : HasDefaultAssocDArray (Fin n) α f (Batteries.Vector.WithDefault α n f) where
+instance {n α f} : HasDefaultAssocDArray (Fin n) α f (Vector.WithDefault α n f) where
 
 example {n α f} := DefaultAssocDArray (Fin n) α f

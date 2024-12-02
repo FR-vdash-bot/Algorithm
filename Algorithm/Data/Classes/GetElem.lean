@@ -5,47 +5,24 @@ Authors: Yuyang Zhao
 -/
 import Algorithm.Tactic.Attr.Register
 import Algorithm.Data.Classes.Erase
-import Batteries.Data.Vector.Basic
+import Batteries.Data.Vector.Lemmas
 import Mathlib.Data.Fin.Basic
 import Mathlib.Logic.Function.Basic
 
 variable {C ι α : Type*} {Valid : C → ι → Prop}
 
-namespace Array
-variable {α : Type*} {n : ℕ}
-
-lemma get_fin_set (c : Array α) (i : Fin c.size) (v : α) (j : Fin (set c i v).size) :
-    (c.set i v).get j = if i.1 = j.1 then v else c[j.1] := by
-  rw [get_eq_getElem, get_set]
-
-end Array
-
-namespace Batteries
-
 namespace Vector
 variable {α : Type*} {n : ℕ}
 
-lemma get_set_self (c : Vector α n) (i : Fin n) (v : α) :
-    (c.set i v).get i = v := by
-  unfold get set
-  simp [Array.get_fin_set]
+lemma getElem_set_eq (c : Vector α n) (i : Fin n) (v : α) :
+    (c.set i v)[i] = v := by
+  simp [set]
 
-lemma get_set_of_ne (c : Vector α n) {i : Fin n} (v : α) {j : Fin n} (h : i ≠ j) :
-    (c.set i v).get j = c.get j := by
-  unfold get set
-  simp [Array.get_fin_set, Fin.val_eq_val, h]
+lemma getElem_set_ne (c : Vector α n) {i : Fin n} (v : α) {j : Fin n} (h : i ≠ j) :
+    (c.set i v)[j] = c[j] := by
+  simpa [set] using Array.getElem_set_ne _ _ _ _ _ (Fin.val_ne_iff.mpr h)
 
-@[simp]
-lemma get_ofFn (f : Fin n → α) : (ofFn f).get = f := by
-  ext; simp [ofFn, get]
-
-lemma getElem_ofFn (f : Fin n → α) (i : Fin n) : (ofFn f)[i] = f i := by
-  change (ofFn f).get i = f i
-  simp
-
-end Batteries.Vector
-
-macro_rules | `(tactic| get_elem_tactic_trivial) => `(tactic| simp_all [getElem_simps]; done)
+end Vector
 
 class SetElem (C : Type*) (ι : Type*) (α : outParam Type*) where
   protected setElem : C → ι → α → C
@@ -135,7 +112,7 @@ variable [GetSetEraseElem? C ι α Valid]
 @[simp]
 lemma getElem?_setElem_self (c : C) (i : ι) (x : α) :
     c[i ↦ x][i]? = x := by
-  classical rw [getElem?_pos, getElem_setElem_self] -- TODO: lean4#5812
+  rw [getElem?_pos, getElem_setElem_self]
 
 @[simp]
 lemma getElem?_setElem_of_ne (c : C) {i : ι} (x : α) {j : ι} (hij : i ≠ j) :
@@ -146,7 +123,7 @@ lemma getElem?_setElem_of_ne (c : C) {i : ι} (x : α) {j : ι} (hij : i ≠ j) 
 @[simp]
 lemma getElem?_erase_self (c : C) (i : ι) :
     (erase c i)[i]? = none := by
-  classical exact getElem?_neg _ i not_valid_erase_self -- TODO: lean4#5812
+  exact getElem?_neg _ i not_valid_erase_self
 
 @[simp]
 lemma getElem?_erase_of_ne (c : C) {i j : ι} (hij : i ≠ j) :
@@ -166,7 +143,7 @@ lemma getElem?_alterElem_self (c : C) (i : ι) (f : Option α → Option α) :
   rw [alterElem]
   split
   · simp [*]
-  · classical simp [getElem?_pos _ _ valid_setElem_self, *] -- TODO: lean4#5812
+  · simp [getElem?_pos _ _ valid_setElem_self, *]
 
 @[simp]
 lemma getElem?_alterElem_of_ne (c : C) {i : ι} (f : Option α → Option α) {j : ι} (hij : i ≠ j) :
@@ -237,15 +214,15 @@ variable {α : Type*} {n : ℕ} {f : Fin n → α}
 
 instance instGetSetElemAllValid : GetSetElemAllValid (Vector α n) (Fin n) α where
   Valid _ i := (i : ℕ) < n -- `Fin.instGetElemFinVal`
-  getElem c i _ := c.get i
-  setElem := set
-  getElem_setElem_self c i v := c.get_set_self i v
-  getElem_setElem_of_ne c _ v _ hij := c.get_set_of_ne v hij
+  setElem c i := c.set i
+  getElem_setElem_self c i v := c.getElem_set_eq i v
+  getElem_setElem_of_ne c _ v _ hij := c.getElem_set_ne v hij
 
 instance : OfFn (Vector α n) (Fin n) α f where
-  ofFn := ofFn f
-  getElem_ofFn := getElem_ofFn f
+  ofFn := .ofFn f
+  getElem_ofFn i := Vector.getElem_ofFn f i i.2
 
-example : (instGetSetElemAllValid (α := α) (n := n)).toGetElem = Fin.instGetElemFinVal := rfl
+example : instGetSetElemAllValid.toGetElem = Fin.instGetElemFinVal (cont := Vector α n) :=
+  rfl
 
 end Batteries.Vector
