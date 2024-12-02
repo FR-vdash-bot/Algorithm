@@ -58,7 +58,7 @@ lemma decreaseKeysD_getElem [DecidableEq ι] {ια : Type*} [ToList ια (ι × 
 
 end IndexedMinHeap
 
-namespace Batteries.Vector
+namespace Vector
 variable {α : Type*} [LinearOrder α] {n : ℕ} [NeZero n] {d : Fin n → α}
 
 section ReadOnly
@@ -96,7 +96,7 @@ instance WithDefault.instIndexedMinHeap [OrderTop α] :
   minIdx := minIdx
   getElem_minIdx_le a i := a.minIdx_le i
 
-end Batteries.Vector
+end Vector
 
 namespace WithTop
 
@@ -206,12 +206,11 @@ termination_by size minHeap
 lemma mk_assocArray [DecidableEq α] (assocArray : C) (minHeap : C')
     (mem_minHeap : ∀ i : ι, (hi : assocArray[i] ≠ ⊤) → ⟨(assocArray[i]).untop hi, i⟩ ∈ minHeap) :
     (mk assocArray minHeap mem_minHeap).assocArray = assocArray := by
-  unfold mk
-  split_ifs
+  induction minHeap, mem_minHeap using mk.induct
+  all_goals unfold mk; split_ifs
   · rfl
   · rfl
-  · generalize_proofs; exact mk_assocArray _ _ _
-termination_by size minHeap
+  · assumption
 
 @[simp]
 lemma default_assocArray :
