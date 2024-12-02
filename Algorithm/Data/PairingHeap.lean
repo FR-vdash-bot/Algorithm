@@ -246,3 +246,5 @@ instance [Preorder α] [IsTotal α (· ≤ ·)] [DecidableRel (α := α) (· ≤
       change _ = Multiset.erase _ a
       simp
   deleteMin_def x := by match x with | ⟨.nil, _⟩ | ⟨.node _ _ _, _⟩ => rfl
+
+end Batteries.PairingHeap

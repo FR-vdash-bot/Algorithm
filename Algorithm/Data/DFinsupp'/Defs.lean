@@ -4,7 +4,7 @@ Copyright (c) 2024 Yuyang Zhao. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuyang Zhao
 -/
-import Mathlib.Data.Set.Finite
+import Mathlib.Data.Set.Finite.Basic
 
 /-!
 Modified from `Mathlib.Data.DFinsupp.Basic`
@@ -96,7 +96,7 @@ theorem mapRange_apply (f : ∀ i, β₁ i → β₂ i) (hf : ∀ i, f i (d₁ i
   rfl
 
 @[simp]
-theorem mapRange_id (h : ∀ i, id (d₁ i) = d₁ i := fun i => rfl)
+theorem mapRange_id (h : ∀ i, id (d₁ i) = d₁ i := fun _ => rfl)
     (g : Π₀' i : ι, [β₁ i, d₁ i]) : mapRange (fun i => (id : β₁ i → β₁ i)) h g = g := by
   ext
   rfl
@@ -152,14 +152,14 @@ theorem zipWith_apply (f : ∀ i, β₁ i → β₂ i → β i) (hf : ∀ i, f i
 @[simp]
 theorem zipWith_default_left (f : ∀ i, β i → β i → β i)
     (hf : ∀ i x, f i (d i) x = x) (x : Π₀' i, [β i, d i]) :
-    zipWith f (fun i ↦ hf _ _) default x = x := by
+    zipWith f (fun _ ↦ hf _ _) default x = x := by
   ext
   simp [hf]
 
 @[simp]
 theorem zipWith_default_right (f : ∀ i, β i → β i → β i)
     (hf : ∀ i x, f i x (d i) = x) (x : Π₀' i, [β i, d i]) :
-    zipWith f (fun i ↦ hf _ _) x default = x := by
+    zipWith f (fun _ ↦ hf _ _) x default = x := by
   ext
   simp [hf]
 
@@ -276,9 +276,8 @@ theorem single_eq_of_ne {i i' b} (h : i ≠ i') : single d i b i' = d i' := by
 theorem single_injective {i} : Function.Injective (single d i) := fun _ _ H =>
   Function.update_injective _ i <| DFunLike.coe_injective.eq_iff.mpr H
 
-/-- Like `Finsupp'.single_eq_single_iff`, but with a `HEq` due to dependent types -/
 theorem single_eq_single_iff (i j : ι) (xi : β i) (xj : β j) :
-    DFinsupp'.single d i xi = DFinsupp'.single d j xj ↔ i = j ∧ HEq xi xj ∨ xi = d i ∧ xj = d j := by
+    single d i xi = single d j xj ↔ i = j ∧ HEq xi xj ∨ xi = d i ∧ xj = d j := by
   constructor
   · intro h
     by_cases hij : i = j
@@ -314,14 +313,14 @@ theorem single_eq_of_sigma_eq {i j} {xi : β i} {xj : β j} (h : (⟨i, xi⟩ : 
 
 @[simp]
 theorem equivFunOnFintype_single [Fintype ι] (i : ι) (m : β i) :
-    (@DFinsupp'.equivFunOnFintype ι β _ _) (DFinsupp'.single d i m) = Function.update d i m := by
+    DFinsupp'.equivFunOnFintype (DFinsupp'.single d i m) = Function.update d i m := by
   ext x
   dsimp [Pi.single, Function.update]
   simp [DFinsupp'.single_eq_functionUpdate, @eq_comm _ i]
 
 @[simp]
 theorem equivFunOnFintype_symm_single [Fintype ι] (i : ι) (m : β i) :
-    (@DFinsupp'.equivFunOnFintype ι β _ _).symm (Function.update d i m) = DFinsupp'.single d i m := by
+    DFinsupp'.equivFunOnFintype.symm (Function.update d i m) = DFinsupp'.single d i m := by
   ext i'
   simp only [← single_eq_functionUpdate, equivFunOnFintype_symm_coe]
 
@@ -434,7 +433,7 @@ variable [DecidableEq ι]
 theorem single_zipWith_erase (f : ∀ i, β i → β i → β i)
     (hf₁ : ∀ i x, f i (d i) x = x) (hf₂ : ∀ i x, f i x (d i) = x)
     (i : ι) (x : Π₀' i, [β i, d i]) :
-    zipWith f (fun i ↦ hf₁ _ _) (single d i (x i)) (x.erase i) = x :=
+    zipWith f (fun _ ↦ hf₁ _ _) (single d i (x i)) (x.erase i) = x :=
   ext fun i' =>
     if h : i = i' then by
       subst h; simp only [zipWith_apply, single_apply, erase_apply, hf₂, dite_eq_ite, if_true]
@@ -445,7 +444,7 @@ protected theorem induction_on {p : (Π₀' i, [β i, d i]) → Prop} (x : Π₀
     (f : ∀ i, β i → β i → β i) (hf₁ : ∀ i x, f i (d i) x = x) (hf₂ : ∀ i x, f i x (d i) = x)
     (h0 : p default)
     (ha : ∀ (i b) (x : Π₀' i, [β i, d i]), x i = d i → b ≠ d i → p x →
-      p (zipWith f (fun i ↦ hf₁ _ _) (single d i b) x)) :
+      p (zipWith f (fun _ ↦ hf₁ _ _) (single d i b) x)) :
     p x := by
   cases' x with x s
   induction' s using Trunc.induction_on with s
@@ -486,7 +485,7 @@ theorem induction_on' {p : (Π₀' i, [β i, d i]) → Prop} (x : Π₀' i, [β 
     (f : ∀ i, β i → β i → β i) (hf₁ : ∀ i x, f i (d i) x = x) (hf₂ : ∀ i x, f i x (d i) = x)
     (h0 : p default)
     (ha : ∀ (i b) (x : Π₀' i, [β i, d i]), x i = d i → b ≠ d i → p x →
-      p (zipWith f (fun i ↦ hf₁ _ _) x (single d i b))) : p x :=
+      p (zipWith f (fun _ ↦ hf₁ _ _) x (single d i b))) : p x :=
   DFinsupp'.induction_on x (fun i x y ↦ f i y x) hf₂ hf₁ h0 <| by simpa only [zipWith_swap] using ha
 
 section SupportBasic
@@ -605,9 +604,9 @@ theorem support_erase (i : ι) (f : Π₀' i, [β i, d i]) :
     (f.erase i).support = f.support.erase i := by
   ext j
   by_cases h1 : j = i
-  simp only [h1, mem_support_toFun, erase_apply, ite_true, ne_eq, not_true, not_not,
+  · simp only [h1, mem_support_toFun, erase_apply, ite_true, ne_eq, not_true, not_not,
     Finset.mem_erase, false_and]
-  by_cases h2 : f j ≠ d j <;> simp at h2 <;> simp [h1, h2]
+  · by_cases h2 : f j ≠ d j <;> simp at h2 <;> simp [h1, h2]
 
 theorem support_update_ne (f : Π₀' i, [β i, d i]) (i : ι) {b : β i} (h : b ≠ d i) :
     support (f.update i b) = insert i f.support := by

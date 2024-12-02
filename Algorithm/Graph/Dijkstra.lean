@@ -386,7 +386,7 @@ structure dijkstraStep.Spec (g : G) (c : Info → CostType)
     [AddMonoid CostType] [LinearOrder CostType]
     {DistArray : Type*} [Inhabited DistArray] [AssocArray DistArray V (WithTop CostType) ⊤]
     {DistHeap : Type*} [Inhabited DistHeap] [IndexedMinHeap DistHeap V (WithTop CostType)]
-    (init : DistHeap) (heap : DistHeap) (res : DistArray) : Prop :=
+    (init : DistHeap) (heap : DistHeap) (res : DistArray) : Prop where
   h₁ : ∀ v : V, heap[v] = ⊤ ∨ res[v] = ⊤
   h₂ : ∀ v : V, res[v] = ⊤ → ∃ d, heap[v] = min init[v] d ∧
     ((d = ⊤ ∧ ∀ s : V, res[s] ≠ ⊤ → IsEmpty (g..toQuiver s ⟶ g..toQuiver v)) ∨
@@ -444,7 +444,7 @@ lemma dijkstraStep_fst_getElem' (g : G) (c : Info → CostType)
       decreaseKeysD_getElem, toMultiset_list, ← Multiset.filterMap_coe, coe_toList, ne_eq]
   split_ifs with h
   · simp? [Function.update_apply] says
-      simp only [Function.update_apply, min_eq_top, ite_eq_left_iff, Multiset.inf_eq_top,
+      simp only [Function.update_apply, inf_eq_top_iff, ite_eq_left_iff, Multiset.inf_eq_top,
         Multiset.mem_filterMap, mem_toMultiset, Option.ite_none_right_eq_some, Option.some.injEq,
         Prod.exists, Prod.mk.injEq, exists_eq_right_right, exists_eq_right, forall_exists_index,
         and_imp]
@@ -506,7 +506,7 @@ lemma dijkstraStep_fst_getElem_eq_top (g : G) (c : Info → CostType)
   dsimp
   rw [dijkstraStep_fst_getElem (spec₁ := spec₁)]
   simp? [hMinIdx, - not_or] says
-    simp only [ne_eq, ite_eq_left_iff, min_eq_top, Finset.inf_eq_top_iff, Finset.mem_univ,
+    simp only [ne_eq, ite_eq_left_iff, inf_eq_top_iff, Finset.inf_eq_top_iff, Finset.mem_univ,
       WithTop.add_eq_top, hMinIdx, WithTop.coe_ne_top, or_self, imp_false, not_true_eq_false,
       succSet_singleton, Set.mem_setOf_eq]
   rw [← or_iff_not_imp_right]
@@ -682,7 +682,8 @@ def dijkstra (g : G) (c : Info → CostType)
   (go init default spec_init).val.2
 where
   go (heap : DistHeap) (res : DistArray) (spec : dijkstraStep.Spec g c init heap res) :
-      { hr : DistHeap × DistArray // dijkstraStep.Spec g c init hr.1 hr.2 ∧ hr.1[minIdx hr.1] = ⊤ } :=
+      { hr : DistHeap × DistArray //
+        dijkstraStep.Spec g c init hr.1 hr.2 ∧ hr.1[minIdx hr.1] = ⊤ } :=
     if hh : heap[minIdx heap] = ⊤ then
       ⟨(heap, res), spec, hh⟩
     else
@@ -691,7 +692,8 @@ where
         letI : DecidableEq V := by classical infer_instance
         simp only [dijkstraStep_snd_getElem_eq_top, ne_eq, Set.coe_setOf, Set.mem_setOf_eq, hr]
         exact Fintype.card_lt_of_injective_of_not_mem (fun ⟨v, hv⟩ ↦ ⟨v, hv.2⟩)
-          (by intro ⟨v, hv⟩ ⟨w, hw⟩; simp) (b := ⟨minIdx heap, (spec.1 _).resolve_left hh⟩) (by simp)
+          (by intro ⟨v, hv⟩ ⟨w, hw⟩; simp)
+          (b := ⟨minIdx heap, (spec.1 _).resolve_left hh⟩) (by simp)
       go hr.1 hr.2 (g..dijkstraStep_spec c init heap res spec hh)
 termination_by Fintype.card {v : V | res[v] = ⊤}
   spec_init : dijkstraStep.Spec g c init init default := by
