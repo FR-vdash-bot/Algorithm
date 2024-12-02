@@ -11,29 +11,15 @@ variable {ι α : Type*} [BEq ι] [Hashable ι]
 instance : Size (HashMap ι α) where
   size := size
   isEmpty := isEmpty
-  isEmpty_iff_size_eq_zero := Nat.beq_eq.to_iff
+  isEmpty_iff_size_eq_zero := beq_iff_eq
 
 instance : LawfulEmptyCollection (HashMap ι α) ι where
   not_mem_empty _ := not_mem_empty
 
-lemma distinct_keys [EquivBEq ι] [LawfulHashable ι] (c : HashMap ι α) :
-    c.keys.Pairwise (fun a b => (a == b) = false) := by
-  sorry
-
-@[simp]
-lemma mem_keys [EquivBEq ι] [LawfulHashable ι] (c : HashMap ι α) {i : ι} :
-    i ∈ c.keys ↔ i ∈ c := by
-  sorry
-
-@[simp]
-lemma length_keys [EquivBEq ι] [LawfulHashable ι] (c : HashMap ι α) :
-    c.keys.length = c.size := by
-  sorry
-
 variable [LawfulBEq ι]
 
 instance : ToFinset (HashMap ι α) ι where
-  toFinset c := ⟨c.keys, by simpa [List.Nodup] using distinct_keys c⟩
+  toFinset c := ⟨c.keys, by simpa [List.Nodup] using c.distinct_keys⟩
   mem_toFinset := by simp
   size_eq_card_toFinset := by simp [Size.size]
 
