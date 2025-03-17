@@ -25,8 +25,8 @@ abbrev algorithmLeanOptions := #[
 
 package algorithm where
 
-require "leanprover-community" / "mathlib" @ git "v4.15.0-rc1"
-require "leanprover" / "doc-gen4" @ git "v4.15.0-rc1"
+require "leanprover-community" / "mathlib" @ git "v4.15.0"
+require "leanprover" / "doc-gen4" @ git "v4.15.0"
 
 lean_lib Mutable where
   roots := #[`Mutable]

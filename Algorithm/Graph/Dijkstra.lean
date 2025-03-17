@@ -456,7 +456,7 @@ lemma dijkstraStep_fst_getElem' (g : G) (c : Info → CostType)
   · push_neg at h
     simp? [Function.update_apply, h, Multiset.filterMap_filterMap] says
       simp only [ne_eq, h, not_false_eq_true,
-        Function.update_noteq, Function.update_apply, Multiset.filterMap_filterMap]
+        Function.update_of_ne, Function.update_apply, Multiset.filterMap_filterMap]
     congr!
     split; · rename_i snde; simp [snde, Ne.symm h.1]
     split; · simp
