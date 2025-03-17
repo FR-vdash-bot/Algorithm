@@ -6,8 +6,7 @@ Authors: Yuyang Zhao
 -/
 import Algorithm.Data.DFinsupp'.Basic
 import Mathlib.Algebra.BigOperators.GroupWithZero.Action
-import Mathlib.Algebra.BigOperators.GroupWithZero.Finset
-import Mathlib.Algebra.Group.Submonoid.Membership
+import Mathlib.Algebra.Group.Submonoid.BigOperators
 
 /-!
 Modified from `Mathlib.Data.DFinsupp.Basic`

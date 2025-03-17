@@ -1,4 +1,3 @@
-
 /-
 Copyright (c) 2024 Yuyang Zhao. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
@@ -251,7 +250,7 @@ variable (d) in
 and all other points to `d i`. -/
 def single (i : ι) (b : β i) : Π₀' i, [β i, d i] :=
   ⟨Function.update d i b, Trunc.mk
-    ⟨{i}, fun j => (Decidable.eq_or_ne j i).imp (by simp) fun h => Function.update_noteq h _ _⟩⟩
+    ⟨{i}, fun j => (Decidable.eq_or_ne j i).imp (by simp) fun h => Function.update_of_ne h _ _⟩⟩
 
 theorem single_eq_functionUpdate {i b} : ⇑(single d i b) = Function.update d i b :=
   rfl
@@ -362,7 +361,7 @@ def update : Π₀' i, [β i, d i] :=
         · simp
         · obtain hj | (hj : f j = d j) := s.prop j
           · exact Or.inl (Multiset.mem_cons_of_mem hj)
-          · exact Or.inr ((Function.update_noteq hi.symm b _).trans hj)⟩⟩
+          · exact Or.inr ((Function.update_of_ne hi.symm b _).trans hj)⟩⟩
 
 @[simp, norm_cast] lemma coe_update : (f.update i b : ∀ i : ι, β i) = Function.update f i b := rfl
 
