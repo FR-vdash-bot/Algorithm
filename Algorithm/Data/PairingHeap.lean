@@ -132,7 +132,7 @@ lemma Heap.le_of_wf [r : IsRefl α (le · ·)] [t : IsTrans α (le · ·)] [Tota
 @[simp]
 lemma Heap.coe_toListUnordered_combine (x : Heap α) :
     ((x.combine le).toListUnordered : Multiset α) = x.toListUnordered := by
-  induction x using Heap.combine.induct le with
+  induction x using Heap.combine.induct with
   | case1 a₁ c₁ a₂ c₂ s ih =>
     match hc : combine le s, noSibling_combine le s with
     | .nil, _ =>

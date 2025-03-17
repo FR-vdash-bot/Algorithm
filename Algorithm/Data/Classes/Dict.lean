@@ -40,11 +40,11 @@ instance [Dict C ι α] : AssocArray (Dict.AssocArray C) ι (Option α) none whe
   getElem a i _ := (Dict.toAssocArray.symm a)[i]?
   toDFinsupp' a := .mk' ((Dict.toAssocArray.symm a)[·]?)
     (.mk ⟨toMultiset (Dict.toAssocArray.symm a), fun i ↦ by
-      simpa [mem_toMultiset, or_iff_not_imp_left] using getElem?_neg _ _ ⟩)
+      simp [mem_toMultiset, or_iff_not_imp_left] ⟩)
   coe_toDFinsupp'_eq_getElem := by simp
   setElem c i x := Dict.toAssocArray <| alterElem (Dict.toAssocArray.symm c) i (fun _ ↦ x)
   getElem_setElem_self := by simp
   getElem_setElem_of_ne _ _ _ _ hij := by simp [hij]
-  getElem_default _ := by simpa [default] using getElem?_neg _ _ (not_mem_empty _)
+  getElem_default _ := by simpa [default] using getElem?_neg (cont := C) _ _ (not_mem_empty _)
 
 end Dict
