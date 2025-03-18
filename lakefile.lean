@@ -1,5 +1,9 @@
 import Lake
+
 open Lake DSL
+
+require "leanprover-community" / "mathlib" @ git "v4.16.0-rc2"
+require "leanprover" / "doc-gen4" @ git "v4.16.0-rc2"
 
 abbrev algorithmOnlyLinters : Array LeanOption := #[
   ⟨`linter.hashCommand, true⟩,
@@ -24,9 +28,6 @@ abbrev algorithmLeanOptions := #[
     algorithmOnlyLinters.map fun s ↦ { s with name := `weak ++ s.name }
 
 package algorithm where
-
-require "leanprover-community" / "mathlib" @ git "v4.16.0-rc1"
-require "leanprover" / "doc-gen4" @ git "v4.16.0-rc1"
 
 lean_lib Mutable where
   roots := #[`Mutable]
