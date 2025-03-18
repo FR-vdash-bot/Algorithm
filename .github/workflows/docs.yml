@@ -66,14 +66,13 @@ jobs:
           path: './.lake/build/doc'
 
 jobs:
-  build:
-    name: build and deploy docs
+  deploy:
+    if: github.ref == 'refs/heads/master'
+    name: deploy docs
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Deploy to GitHub Pages
-        if: github.ref == 'refs/heads/master'
-        id: deployment
         uses: actions/deploy-pages@v4
