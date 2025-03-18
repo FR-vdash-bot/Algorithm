@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - "master"
+  pull_request:
 jobs:
   build:
     permissions:
@@ -31,7 +32,7 @@ jobs:
             echo "::warning title=Invalid file permissions automatically fixed::$line"
           done
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v3
         with:
           path: ./.lake/build/doc/
       - name: Deploy to GitHub Pages
