@@ -64,8 +64,6 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: './.lake/build/doc'
-
-jobs:
   deploy:
     if: github.ref == 'refs/heads/master'
     name: deploy docs
