@@ -29,7 +29,7 @@ section ProdAndSum
 @[to_additive "`DFinsupp'.sum f g` is the sum of `g i (f i)` over the support of `f`."]
 def prod [∀ (i) (x : β i), Decidable (x ≠ d i)] [CommMonoid γ] (f : Π₀' i, [β i, d i])
     (g : ∀ i, β i → γ) : γ :=
-  ∏ i in f.support, g i (f i)
+  ∏ i ∈ f.support, g i (f i)
 
 @[to_additive (attr := simp)]
 theorem _root_.map_dfinsupp'_prod
@@ -117,7 +117,7 @@ theorem prod_eq_prod_fintype [Fintype ι] [∀ (i : ι) (x : β i), Decidable (x
     -- Porting note: `f` was a typeclass argument
     [CommMonoid γ] (v : Π₀' i, [β i, d i]) {f : ∀ i, β i → γ} (hf : ∀ i, f i (d i) = 1) :
     v.prod f = ∏ i, f i (DFinsupp'.equivFunOnFintype v i) := by
-  suffices (∏ i in v.support, f i (v i)) = ∏ i, f i (v i) by simp [DFinsupp'.prod, this]
+  suffices (∏ i ∈ v.support, f i (v i)) = ∏ i, f i (v i) by simp [DFinsupp'.prod, this]
   apply Finset.prod_subset v.support.subset_univ
   intro i _ hi
   rw [mem_support_iff, not_not] at hi

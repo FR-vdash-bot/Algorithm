@@ -74,7 +74,7 @@ def minIdx (a : Vector α n) : Fin n :=
 
 lemma minIdx_spec (a : Vector α n) (i : Fin n) :
     a[a.minIdx] < a[i] ∨ a[a.minIdx] = a[i] ∧ a.minIdx ≤ i := by
-  have : a.minAux.1 = a[a.minIdx] := by
+  have : (ofLex a.minAux).1 = a[a.minIdx] := by
     unfold minIdx minAux
     obtain ⟨i, -, h⟩ := (⊤ : Finset (Fin n)).exists_mem_eq_inf'
       ⟨0, Finset.mem_univ 0⟩ (fun i ↦ toLex (a[i], i))
@@ -82,7 +82,7 @@ lemma minIdx_spec (a : Vector α n) (i : Fin n) :
     obtain ⟨h : _ = a[i], rfl : _ = i⟩ := h
     exact h
   rw [← this]
-  apply (Prod.Lex.le_iff _ (a[i], i)).mp
+  apply (Prod.Lex.le_iff (y := (a[i], i))).mp
   exact Finset.inf'_le _ (Finset.mem_univ _)
 
 lemma minIdx_le (a : Vector α n) (i : Fin n) :
