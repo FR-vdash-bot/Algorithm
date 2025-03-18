@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   build:
-    name: build and deploy docs
+    name: build docs
     runs-on: ubuntu-latest
     steps:
       - name: clean up
@@ -65,12 +65,14 @@ jobs:
         with:
           path: './.lake/build/doc'
 
+  deploy:
+    if: github.ref == 'refs/heads/master'
+    name: deploy docs
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy to GitHub Pages
-        if: github.ref == 'refs/heads/master'
-        id: deployment
         uses: actions/deploy-pages@v4
-
-      - name: clean up
-        run: |
-          rm -rf $HOME/.elan
-          rm -rf $HOME/.cache/mathlib
