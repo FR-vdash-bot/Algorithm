@@ -11,19 +11,6 @@ import Mathlib.Logic.Function.Basic
 
 variable {C ι α : Type*} {Valid : C → ι → Prop}
 
-namespace Vector
-variable {α : Type*} {n : ℕ}
-
-lemma getElem_set_eq (c : Vector α n) (i : Fin n) (v : α) :
-    (c.set i v)[i] = v := by
-  simp [set]
-
-lemma getElem_set_ne (c : Vector α n) {i : Fin n} (v : α) {j : Fin n} (h : i ≠ j) :
-    (c.set i v)[j] = c[j] := by
-  simpa [set] using Array.getElem_set_ne _ _ _ _ _ (Fin.val_ne_iff.mpr h)
-
-end Vector
-
 class SetElem (C : Type*) (ι : Type*) (α : outParam Type*) where
   protected setElem : C → ι → α → C
 
@@ -215,8 +202,8 @@ variable {α : Type*} {n : ℕ} {f : Fin n → α}
 instance instGetSetElemAllValid : GetSetElemAllValid (Vector α n) (Fin n) α where
   Valid _ i := (i : ℕ) < n -- `Fin.instGetElemFinVal`
   setElem c i := c.set i
-  getElem_setElem_self c i v := c.getElem_set_eq i v
-  getElem_setElem_of_ne c _ v _ hij := c.getElem_set_ne v hij
+  getElem_setElem_self c i v := c.getElem_set_self i v i.2
+  getElem_setElem_of_ne c i v j hij := c.getElem_set_ne i v i.2 j j.2 (by omega)
 
 instance : OfFn (Vector α n) (Fin n) α f where
   ofFn := .ofFn f

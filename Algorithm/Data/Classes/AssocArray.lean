@@ -83,8 +83,8 @@ variable {α : Type*} {n : ℕ} {f : Fin n → α}
 instance : AssocDArray (Vector.WithDefault α n f) (Fin n) α f where
   getElem a i _ := a.get i
   setElem a i := a.set i
-  getElem_setElem_self a i v := a.getElem_set_eq i v
-  getElem_setElem_of_ne a _ v _ hij := a.getElem_set_ne v hij
+  getElem_setElem_self a i v := a.getElem_set_self i v i.2
+  getElem_setElem_of_ne a i v j hij := a.getElem_set_ne i v i.2 j j.2 (by omega)
   getElem_default i := congrFun get_default i
   toDFinsupp' a := DFinsupp'.equivFunOnFintype.symm (get a)
   coe_toDFinsupp'_eq_getElem _ := DFinsupp'.coe_equivFunOnFintype_symm _
