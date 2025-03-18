@@ -19,7 +19,6 @@ jobs:
     steps:
       - name: clean up
         run: |
-          rm -rf Algorithm
           rm -rf $HOME/.elan
           rm -rf $HOME/.cache/mathlib
 
@@ -51,12 +50,16 @@ jobs:
 
       - name: build import graph
         run: |
-          lake exe graph ./.lake/build/doc/algorithm.html
+          lake exe graph algorithm.html
 
       - name: generate docs
         run: |
           lake build Algorithm:docs
           lake build Algorithm:docsHeader
+
+      - name: copy import graph
+        run: |
+          cp algorithm.html ./.lake/build/doc
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
@@ -70,6 +73,5 @@ jobs:
 
       - name: clean up
         run: |
-          rm -rf Algorithm
           rm -rf $HOME/.elan
           rm -rf $HOME/.cache/mathlib
