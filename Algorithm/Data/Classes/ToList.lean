@@ -62,7 +62,7 @@ lemma get?_toList : a.toList.get? = a.get? := by
   rw [get?_eq_get?_toList]
 
 lemma getLast?_toList : a.toList.getLast? = a.back? := by
-  rw [back?, getElem?_eq_getElem?_toList, List.getLast?_eq_getElem?]
+  rw [back?, ← getElem?_toList, List.getLast?_eq_getElem?]
 
 lemma dropLast_toList : a.toList.dropLast = a.pop.toList := by
   simp
@@ -276,7 +276,8 @@ instance : Front (Array α) α where
   frontD c := c.getD 0
   front c h := c.get 0 (by simp_rw [isEmpty_iff_size_eq_zero, size] at h; omega)
   frontD_def := by simp
-  front_mem _ := by simp [Array.get?, size, ← ne_eq, ← List.length_pos_iff_ne_nil]
+  front_mem _ := by
+    simp [Array.get?, size, ← ne_eq, ← Array.toList_eq_nil_iff, ← List.length_pos_iff_ne_nil]
 
 instance : Back (Array α) α where
   back? := Array.back?
