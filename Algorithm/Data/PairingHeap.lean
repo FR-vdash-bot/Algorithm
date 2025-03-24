@@ -5,6 +5,7 @@ Authors: Yuyang Zhao
 -/
 import Algorithm.Data.Classes.MinHeap
 import Batteries.Data.PairingHeap
+import Mathlib
 
 namespace Batteries
 
@@ -71,18 +72,22 @@ lemma Heap.coe_toListUnordered_merge_node_right
   | nil, _ => rfl
   | node _ _ nil, _ =>
     simp_rw [merge]
-    split_ifs <;>
-      (simp_rw [toListUnordered_node, toListUnordered_nil, List.append_nil,
-        ← Multiset.cons_coe, ← Multiset.coe_add, ← Multiset.singleton_add]; ac_rfl)
+    split_ifs <;> (
+      simp_rw [toListUnordered_node, toListUnordered_nil, List.append_nil,
+        ← Multiset.cons_coe, ← Multiset.coe_add, ← Multiset.singleton_add]
+      #adaptation_note /-- was `ac_rfl` before `v4.17.0` -/
+      abel)
 
 @[simp]
 lemma Heap.coe_toListUnordered_merge_node (a₁ : α) (c₁ s₁ : Heap α) (a₂ : α) (c₂ s₂ : Heap α) :
     (((node a₁ c₁ s₁).merge le (node a₂ c₂ s₂)).toListUnordered : Multiset α) =
       a₁ ::ₘ a₂ ::ₘ c₁.toListUnordered + c₂.toListUnordered := by
   simp_rw [merge]
-  split_ifs <;>
-    (simp_rw [toListUnordered_node, toListUnordered_nil, List.append_nil,
-      ← Multiset.cons_coe, ← Multiset.coe_add, ← Multiset.singleton_add]; ac_rfl)
+  split_ifs <;> (
+    simp_rw [toListUnordered_node, toListUnordered_nil, List.append_nil,
+      ← Multiset.cons_coe, ← Multiset.coe_add, ← Multiset.singleton_add]
+    #adaptation_note /-- was `ac_rfl` before `v4.17.0` -/
+    abel)
 
 lemma Heap.coe_toListUnordered_merge (x : Heap α) (y : Heap α)
     (hx : x.NoSibling) (hy : y.NoSibling) :
@@ -95,7 +100,9 @@ lemma Heap.coe_toListUnordered_merge (x : Heap α) (y : Heap α)
     rw [merge, toListUnordered_node, toListUnordered_nil, Multiset.coe_nil, add_zero]
   | node a₁ c₁ nil, node a₂ c₂ nil, _, _ =>
     simp_rw [coe_toListUnordered_merge_node, toListUnordered_node, toListUnordered_nil,
-      List.append_nil, ← Multiset.cons_coe, ← Multiset.singleton_add]; ac_rfl
+      List.append_nil, ← Multiset.cons_coe, ← Multiset.singleton_add]
+    #adaptation_note /-- was `ac_rfl` before `v4.17.0` -/
+    abel
 
 theorem Heap.WF.noSibling {x : Heap α} (hx : x.WF le) : x.NoSibling :=
   match x, hx with
@@ -137,10 +144,11 @@ lemma Heap.coe_toListUnordered_combine (x : Heap α) :
     match hc : combine le s, noSibling_combine le s with
     | .nil, _ =>
       simp? [combine, hc, - Multiset.coe_eq_coe, - Multiset.cons_coe, - Multiset.coe_add] says
-        simp only [combine, hc, noSibling_merge, merge_nil_right,
-          coe_toListUnordered_merge_node, Multiset.cons_add, toListUnordered_node]
+        simp only [combine, hc, noSibling_merge, merge_nil_right, coe_toListUnordered_merge_node,
+          Multiset.cons_add, toListUnordered_node]
       simp only [← Multiset.cons_coe, ← Multiset.coe_add, ← Multiset.singleton_add, ← ih, hc]
-      ac_rfl
+      #adaptation_note /-- was `ac_rfl` before `v4.17.0` -/
+      abel
     | .node sa sc .nil, _ =>
       simp? [combine, hc, toListUnordered_node, - Multiset.coe_eq_coe, - Multiset.cons_coe,
           - Multiset.coe_add] says
@@ -149,7 +157,8 @@ lemma Heap.coe_toListUnordered_combine (x : Heap α) :
           Multiset.add_cons, toListUnordered_node]
       simp only [← Multiset.cons_coe, ← Multiset.coe_add, ← Multiset.singleton_add, ← ih, hc,
         toListUnordered_node]
-      ac_rfl
+      #adaptation_note /-- was `ac_rfl` before `v4.17.0` -/
+      abel
   | case2 x hx =>
     simp [combine]
 

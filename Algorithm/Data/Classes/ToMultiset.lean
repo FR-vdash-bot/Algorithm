@@ -5,7 +5,7 @@ Authors: Yuyang Zhao
 -/
 import Algorithm.Data.Classes.Erase
 import Algorithm.Data.Classes.Size
-import Mathlib.Data.Multiset.Basic
+import Mathlib.Data.Multiset.AddSub
 
 variable {C α : Type*}
 
