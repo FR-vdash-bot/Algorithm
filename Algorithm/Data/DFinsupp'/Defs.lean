@@ -314,7 +314,7 @@ theorem single_eq_of_sigma_eq {i j} {xi : β i} {xj : β j} (h : (⟨i, xi⟩ : 
 theorem equivFunOnFintype_single [Fintype ι] (i : ι) (m : β i) :
     DFinsupp'.equivFunOnFintype (DFinsupp'.single d i m) = Function.update d i m := by
   ext x
-  dsimp [Pi.single, Function.update]
+  dsimp [Function.update]
   simp [DFinsupp'.single_eq_functionUpdate, @eq_comm _ i]
 
 @[simp]

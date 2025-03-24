@@ -106,7 +106,7 @@ theorem smul_sum {α : Type*} [Monoid α] [∀ (i) (x : β i), Decidable (x ≠ 
   Finset.smul_sum
 
 @[to_additive]
-theorem _root_.dfinsupp_prod_mem [∀ (i) (x : β i), Decidable (x ≠ d i)]
+theorem _root_.dfinsupp'_prod_mem [∀ (i) (x : β i), Decidable (x ≠ d i)]
     [CommMonoid γ] {S : Type*} [SetLike S γ] [SubmonoidClass S γ]
     (s : S) (f : Π₀' i, [β i, d i]) (g : ∀ i, β i → γ)
     (h : ∀ c, f c ≠ d c → g c (f c) ∈ s) : f.prod g ∈ s :=
