@@ -34,10 +34,6 @@ lemma isEmpty_eq_decide_eq_nil : l.isEmpty = decide (l = []) := by
 lemma isEmpty_eq_decide_length : l.isEmpty = decide (l.length = 0) := by
   cases l <;> simp [isEmpty]
 
-lemma isEmpty_reverse : l.reverse.isEmpty = l.isEmpty := by
-  rw [isEmpty_eq_decide_eq_nil, isEmpty_eq_decide_eq_nil]
-  simp only [reverse_eq_nil_iff]
-
 lemma reverse_dropLast (l : List α) : l.dropLast.reverse = l.reverse.tail :=
   match l with
   | [] | [_] => rfl
@@ -55,14 +51,6 @@ lemma isEmpty_toListRev : a.toListRev.isEmpty = a.isEmpty := by
 
 lemma toList_length : a.toList.length = a.size := by
   rw [length_toList]
-
-@[simp]
-lemma get?_toList : a.toList.get? = a.get? := by
-  ext i
-  rw [get?_eq_get?_toList]
-
-lemma getLast?_toList : a.toList.getLast? = a.back? := by
-  rw [back?, ← getElem?_toList, List.getLast?_eq_getElem?]
 
 lemma dropLast_toList : a.toList.dropLast = a.pop.toList := by
   simp
@@ -268,16 +256,16 @@ end List
 section Array
 
 instance : Front (Array α) α where
-  front? c := c.get? 0
+  front? c := c[0]?
   front?_def c := by
     dsimp only
-    rw [← Array.get?_toList, List.get?_zero]
+    rw [← Array.getElem?_toList, List.head?_eq_getElem?]
     rfl
   frontD c := c.getD 0
-  front c h := c.get 0 (by simp_rw [isEmpty_iff_size_eq_zero, size] at h; omega)
+  front c h := c[0]'(by simp_rw [isEmpty_iff_size_eq_zero, size] at h; omega)
   frontD_def := by simp
   front_mem _ := by
-    simp [Array.get?, size, ← ne_eq, ← Array.toList_eq_nil_iff, ← List.length_pos_iff_ne_nil]
+    simp [size, ← ne_eq, ← Array.toList_eq_nil_iff, ← List.length_pos_iff_ne_nil]
 
 instance : Back (Array α) α where
   back? := Array.back?
@@ -285,7 +273,7 @@ instance : Back (Array α) α where
 
 instance : PopBack (Array α) α where
   popBack := Array.pop
-  toList_popBack := Array.pop_toList
+  toList_popBack := Array.toList_pop
 
 instance : PushBack (Array α) α where
   pushBack := Array.push
