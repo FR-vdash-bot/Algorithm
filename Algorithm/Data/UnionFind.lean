@@ -3,7 +3,7 @@ Copyright (c) 2024 Yuyang Zhao. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuyang Zhao
 -/
-import Algorithm.Data.Classes.AssocArray
+import Algorithm.Data.Classes.GetElem
 import Algorithm.Data.MutableQuotient
 import Mathlib.Data.Set.Card
 

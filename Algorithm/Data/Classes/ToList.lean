@@ -15,20 +15,15 @@ lemma not_isEmpty_iff {l : List α} : ¬l.isEmpty ↔ l ≠ [] :=
   isEmpty_iff.not
 
 lemma tail?_isSome : (tail? l).isSome ↔ l ≠ [] :=
-  match l with | [] | _::_ => by simp
+  match l with | [] | _ :: _ => by simp
 
 lemma head?_isSome' : (head? l).isSome = !l.isEmpty :=
-  match l with | [] | _::_ => rfl
+  match l with | [] | _ :: _ => rfl
 
 lemma tail?_isSome' : (tail? l).isSome = !l.isEmpty :=
-  match l with | [] | _::_ => rfl
+  match l with | [] | _ :: _ => rfl
 
-instance : Decidable (l = []) :=
-  match l with
-  | [] => isTrue rfl
-  | _::_ => isFalse nofun
-
-lemma isEmpty_eq_decide_eq_nil : l.isEmpty = decide (l = []) := by
+lemma isEmpty_eq_decide_eq_nil [DecidableEq α] : l.isEmpty = decide (l = []) := by
   cases l <;> simp [isEmpty]
 
 lemma isEmpty_eq_decide_length : l.isEmpty = decide (l.length = 0) := by
@@ -37,9 +32,8 @@ lemma isEmpty_eq_decide_length : l.isEmpty = decide (l.length = 0) := by
 lemma reverse_dropLast (l : List α) : l.dropLast.reverse = l.reverse.tail :=
   match l with
   | [] | [_] => rfl
-  | x::_::_ => by
-    rw [dropLast, reverse_cons x, reverse_cons x, reverse_dropLast (_::_),
-      tail_append_of_ne_nil] <;> simp
+  | x :: _ :: _ => by
+    rw [dropLast, reverse_cons, reverse_cons, reverse_dropLast, tail_append_of_ne_nil] <;> simp
 
 end List
 
@@ -132,7 +126,7 @@ class Front (C : Type*) (α : outParam Type*) [ToList C α] where
   frontD : C → α → α :=
     fun s d ↦ (front? s).getD d
   front (c : C) : ¬isEmpty c → α :=
-    fun h ↦ (front? c).get (by rwa [front?_def, List.head?_isSome, ← List.not_isEmpty_iff,
+    fun h ↦ (front? c).get (by rwa [front?_def, List.isSome_head?, ← List.not_isEmpty_iff,
       isEmpty_toList])
   frontD_def c d : frontD c d = (front? c).getD d := by intros; rfl
   front_mem c h : front c h ∈ front? c := by simp
@@ -142,7 +136,7 @@ attribute [simp] front?_def frontD_def
 
 lemma front?_isSome {C α : Type*} [ToList C α] [Front C α] {c : C} (h : ¬isEmpty c) :
     (front? c).isSome := by
-  rwa [front?_def, List.head?_isSome, ← List.not_isEmpty_iff, isEmpty_toList]
+  rwa [front?_def, List.isSome_head?, ← List.not_isEmpty_iff, isEmpty_toList]
 
 @[simp]
 lemma front_def {C α : Type*} [ToList C α] [Front C α] (c : C) (h : ¬isEmpty c) :
@@ -258,7 +252,6 @@ section Array
 instance : Front (Array α) α where
   front? c := c[0]?
   front?_def c := by
-    dsimp only
     rw [← Array.getElem?_toList, List.head?_eq_getElem?]
     rfl
   frontD c := c.getD 0
@@ -273,14 +266,14 @@ instance : Back (Array α) α where
 
 instance : PopBack (Array α) α where
   popBack := Array.pop
-  toList_popBack := Array.toList_pop
+  toList_popBack _ := Array.toList_pop
 
 instance : PushBack (Array α) α where
   pushBack := Array.push
   toList_pushBack := by simp [toList]
 
 instance : LawfulAppend (Array α) α where
-  toList_append := Array.toList_append
+  toList_append _ _ := Array.toList_append
 
 instance : ToList.RandomAccess (Array α) α _ where
   valid_iff_lt_size := .rfl

@@ -5,7 +5,6 @@ Authors: Yuyang Zhao
 -/
 import Algorithm.Data.Classes.GetElem
 import Algorithm.Data.DFinsupp'.Defs
-import Mathlib.Data.Fintype.Basic
 import Mathlib.Data.Setoid.Basic
 
 universe u v
@@ -23,7 +22,7 @@ instance {α n f} : Inhabited (Vector.WithDefault α n f) where
 @[simp]
 lemma get_default {f} : (default : Vector.WithDefault α n f).get = f := by
   ext i
-  exact getElem_ofFn _ i i.2
+  exact getElem_ofFn i.2
 
 end Vector
 
@@ -83,8 +82,8 @@ variable {α : Type*} {n : ℕ} {f : Fin n → α}
 instance : AssocDArray (Vector.WithDefault α n f) (Fin n) α f where
   getElem a i _ := a.get i
   setElem a i := a.set i
-  getElem_setElem_self a i v := a.getElem_set_self i v i.2
-  getElem_setElem_of_ne a i v j hij := a.getElem_set_ne i v i.2 j j.2 (by omega)
+  getElem_setElem_self a i v := a.getElem_set_self i.2
+  getElem_setElem_of_ne a i v j hij := a.getElem_set_ne i.2 j.2 (by omega)
   getElem_default i := congrFun get_default i
   toDFinsupp' a := DFinsupp'.equivFunOnFintype.symm (get a)
   coe_toDFinsupp'_eq_getElem _ := DFinsupp'.coe_equivFunOnFintype_symm _
@@ -129,7 +128,7 @@ def listIndicator (l : List ι) (f : ∀ i ∈ l, α) : C :=
   match l with
   | [] => default
   | (i :: l) => (listIndicator l (fun i hi ↦ f i (List.mem_cons_of_mem _ hi)))[i ↦
-    (f i (List.mem_cons_self _ _))]
+    f i List.mem_cons_self]
 
 variable {C}
 
