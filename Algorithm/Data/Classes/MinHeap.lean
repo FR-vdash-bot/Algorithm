@@ -5,6 +5,7 @@ Authors: Yuyang Zhao
 -/
 import Algorithm.Data.Classes.ToMultiset
 import Mathlib.Data.Multiset.Lattice
+import Mathlib.Order.WithBot
 
 namespace Multiset -- should be in mathlb
 variable {α : Type*} [SemilatticeInf α] [OrderTop α]

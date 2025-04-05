@@ -9,6 +9,7 @@ import Algorithm.Data.Graph.AdjList
 import Mathlib.Algebra.Order.Monoid.WithTop
 import Mathlib.Data.Finset.Card
 import Mathlib.Data.Fintype.Basic
+import Mathlib.Data.Set.Lattice
 import Mathlib.Algebra.Order.Monoid.Canonical.Defs
 
 section -- should be in mathlb
@@ -198,7 +199,9 @@ lemma isLeastOfEdges_union {g : G}
       g..IsLowerBoundOfEdges c ss (fun v hv ↦ cs v (Set.mem_union_left _ hv)) t d ∧
         g..IsLeastOfEdges c ss' (fun v hv ↦ cs v (Set.mem_union_right _ hv)) t d := by
   unfold IsLeastOfEdges
-  simp_rw [Set.mem_union, Set.iUnion_or, Set.iUnion_union_distrib, isLeast_union_iff]
+  -- was `simp_rw [Set.mem_union]`
+  conv_lhs => congr; congr; ext; rw [Set.iUnion_congr_Prop (Set.mem_union _ _ _) fun _ ↦ rfl]
+  simp_rw [Set.iUnion_or, Set.iUnion_union_distrib, isLeast_union_iff]
   rfl
 
 def IsLowerBoundOfDist (g : G)
