@@ -2,13 +2,12 @@ import Lake
 
 open Lake DSL
 
-require "leanprover-community" / "mathlib" @ git "v4.18.0"
-require "leanprover" / "doc-gen4" @ git "v4.18.0"
+require "leanprover-community" / "mathlib" @ git "v4.19.0-rc2"
+require "leanprover" / "doc-gen4" @ git "v4.19.0-rc2"
 
 abbrev algorithmOnlyLinters : Array LeanOption := #[
   ⟨`linter.hashCommand, true⟩,
-  ⟨`linter.oldObtain, true,⟩,
-  ⟨`linter.refine, true⟩,
+  ⟨`linter.oldObtain, true⟩,
   ⟨`linter.style.cdot, true⟩,
   ⟨`linter.style.dollarSyntax, true⟩,
   ⟨`linter.style.header, true⟩,
@@ -18,6 +17,8 @@ abbrev algorithmOnlyLinters : Array LeanOption := #[
   -- `latest_import.yml` uses this comment: if you edit it, make sure that the workflow still works
   ⟨`linter.style.missingEnd, true⟩,
   ⟨`linter.style.multiGoal, true⟩,
+  ⟨`linter.style.openClassical, true⟩,
+  ⟨`linter.style.refine, true⟩,
   ⟨`linter.style.setOption, true⟩
 ]
 
@@ -52,7 +53,7 @@ target ffi.o pkg : System.FilePath := do
 extern_lib libleanffi pkg := do
   let name := nameToStaticLib "leanffi"
   let ffiO ← ffi.o.fetch
-  buildStaticLib (pkg.nativeLibDir / name) #[ffiO]
+  buildStaticLib (pkg.staticLibDir / name) #[ffiO]
 
 -- @[test_driver]
 -- lean_exe test where

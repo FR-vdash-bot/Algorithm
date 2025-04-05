@@ -3,7 +3,7 @@ Copyright (c) 2024 Yuyang Zhao. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuyang Zhao
 -/
-import Algorithm.Data.HashMap
+import Algorithm.Data.Classes.Bag
 
 variable {α : Type*} [BEq α] [Hashable α]
 

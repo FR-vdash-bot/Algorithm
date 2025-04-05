@@ -139,7 +139,7 @@ jobs:
         uses: liskin/gh-problem-matcher-wrap@v3
         with:
           linters: gcc
-          run: env LEAN_ABORT_ON_PANIC=1 lake exe shake --gh-style
+          run: env LEAN_ABORT_ON_PANIC=1 lake exe shake Algorithm --cfg scripts/noshake.json --gh-style
 
       - name: lint algorithm
         if: ${{ always() && steps.build.outcome == 'success' || steps.build.outcome == 'failure' }}

@@ -5,8 +5,6 @@ Authors: Yuyang Zhao
 -/
 import Algorithm.Tactic.Attr.Register
 import Algorithm.Data.Classes.Erase
-import Batteries.Data.Vector.Lemmas
-import Mathlib.Data.Fin.Basic
 import Mathlib.Logic.Function.Basic
 
 variable {C ι α : Type*} {Valid : C → ι → Prop}
@@ -200,14 +198,15 @@ namespace Batteries.Vector
 variable {α : Type*} {n : ℕ} {f : Fin n → α}
 
 instance instGetSetElemAllValid : GetSetElemAllValid (Vector α n) (Fin n) α where
+  toGetElem := inferInstance
   Valid _ i := (i : ℕ) < n -- `Fin.instGetElemFinVal`
   setElem c i := c.set i
-  getElem_setElem_self c i v := c.getElem_set_self i v i.2
-  getElem_setElem_of_ne c i v j hij := c.getElem_set_ne i v i.2 j j.2 (by omega)
+  getElem_setElem_self c i v := c.getElem_set_self i.2
+  getElem_setElem_of_ne c i v j hij := c.getElem_set_ne i.2 j.2 (by omega)
 
 instance : OfFn (Vector α n) (Fin n) α f where
   ofFn := .ofFn f
-  getElem_ofFn i := Vector.getElem_ofFn f i i.2
+  getElem_ofFn i := Vector.getElem_ofFn i.2
 
 example : instGetSetElemAllValid.toGetElem = Fin.instGetElemFinVal (cont := Vector α n) :=
   rfl
