@@ -445,11 +445,11 @@ protected theorem induction_on {p : (Π₀' i, [β i, d i]) → Prop} (x : Π₀
     (ha : ∀ (i b) (x : Π₀' i, [β i, d i]), x i = d i → b ≠ d i → p x →
       p (zipWith f (fun _ ↦ hf₁ _ _) (single d i b) x)) :
     p x := by
-  cases' x with x s
+  cases x with | _ x s
   induction' s using Trunc.induction_on with s
-  cases' s with s H
+  cases s with | _ s H
   induction' s using Multiset.induction_on with i s ih generalizing x
-  · have : x = d := funext fun i => (H i).resolve_left (Multiset.not_mem_zero _)
+  · have : x = d := funext fun i => (H i).resolve_left (Multiset.notMem_zero _)
     subst this
     exact h0
   have H2 : p (erase i ⟨x, Trunc.mk ⟨i ::ₘ s, H⟩⟩) := by
@@ -457,8 +457,8 @@ protected theorem induction_on {p : (Π₀' i, [β i, d i]) → Prop} (x : Π₀
       Function.comp, Subtype.coe_mk]
     have H2 : ∀ j, j ∈ s ∨ ite (j = i) (d j) (x j) = d j := by
       intro j
-      cases' H j with H2 H2
-      · cases' Multiset.mem_cons.1 H2 with H3 H3
+      cases H j with | _ H2
+      · cases Multiset.mem_cons.1 H2 with | _ H3
         · right; exact if_pos H3
         · left; exact H3
       right
@@ -474,7 +474,7 @@ protected theorem induction_on {p : (Π₀' i, [β i, d i]) → Prop} (x : Π₀
     single_zipWith_erase f hf₁ hf₂ _ _
   rw [← H3]
   change p (zipWith _ _ (single d i (x i)) _)
-  cases' Classical.em (x i = d i) with h h
+  cases Classical.em (x i = d i) with | _ h
   · rw [h, single_eq_self, zipWith_default_left]
     exact H2
   refine ha _ _ _ ?_ h H2
@@ -515,7 +515,7 @@ theorem support_mk'_subset {f : ∀ i, β i} {s : Multiset ι} {h} :
 
 @[simp]
 theorem mem_support_toFun (f : Π₀' i, [β i, d i]) (i) : i ∈ f.support ↔ f i ≠ d i := by
-  cases' f with f s
+  cases f with | _ f s
   induction' s using Trunc.induction_on with s
   dsimp only [support, Trunc.lift_mk]
   rw [Finset.mem_filter, Multiset.mem_toFinset, coe_mk']

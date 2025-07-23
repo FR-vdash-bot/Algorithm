@@ -2,13 +2,17 @@ import Lake
 
 open Lake DSL
 
-require "leanprover-community" / "mathlib" @ git "v4.20.0-rc5"
-require "leanprover" / "doc-gen4" @ git "v4.20.0-rc5"
+require "leanprover-community" / "mathlib" @ git "v4.20.0"
+require "leanprover" / "doc-gen4" @ git "v4.20.0"
 
 abbrev algorithmOnlyLinters : Array LeanOption := #[
+  ⟨`linter.allScriptsDocumented, true⟩,
+  ⟨`linter.checkInitImports, true⟩,
   ⟨`linter.hashCommand, true⟩,
   ⟨`linter.oldObtain, true⟩,
+  ⟨`linter.style.cases, true⟩,
   ⟨`linter.style.cdot, true⟩,
+  -- ⟨`linter.style.docString, true⟩,
   ⟨`linter.style.dollarSyntax, true⟩,
   ⟨`linter.style.header, true⟩,
   ⟨`linter.style.lambdaSyntax, true⟩,
@@ -20,7 +24,7 @@ abbrev algorithmOnlyLinters : Array LeanOption := #[
   ⟨`linter.style.multiGoal, true⟩,
   ⟨`linter.style.openClassical, true⟩,
   ⟨`linter.style.refine, true⟩,
-  ⟨`linter.style.setOption, true⟩
+  ⟨`linter.style.setOption, true⟩,
 ]
 
 abbrev algorithmLeanOptions := #[

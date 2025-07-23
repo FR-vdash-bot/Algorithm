@@ -58,7 +58,7 @@ variable [EmptyCollection C]
 
 lemma lawfulEmptyCollection_iff_toMultiset :
     LawfulEmptyCollection C α ↔ toMultiset (∅ : C) = 0 := by
-  simp_rw [lawfulEmptyCollection_iff, Multiset.eq_zero_iff_forall_not_mem, mem_toMultiset]
+  simp_rw [lawfulEmptyCollection_iff, Multiset.eq_zero_iff_forall_notMem, mem_toMultiset]
 
 alias ⟨_, LawfulEmptyCollection.of_toMultiset⟩ := lawfulEmptyCollection_iff_toMultiset
 
@@ -78,7 +78,7 @@ lemma toMultiset_list (l : List α) : toMultiset l = ↑l := rfl
 
 @[simp]
 lemma ToMultiset.not_isEmpty_of_mem {c : C} {x} (hx : x ∈ c) : ¬isEmpty c := by
-  simpa [size_eq_card_toMultiset, Multiset.eq_zero_iff_forall_not_mem] using ⟨x, hx⟩
+  simpa [size_eq_card_toMultiset, Multiset.eq_zero_iff_forall_notMem] using ⟨x, hx⟩
 
 variable [DecidableEq α]
 

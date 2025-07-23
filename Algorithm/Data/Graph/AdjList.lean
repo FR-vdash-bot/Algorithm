@@ -340,7 +340,7 @@ lemma traversal_insert (s t : Set V) (v : V) (hv : v ∈ t) (t' : Set V)
   · rintro (h | ⟨x, hx, h⟩)
     · exact .inl <| .inr h
     · obtain (⟨hxv, h⟩ | ⟨x, hxv, h⟩) := h.find {v}ᶜ
-      · simp only [Set.eq_empty_iff_forall_not_mem, Set.mem_inter_iff, not_and'] at hst
+      · simp only [Set.eq_empty_iff_forall_notMem, Set.mem_inter_iff, not_and'] at hst
         specialize hst _ hx
         simp only [sdiff_compl, Set.inf_eq_inter, Set.mem_inter_iff, Set.mem_compl_iff, hst,
           not_false_eq_true, Set.mem_singleton_iff, true_and] at hxv
