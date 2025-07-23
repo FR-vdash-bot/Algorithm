@@ -52,7 +52,7 @@ lemma decreaseKeysD_getElem [DecidableEq ι] {ια : Type*} [ToList ια (ι × 
   | cons hd tl ih =>
     rw [List.foldl_cons, ih, decreaseKeyD_getElem]
     split_ifs with h
-    · simp only [List.filterMap_cons, h, List.foldr_cons, min_assoc]
+    · simp only [List.filterMap_cons, h, min_assoc]
       congr
     · simp [h]
 
