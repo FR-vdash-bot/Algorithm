@@ -252,7 +252,7 @@ instance [Inhabited ι] [DecidableEq α] :
     IndexedMinHeap (AssocArrayWithHeap C C') ι (WithTop α) where
   minIdx c := if h : isEmpty c.minHeap then default else (MinHeap.head c.minHeap h).idx
   getElem_minIdx_le c i := by
-    dsimp; split_ifs with h
+    split_ifs with h
     · suffices ∀ i : ι, c[i] = ⊤ by simp [this]
       intro i
       contrapose h with hi
