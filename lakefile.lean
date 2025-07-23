@@ -2,29 +2,13 @@ import Lake
 
 open Lake DSL
 
-require "leanprover-community" / "mathlib" @ git "v4.21.0-rc1"
-require "leanprover" / "doc-gen4" @ git "v4.21.0-rc1"
+require "leanprover-community" / "mathlib" @ git "v4.21.0-rc2"
+require "leanprover" / "doc-gen4" @ git "v4.21.0-rc2"
 
 abbrev algorithmOnlyLinters : Array LeanOption := #[
-  ⟨`linter.allScriptsDocumented, true⟩,
-  ⟨`linter.checkInitImports, true⟩,
-  ⟨`linter.hashCommand, true⟩,
-  ⟨`linter.oldObtain, true⟩,
-  ⟨`linter.style.cases, true⟩,
-  ⟨`linter.style.cdot, true⟩,
-  -- ⟨`linter.style.docString, true⟩,
-  ⟨`linter.style.dollarSyntax, true⟩,
-  ⟨`linter.style.header, true⟩,
-  ⟨`linter.style.lambdaSyntax, true⟩,
-  ⟨`linter.style.longLine, true⟩,
+  ⟨`linter.mathlibStandardSet, true⟩,
   ⟨`linter.style.longFile, .ofNat 1500⟩,
-  ⟨`linter.style.maxHeartbeats, true⟩,
   -- `latest_import.yml` uses this comment: if you edit it, make sure that the workflow still works
-  ⟨`linter.style.missingEnd, true⟩,
-  ⟨`linter.style.multiGoal, true⟩,
-  ⟨`linter.style.openClassical, true⟩,
-  ⟨`linter.style.refine, true⟩,
-  ⟨`linter.style.setOption, true⟩,
 ]
 
 abbrev algorithmLeanOptions := #[
