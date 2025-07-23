@@ -694,7 +694,7 @@ where
       have : Fintype.card {v : V | hr.2[v] = ⊤} < Fintype.card {v : V | res[v] = ⊤} := by
         letI : DecidableEq V := by classical infer_instance
         simp only [dijkstraStep_snd_getElem_eq_top, ne_eq, Set.coe_setOf, Set.mem_setOf_eq, hr]
-        exact Fintype.card_lt_of_injective_of_not_mem (fun ⟨v, hv⟩ ↦ ⟨v, hv.2⟩)
+        exact Fintype.card_lt_of_injective_of_notMem (fun ⟨v, hv⟩ ↦ ⟨v, hv.2⟩)
           (by intro ⟨v, hv⟩ ⟨w, hw⟩; simp)
           (b := ⟨minIdx heap, (spec.1 _).resolve_left hh⟩) (by simp)
       go hr.1 hr.2 (g..dijkstraStep_spec c init heap res spec hh)

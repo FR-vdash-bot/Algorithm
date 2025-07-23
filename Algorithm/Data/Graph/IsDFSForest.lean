@@ -57,7 +57,7 @@ lemma inter (hf : g..IsDFSForest i o f) : i ∩ f.support = ∅ := by
   | nil _ => exact Set.inter_empty _
   | node _ hv hc _ _ _ ihc ihs =>
     dsimp
-    rw [Set.inter_insert_of_not_mem hv, Set.inter_union_distrib_left,
+    rw [Set.inter_insert_of_notMem hv, Set.inter_union_distrib_left,
       Set.union_empty_iff]
     rw [← Set.subset_empty_iff] at ihc ihs ⊢
     rw [← Set.subset_empty_iff]

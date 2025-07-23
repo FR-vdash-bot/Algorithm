@@ -256,7 +256,7 @@ instance [Inhabited ι] [DecidableEq α] :
     · suffices ∀ i : ι, c[i] = ⊤ by simp [this]
       intro i
       contrapose h with hi
-      simpa [size_eq_card_toMultiset, Multiset.eq_zero_iff_forall_not_mem] using
+      simpa [size_eq_card_toMultiset, Multiset.eq_zero_iff_forall_notMem] using
         ⟨_, c.mem_minHeap i hi⟩
     · rw [getElem_minIdx c h, WithTop.coe_le_iff]
       intro x hx

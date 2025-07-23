@@ -43,7 +43,7 @@ variable [EmptyCollection C]
 
 lemma lawfulEmptyCollection_iff_toFinset :
     LawfulEmptyCollection C α ↔ toFinset (∅ : C) = ∅ := by
-  simp_rw [lawfulEmptyCollection_iff, Finset.eq_empty_iff_forall_not_mem, mem_toFinset]
+  simp_rw [lawfulEmptyCollection_iff, Finset.eq_empty_iff_forall_notMem, mem_toFinset]
 
 alias ⟨_, LawfulEmptyCollection.of_toFinset⟩ := lawfulEmptyCollection_iff_toFinset
 
