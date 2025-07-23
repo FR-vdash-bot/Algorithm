@@ -85,7 +85,7 @@ theorem count_toMultiset_eq_zero {a : α} {c : C} : (toMultiset c).count a = 0 �
   simp
 
 theorem count_toMultiset_ne_zero {a : α} {c : C} : (toMultiset c).count a ≠ 0 ↔ a ∈ c := by
-  simp [count_toMultiset_eq_zero, mem_toMultiset]
+  simp [mem_toMultiset]
 
 class Mergeable (C : Type*) (α : outParam Type*) [ToMultiset C α] where
   merge : C → C → C
