@@ -400,7 +400,7 @@ structure dijkstraStep.Spec (g : G) (c : Info → CostType)
     v ∈ g..traversal {v | res[v] ≠ ⊤} {v | heap[v] ≠ ⊤}
 
 lemma dijkstraStep_snd_getElem (g : G) (c : Info → CostType)
-    [DecidableEq V] [AddCommMonoid CostType] [LinearOrder CostType] [IsOrderedAddMonoid CostType]
+    [DecidableEq V] [AddCommMonoid CostType] [LinearOrder CostType]
     {DistArray : Type*} [Inhabited DistArray] [AssocArray DistArray V (WithTop CostType) ⊤]
     {DistHeap : Type*} [Inhabited DistHeap] [IndexedMinHeap DistHeap V (WithTop CostType)]
     (heap : DistHeap) (res : DistArray) (hMinIdx : heap[minIdx heap] ≠ ⊤) (v : V) :
@@ -409,7 +409,7 @@ lemma dijkstraStep_snd_getElem (g : G) (c : Info → CostType)
   simp [dijkstraStep, eq_comm]
 
 lemma dijkstraStep_snd_getElem_eq_top (g : G) (c : Info → CostType)
-    [AddCommMonoid CostType] [LinearOrder CostType] [IsOrderedAddMonoid CostType]
+    [AddCommMonoid CostType] [LinearOrder CostType]
     {DistArray : Type*} [Inhabited DistArray] [AssocArray DistArray V (WithTop CostType) ⊤]
     {DistHeap : Type*} [Inhabited DistHeap] [IndexedMinHeap DistHeap V (WithTop CostType)]
     (heap : DistHeap) (res : DistArray) (hMinIdx : heap[minIdx heap] ≠ ⊤) (v : V) :
@@ -422,7 +422,7 @@ lemma dijkstraStep_snd_getElem_eq_top (g : G) (c : Info → CostType)
   · simp [h]
 
 lemma dijkstraStep_snd_support (g : G) (c : Info → CostType)
-    [AddCommMonoid CostType] [LinearOrder CostType] [IsOrderedAddMonoid CostType]
+    [AddCommMonoid CostType] [LinearOrder CostType]
     {DistArray : Type*} [Inhabited DistArray] [AssocArray DistArray V (WithTop CostType) ⊤]
     {DistHeap : Type*} [Inhabited DistHeap] [IndexedMinHeap DistHeap V (WithTop CostType)]
     (heap : DistHeap) (res : DistArray) (hMinIdx : heap[minIdx heap] ≠ ⊤) :
@@ -433,7 +433,7 @@ lemma dijkstraStep_snd_support (g : G) (c : Info → CostType)
   tauto
 
 lemma dijkstraStep_fst_getElem' (g : G) (c : Info → CostType)
-    [DecidableEq V] [AddCommMonoid CostType] [LinearOrder CostType] [IsOrderedAddMonoid CostType]
+    [DecidableEq V] [AddCommMonoid CostType] [LinearOrder CostType]
     {DistArray : Type*} [Inhabited DistArray] [AssocArray DistArray V (WithTop CostType) ⊤]
     {DistHeap : Type*} [Inhabited DistHeap] [IndexedMinHeap DistHeap V (WithTop CostType)]
     (heap : DistHeap) (res : DistArray) (hMinIdx : heap[minIdx heap] ≠ ⊤)
@@ -471,7 +471,7 @@ lemma dijkstraStep_fst_getElem' (g : G) (c : Info → CostType)
 
 lemma dijkstraStep_fst_getElem (g : G) (c : Info → CostType)
     [DecidableEq V] [DecidableEq Info]
-    [AddCommMonoid CostType] [LinearOrder CostType] [IsOrderedAddMonoid CostType]
+    [AddCommMonoid CostType] [LinearOrder CostType]
     {DistArray : Type*} [Inhabited DistArray] [AssocArray DistArray V (WithTop CostType) ⊤]
     {DistHeap : Type*} [Inhabited DistHeap] [IndexedMinHeap DistHeap V (WithTop CostType)]
     (heap : DistHeap) (res : DistArray) (hMinIdx : heap[minIdx heap] ≠ ⊤)
@@ -497,7 +497,7 @@ lemma dijkstraStep_fst_getElem (g : G) (c : Info → CostType)
     exact ⟨x, hx, rfl, rfl⟩
 
 lemma dijkstraStep_fst_getElem_eq_top (g : G) (c : Info → CostType)
-    [AddCommMonoid CostType] [LinearOrder CostType] [IsOrderedAddMonoid CostType]
+    [AddCommMonoid CostType] [LinearOrder CostType]
     {DistArray : Type*} [Inhabited DistArray] [AssocArray DistArray V (WithTop CostType) ⊤]
     {DistHeap : Type*} [Inhabited DistHeap] [IndexedMinHeap DistHeap V (WithTop CostType)]
     (heap : DistHeap) (res : DistArray) (hMinIdx : heap[minIdx heap] ≠ ⊤)
@@ -520,7 +520,7 @@ lemma dijkstraStep_fst_getElem_eq_top (g : G) (c : Info → CostType)
   rfl
 
 lemma dijkstraStep_fst_support (g : G) (c : Info → CostType)
-    [AddCommMonoid CostType] [LinearOrder CostType] [IsOrderedAddMonoid CostType]
+    [AddCommMonoid CostType] [LinearOrder CostType]
     {DistArray : Type*} [Inhabited DistArray] [AssocArray DistArray V (WithTop CostType) ⊤]
     {DistHeap : Type*} [Inhabited DistHeap] [IndexedMinHeap DistHeap V (WithTop CostType)]
     (heap : DistHeap) (res : DistArray) (hMinIdx : heap[minIdx heap] ≠ ⊤)
@@ -535,8 +535,7 @@ lemma dijkstraStep_fst_support (g : G) (c : Info → CostType)
   tauto
 
 lemma dijkstraStep_spec (g : G) (c : Info → CostType)
-    [AddCommMonoid CostType] [LinearOrder CostType] [IsOrderedAddMonoid CostType]
-    [CanonicallyOrderedAdd CostType]
+    [AddCommMonoid CostType] [LinearOrder CostType] [CanonicallyOrderedAdd CostType]
     {DistArray : Type*} [Inhabited DistArray] [AssocArray DistArray V (WithTop CostType) ⊤]
     {DistHeap : Type*} [Inhabited DistHeap] [IndexedMinHeap DistHeap V (WithTop CostType)]
     (init : DistHeap) (heap : DistHeap) (res : DistArray)
@@ -678,8 +677,7 @@ lemma dijkstraStep_spec (g : G) (c : Info → CostType)
       tauto
 
 def dijkstra (g : G) (c : Info → CostType)
-    [Fintype V] [AddCommMonoid CostType] [LinearOrder CostType] [IsOrderedAddMonoid CostType]
-    [CanonicallyOrderedAdd CostType]
+    [Fintype V] [AddCommMonoid CostType] [LinearOrder CostType] [CanonicallyOrderedAdd CostType]
     (DistArray : Type*) [Inhabited DistArray] [AssocArray DistArray V (WithTop CostType) ⊤]
     {DistHeap : Type*} [Inhabited DistHeap] [IndexedMinHeap DistHeap V (WithTop CostType)]
     (init : DistHeap) :
@@ -714,8 +712,7 @@ termination_by Fintype.card {v : V | res[v] = ⊤}
     · simp [traversal, default]
 
 lemma dijkstra_spec (g : G) (c : Info → CostType)
-    [Fintype V] [AddCommMonoid CostType] [LinearOrder CostType] [IsOrderedAddMonoid CostType]
-    [CanonicallyOrderedAdd CostType]
+    [Fintype V] [AddCommMonoid CostType] [LinearOrder CostType] [CanonicallyOrderedAdd CostType]
     (DistArray : Type*) [Inhabited DistArray] [AssocArray DistArray V (WithTop CostType) ⊤]
     {DistHeap : Type*} [Inhabited DistHeap] [IndexedMinHeap DistHeap V (WithTop CostType)]
     (init : DistHeap) (v : V) :
