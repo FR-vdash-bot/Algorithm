@@ -371,7 +371,7 @@ lemma isDist_union {g : G}
   rfl
 
 def dijkstraStep (g : G) (c : Info → CostType)
-    [AddCommMonoid CostType] [LinearOrder CostType] [IsOrderedAddMonoid CostType]
+    [AddCommMonoid CostType] [LinearOrder CostType]
     {DistArray : Type*} [Inhabited DistArray] [AssocArray DistArray V (WithTop CostType) ⊤]
     {DistHeap : Type*} [Inhabited DistHeap] [IndexedMinHeap DistHeap V (WithTop CostType)]
     (heap : DistHeap) (res : DistArray)
