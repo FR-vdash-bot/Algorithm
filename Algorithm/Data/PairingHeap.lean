@@ -5,7 +5,7 @@ Authors: Yuyang Zhao
 -/
 import Algorithm.Data.Classes.MinHeap
 import Batteries.Data.PairingHeap
-import Mathlib.Data.Multiset.OrderedMonoid
+import Mathlib.Algebra.Order.Group.Multiset
 import Mathlib.Tactic.Abel
 
 namespace Batteries
