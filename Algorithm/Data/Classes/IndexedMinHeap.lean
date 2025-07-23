@@ -137,7 +137,7 @@ lemma mk_lt_mk [LT α] {x y : α} {xi yi : ι} :
 instance [Preorder α] : Preorder (AssocArrayWithHeap.WithIdx α ι) where
   le_refl _ := le_refl _
   le_trans _ _ _ := le_trans
-  lt_iff_le_not_le _ _ := lt_iff_le_not_le
+  lt_iff_le_not_ge _ _ := lt_iff_le_not_ge
 
 instance [Preorder α] [IsTotal α (· ≤ ·)] :
     IsTotal (AssocArrayWithHeap.WithIdx α ι) (· ≤ ·) where

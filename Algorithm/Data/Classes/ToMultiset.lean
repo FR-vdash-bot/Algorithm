@@ -76,7 +76,6 @@ lemma toMultiset_of_isEmpty {c : C} (h : isEmpty c) : toMultiset c = 0 := by
 @[simp]
 lemma toMultiset_list (l : List α) : toMultiset l = ↑l := rfl
 
-@[simp]
 lemma ToMultiset.not_isEmpty_of_mem {c : C} {x} (hx : x ∈ c) : ¬isEmpty c := by
   simpa [size_eq_card_toMultiset, Multiset.eq_zero_iff_forall_notMem] using ⟨x, hx⟩
 
