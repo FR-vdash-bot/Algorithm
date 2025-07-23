@@ -2,8 +2,8 @@ import Lake
 
 open Lake DSL
 
-require "leanprover-community" / "mathlib" @ git "v4.20.0"
-require "leanprover" / "doc-gen4" @ git "v4.20.0"
+require "leanprover-community" / "mathlib" @ git "v4.21.0-rc1"
+require "leanprover" / "doc-gen4" @ git "v4.21.0-rc1"
 
 abbrev algorithmOnlyLinters : Array LeanOption := #[
   ⟨`linter.allScriptsDocumented, true⟩,
