@@ -249,7 +249,7 @@ instance [Preorder α] [IsTotal α (· ≤ ·)] [DecidableRel (α := α) (· ≤
     | ⟨.node a c .nil, _⟩ =>
       simp? [Membership.IsEmpty.isEmpty, isEmpty, PairingHeapImp.Heap.isEmpty, tail,
           PairingHeapImp.Heap.tail, toMultiset, toListUnordered, PairingHeapImp.Heap.tail?,
-          PairingHeapImp.Heap.deleteMin, -Multiset.coe_eq_coe, -Multiset.coe_erase] says
+          PairingHeapImp.Heap.deleteMin, - Multiset.coe_eq_coe, - Multiset.coe_erase] says
         simp only [toMultiset, toListUnordered, tail, PairingHeapImp.Heap.tail,
           PairingHeapImp.Heap.tail?, PairingHeapImp.Heap.deleteMin, Option.map_some,
           Option.getD_some, PairingHeapImp.Heap.coe_toListUnordered_combine,
