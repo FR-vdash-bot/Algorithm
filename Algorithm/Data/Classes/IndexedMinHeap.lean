@@ -178,7 +178,7 @@ lemma getElem_minIdx (c : AssocArrayWithHeap C C') (h : ¬isEmpty c.minHeap) :
   c.getElem_minIdx' h
 
 instance : Inhabited (AssocArrayWithHeap C C') where
-  default := ⟨default, ∅, by simp, by simp [size_eq_card_toMultiset]⟩
+  default := ⟨default, ∅, by simp, by simp [sizeTM_eq_card_toMultiset, isEmpty_iff_sizeTM_eq_zero]⟩
 
 def mk [DecidableEq α] (assocArray : C) (minHeap : C')
     (mem_minHeap : ∀ i : ι, (hi : assocArray[i] ≠ ⊤) → ⟨(assocArray[i]).untop hi, i⟩ ∈ minHeap) :
@@ -189,8 +189,8 @@ def mk [DecidableEq α] (assocArray : C) (minHeap : C')
     ⟨assocArray, minHeap, mem_minHeap, fun _ ↦ h'⟩
   else
     haveI : DecidableEq (WithIdx α ι) := by classical infer_instance
-    have : size (MinHeap.tail minHeap) < size minHeap := by
-      simpa [h, size_eq_card_toMultiset, Multiset.card_erase_lt_of_mem] using
+    have : sizeTM (MinHeap.tail minHeap) < sizeTM minHeap := by
+      simpa [h, sizeTM_eq_card_toMultiset, Multiset.card_erase_lt_of_mem] using
         Multiset.card_erase_lt_of_mem (MinHeap.head_mem_toMultiset _ _)
     mk assocArray (MinHeap.tail minHeap) fun i hi ↦ by
       simp only [← mem_toMultiset, MinHeap.toMultiset_tail, h, Bool.false_eq_true, ↓reduceDIte,
@@ -200,7 +200,7 @@ def mk [DecidableEq α] (assocArray : C) (minHeap : C')
       · intro h''
         apply h'
         simp [← h'', MinHeap.head_def]
-termination_by size minHeap
+termination_by sizeTM minHeap
 
 @[simp, nolint unusedHavesSuffices] -- false positive
 lemma mk_assocArray [DecidableEq α] (assocArray : C) (minHeap : C')
@@ -256,28 +256,11 @@ instance [Inhabited ι] [DecidableEq α] :
     · suffices ∀ i : ι, c[i] = ⊤ by simp [this]
       intro i
       contrapose h with hi
-      simpa [size_eq_card_toMultiset, Multiset.eq_zero_iff_forall_notMem] using
-        ⟨_, c.mem_minHeap i hi⟩
+      simpa [sizeTM_eq_card_toMultiset, Multiset.eq_zero_iff_forall_notMem,
+        isEmpty_iff_sizeTM_eq_zero] using ⟨_, c.mem_minHeap i hi⟩
     · rw [getElem_minIdx c h, WithTop.coe_le_iff]
       intro x hx
       refine (WithIdx.le_def.mp <| MinHeap.head_le c.minHeap _ (c.mem_minHeap i ?_)).trans ?_ <;>
         simp [hx]
-  -- 我们不能定义一个无需操作堆的 `decreaseKey`，除非假设 `LinearOrder`。
-  -- 考虑有无法通过比较区分的 `x` 和 `x'`， `fun | 0 ↦ x + 1 | 1 ↦ x'`
-  -- 堆中按顺序为 `(x', 1)` `(x, 0)` `(x + 1, 0)`
-  -- 将 `0` 处更新为 `x'`，堆可以变为 `(x, 0)` `(x', 0)` `(x', 1)` `(x + 1, 0)`
-  -- 此时必须操作堆弹出 `(x, 0)`
-  -- decreaseKey c i x hx := ⟨AssocArray.set c.assocArray i x,
-  --   insert ⟨x.untop (hx.trans_le le_top).ne, i⟩ c.minHeap,
-  --   by
-  --     haveI : DecidableEq ι := by classical infer_instance
-  --     intro j hj
-  --     simp? [Function.update_apply] at hj ⊢ says
-  --       simp only [AssocDArray.getElem_set, Function.update_apply, AssocDArray.get_eq_getElem,
-  --         assocArray_getElem, ne_eq] at hj ⊢
-  --     rw [ToMultiset.mem_iff, toMultiset_insert, Multiset.mem_cons]
-  --     split_ifs at hj ⊢ with hji
-  --     · simp [hji]
-  --     · exact .inr <| c.mem_minHeap j hj,
 
 end AssocArrayWithHeap
