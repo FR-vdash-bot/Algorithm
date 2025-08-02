@@ -40,13 +40,13 @@ class AssocDArray (C : Type*) [Inhabited C] (ι : outParam Type*)
     AssocDArray.ReadOnly C ι α d, GetSetElemAllValid C ι α where
   getElem_default i : (default : C)[i] = d i
 
-abbrev AssocArray.ReadOnly (C : Type*) (ι : outParam Type*)
+abbrev DefaultDict.ReadOnly (C : Type*) (ι : outParam Type*)
     (α : outParam Type*) (d : outParam α) :=
   AssocDArray.ReadOnly C ι α (fun _ ↦ d)
 
-/-- `AssocArray C ι α d` is a data structure that acts like a finitely supported function
+/-- `DefaultDict C ι α d` is a data structure that acts like a finitely supported function
   `ι →₀' [α, d]` with single point update operation. -/
-abbrev AssocArray (C : Type*) [Inhabited C] (ι : outParam Type*)
+abbrev DefaultDict (C : Type*) [Inhabited C] (ι : outParam Type*)
     (α : outParam Type*) (d : outParam α) :=
   AssocDArray C ι α (fun _ ↦ d)
 
@@ -90,24 +90,24 @@ instance : AssocDArray (Vector.WithDefault α n f) (Fin n) α f where
 
 end Vector.WithDefault
 
-namespace AssocArray
+namespace DefaultDict
 
 export AssocDArray (getElem_default)
 
 class Ext (C : Type*) [Inhabited C] (ι : outParam Type*) (α : outParam Type*)
-    (d : outParam α) [AssocArray C ι α d] : Prop where
+    (d : outParam α) [DefaultDict C ι α d] : Prop where
   ext : ∀ {m₁ m₂ : C}, (∀ i : ι, m₁[i] = m₂[i]) → m₁ = m₂
 
-variable {C : Type*} [Inhabited C] {ι : Type*} {α : Type*} {d : α} [AssocArray C ι α d]
+variable {C : Type*} [Inhabited C] {ι : Type*} {α : Type*} {d : α} [DefaultDict C ι α d]
 
 variable (C)
 
 protected def Quotient := @Quotient C (Setoid.ker (fun (a : C) (i : ι) ↦ a[i]))
 
-instance : Inhabited (AssocArray.Quotient C) :=
+instance : Inhabited (DefaultDict.Quotient C) :=
   inferInstanceAs <| Inhabited (@Quotient C (Setoid.ker _))
 
-instance : AssocArray (AssocArray.Quotient C) ι α d where
+instance : DefaultDict (DefaultDict.Quotient C) ι α d where
   getElem c i _ := Quotient.lift (·[·] : C → ι → α) (fun _ _ ↦ id) c i
   setElem q i v := q.map' (·[i ↦ v]) fun _ _ hm ↦ funext fun j ↦ by
     classical simp [congrFun hm j]
@@ -120,7 +120,7 @@ instance : AssocArray (AssocArray.Quotient C) ι α d where
     induction a using Quotient.ind
     exact coe_toDFinsupp'_eq_getElem _
 
-instance : Ext (AssocArray.Quotient C) ι α d where
+instance : Ext (DefaultDict.Quotient C) ι α d where
   ext {m₁ m₂} := m₂.inductionOn <| m₁.inductionOn (fun _ _ ha ↦ Quotient.sound <| funext ha)
 export Ext (ext)
 
@@ -171,7 +171,7 @@ abbrev toOfFn [Fintype ι] (f : ι → α) : OfFn C ι α f where
     convert (getElem_indicator _ _ _).trans <| dif_pos <| Finset.mem_univ _
     classical infer_instance
 
-end AssocArray
+end DefaultDict
 
 class HasDefaultAssocDArray (ι : Type u) (α : Type v) (f : ι → α)
     (DefaultAssocDArray : outParam <| Type max u v)
