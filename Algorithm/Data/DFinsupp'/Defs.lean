@@ -315,7 +315,7 @@ theorem equivFunOnFintype_single [Fintype ι] (i : ι) (m : β i) :
     DFinsupp'.equivFunOnFintype (DFinsupp'.single d i m) = Function.update d i m := by
   ext x
   dsimp [Function.update]
-  simp [DFinsupp'.single_eq_functionUpdate, @eq_comm _ i]
+  simp [@eq_comm _ i]
 
 @[simp]
 theorem equivFunOnFintype_symm_single [Fintype ι] (i : ι) (m : β i) :
@@ -603,7 +603,7 @@ theorem support_erase (i : ι) (f : Π₀' i, [β i, d i]) :
     (f.erase i).support = f.support.erase i := by
   ext j
   by_cases h1 : j = i
-  · simp only [h1, mem_support_toFun, erase_apply, ite_true, ne_eq, not_true, not_not,
+  · simp only [h1, mem_support_toFun, erase_apply, ite_true, ne_eq, not_true,
     Finset.mem_erase, false_and]
   · by_cases h2 : f j ≠ d j <;> simp at h2 <;> simp [h1, h2]
 

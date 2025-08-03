@@ -561,11 +561,10 @@ lemma dijkstraStep_spec (g : G) (c : Info → CostType)
     rw [isLeastOfEdges_congr (dijkstraStep_snd_support _ _ _ _ _)]
     rw [isLeastOfEdges_congr Set.union_singleton.symm]
     rw [isLeastOfEdges_union]
-    simp only [ne_eq, Set.mem_setOf_eq, dijkstraStep_snd_getElem,
-      dijkstraStep_fst_getElem (spec₁ := h₁)]
+    simp only [ne_eq, Set.mem_setOf_eq, dijkstraStep_snd_getElem]
     by_cases wmin : w = minIdx heap
     · subst wmin
-      simp [hMinIdx] at resw
+      simp at resw
     · simp only [ne_eq, wmin, not_false_eq_true, true_and, min_def, Finset.le_inf_iff,
         Finset.mem_univ, forall_true_left] at resw ⊢
       split_ifs with he
@@ -621,8 +620,7 @@ lemma dijkstraStep_spec (g : G) (c : Info → CostType)
     · simp only [ne_eq, wmin, not_false_eq_true, true_and] at resw ⊢
       exact h₃ w resw
     rw [not_not] at wmin; subst wmin
-    simp only [ne_eq, not_true_eq_false, false_and, not_false_eq_true, Set.mem_setOf_eq,
-      ↓reduceIte]
+    simp only [ne_eq, Set.mem_setOf_eq, ↓reduceIte]
     simp only [ne_eq, Set.mem_setOf_eq, isLeastOfEdges_iff, WithTop.coe_untop, exists_prop,
       isDist'_iff] at h₂ h₃ ⊢
     constructor
@@ -664,7 +662,7 @@ lemma dijkstraStep_spec (g : G) (c : Info → CostType)
         (min_le_right _ _).trans <| (h₂ v hv evw).trans (add_le_add_right h₃ _)
   · intro v
     -- simp? [dijkstraStep_snd_getElem_eq_top, dijkstraStep_fst_getElem_eq_top (spec₁ := h₁), h₄]
-    simp only [ne_eq, h₄, dijkstraStep_snd_support, not_and,
+    simp only [ne_eq, h₄, dijkstraStep_snd_support,
       dijkstraStep_fst_getElem_eq_top (spec₁ := h₁), mem_succSet_iff, Set.mem_singleton_iff,
       exists_eq_left]
     rw [traversal_insert]
@@ -693,7 +691,7 @@ where
       let hr := g..dijkstraStep c heap res hh
       have : Fintype.card {v : V | hr.2[v] = ⊤} < Fintype.card {v : V | res[v] = ⊤} := by
         letI : DecidableEq V := by classical infer_instance
-        simp only [dijkstraStep_snd_getElem_eq_top, ne_eq, Set.coe_setOf, Set.mem_setOf_eq, hr]
+        simp only [dijkstraStep_snd_getElem_eq_top, ne_eq, Set.coe_setOf, hr]
         exact Fintype.card_lt_of_injective_of_notMem (fun ⟨v, hv⟩ ↦ ⟨v, hv.2⟩)
           (by intro ⟨v, hv⟩ ⟨w, hw⟩; simp)
           (b := ⟨minIdx heap, (spec.1 _).resolve_left hh⟩) (by simp)
@@ -701,15 +699,15 @@ where
 termination_by Fintype.card {v : V | res[v] = ⊤}
   spec_init : dijkstraStep.Spec g c init init default := by
     constructor
-    · simp [default]
-    · simp only [AssocDArray.getElem_default, default, Function.const_apply, ne_eq,
+    · simp
+    · simp only [AssocDArray.getElem_default, ne_eq,
         not_true_eq_false, IsEmpty.forall_iff, implies_true, and_true, Set.mem_setOf_eq,
         forall_true_left]
       intro h
       use ⊤
-      simp [isLeastOfEdges_iff, default]
-    · simp [default]
-    · simp [traversal, default]
+      simp [isLeastOfEdges_iff]
+    · simp
+    · simp [traversal]
 
 lemma dijkstra_spec (g : G) (c : Info → CostType)
     [Fintype V] [AddCommMonoid CostType] [LinearOrder CostType] [CanonicallyOrderedAdd CostType]
