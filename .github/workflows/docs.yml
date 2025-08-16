@@ -6,6 +6,7 @@ on:
       - master
   pull_request:
 
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
   pages: write
@@ -21,11 +22,7 @@ jobs:
           rm -rf $HOME/.elan
           rm -rf $HOME/.cache/mathlib
 
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-          lfs: true
+      - uses: actions/checkout@v4
 
       - name: install elan
         run: |
@@ -45,7 +42,7 @@ jobs:
 
       - name: build doc-gen4
         run: |
-          lake build doc-gen4
+          env DISABLE_EQUATIONS=1 lake build doc-gen4
 
       - name: build import graph
         run: |
