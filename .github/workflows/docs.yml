@@ -6,6 +6,7 @@ on:
       - master
   pull_request:
 
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
   pages: write
@@ -45,7 +46,7 @@ jobs:
 
       - name: build doc-gen4
         run: |
-          lake build doc-gen4
+          env DISABLE_EQUATIONS=1 lake build doc-gen4
 
       - name: build import graph
         run: |
