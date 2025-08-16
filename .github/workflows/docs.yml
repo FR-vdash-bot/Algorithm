@@ -22,12 +22,6 @@ jobs:
           rm -rf $HOME/.elan
           rm -rf $HOME/.cache/mathlib
 
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-          lfs: true
-
       - name: install elan
         run: |
           set -o pipefail
