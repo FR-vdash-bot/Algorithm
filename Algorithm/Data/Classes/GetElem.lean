@@ -36,7 +36,7 @@ class GetSetElem (C : Type*) (ι : Type*) (α : outParam Type*)
 export GetSetElem (valid_setElem getElem_setElem_self getElem_setElem_of_ne)
 
 attribute [getElem_simps] valid_setElem
-attribute [simp] getElem_setElem_self getElem_setElem_of_ne
+attribute [getElem_simps, simp] getElem_setElem_self getElem_setElem_of_ne
 
 lemma valid_setElem_self [GetSetElem C ι α Valid] {c : C} {i : ι} {x} :
     Valid c[i ↦ x] i := by
@@ -69,7 +69,7 @@ class GetSetEraseElem (C : Type*) (ι : Type*) (α : outParam Type*)
 export GetSetEraseElem (valid_erase getElem_erase_of_ne)
 
 attribute [getElem_simps] valid_erase
-attribute [simp] getElem_erase_of_ne
+attribute [getElem_simps, simp] getElem_erase_of_ne
 
 lemma not_valid_erase_self [GetSetEraseElem C ι α Valid] {c : C} {i : ι} :
     ¬Valid (erase c i) i := by
@@ -151,7 +151,7 @@ export GetElemAllValid (all_valid)
 
 attribute [simp] all_valid
 
-macro_rules | `(tactic| get_elem_tactic_trivial) => `(tactic| exact GetElemAllValid.all_valid)
+macro_rules | `(tactic| get_elem_tactic_extensible) => `(tactic| exact GetElemAllValid.all_valid)
 
 class GetSetElemAllValid (C : Type*) (ι : Type*) (α : outParam Type*) extends
     GetElemAllValid C ι α, SetElem C ι α where

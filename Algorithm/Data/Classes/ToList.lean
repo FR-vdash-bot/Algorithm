@@ -252,7 +252,7 @@ instance : Front (Array α) α where
   front c h := c[0]'(by simp_rw [isEmpty_iff_size_eq_zero, size] at h; omega)
   frontD_def := by simp
   front_mem _ := by
-    simp [size, ← ne_eq, ← Array.toList_eq_nil_iff, ← List.length_pos_iff_ne_nil]
+    simp [← ne_eq]
 
 instance : Back (Array α) α where
   back? := Array.back?
